@@ -86,27 +86,30 @@ body {
 /* ==========================================================================
    3. Hero 封面 Banner (Hero Banner)
    ========================================================================== */
+
 .ref-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-    color: #ffffff;
+    /* 改為意見箱同款的活力黃色漸層 */
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    color: #0f172a; /* 文字改為深色以利清晰閱讀 */
     text-align: center;
     padding: 60px 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(234, 179, 8, 0.25);
 }
 
 .ref-hero-logo {
     width: 80px;
     height: auto;
     margin-bottom: 15px;
-    /* 將校徽設為純黑，並在暗色背景加上白色發光襯托，兼具黑色特色與清晰度 */
-    filter: brightness(0) drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.8));
+    /* 校徽維持黑色效果，襯托在黃色背景上極其醒目 */
+    filter: brightness(0);
 }
 
 .ref-hero h1 {
     font-size: 2.2rem;
     margin-bottom: 12px;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 1px;
+    color: #0f172a;
 }
 
 .ref-hero p {
@@ -114,11 +117,13 @@ body {
     opacity: 0.9;
     max-width: 600px;
     margin: 0 auto 25px auto;
+    color: #1e293b;
+    font-weight: 500;
 }
 
 .ref-cta-btn {
     display: inline-block;
-    background-color: #2563eb;
+    background-color: #0f172a; /* 按鈕搭配黑底白字，質感極佳 */
     color: #ffffff;
     font-size: 1.1rem;
     font-weight: bold;
@@ -126,14 +131,14 @@ body {
     border-radius: 30px;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
 .ref-cta-btn:hover {
-    background-color: #1d4ed8;
+    background-color: #1e293b;
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
 }
-
 /* ==========================================================================
    4. 主要內容區與「意見箱」風格容器 (Container & Opinion Box)
    ========================================================================== */
