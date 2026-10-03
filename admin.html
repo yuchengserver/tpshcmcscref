@@ -3,73 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡台校學生會 - 公投後台管理</title>
+    <title>胡台校學生會 - 後台管理</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* 鎖定後台遮罩 */
         .admin-auth-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
         .admin-auth-card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+            background: #ffffff; padding: 30px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px;
+            text-align: center; border-top: 5px solid #0f172a;
         }
-        .admin-auth-card h3 { margin-bottom: 15px; color: #1e293b; }
-        .admin-auth-card input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-        .admin-auth-card button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 12px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .admin-auth-card button:hover { background: #1d4ed8; }
+        .admin-auth-card input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        .admin-auth-card button { width: 100%; padding: 10px; margin-top: 12px; background: #0f172a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .auth-error { color: #ef4444; font-size: 0.9em; margin-top: 8px; display: none; }
     </style>
 </head>
 <body>
 
-    <!-- 🔒 後台帳號與密碼驗證彈窗 -->
     <div class="admin-auth-overlay" id="authOverlay">
         <div class="admin-auth-card">
             <h3>🔒 管理員身份驗證</h3>
-            <p style="color: #64748b; font-size: 0.9em; margin-bottom: 12px;">請輸入後台管理帳號與密碼以存取系統</p>
-            
-            <input type="text" id="adminUserInput" placeholder="請輸入管理員帳號" onkeypress="if(event.key==='Enter') checkAdminAuth()">
-            <input type="password" id="adminPassInput" placeholder="請輸入管理員密碼" onkeypress="if(event.key==='Enter') checkAdminAuth()">
-            
-            <button onclick="checkAdminAuth()">安全登入</button>
-            <p class="auth-error" id="authError">帳號或密碼錯誤，請重新輸入！</p>
+            <p style="color: #64748b; font-size: 0.9em; margin-bottom: 12px;">請輸入帳號與密碼</p>
+            <input type="text" id="adminUserInput" placeholder="管理員帳號" onkeypress="if(event.key==='Enter') checkAdminAuth()">
+            <input type="password" id="adminPassInput" placeholder="管理員密碼" onkeypress="if(event.key==='Enter') checkAdminAuth()">
+            <button onclick="checkAdminAuth()">登入</button>
+            <p class="auth-error" id="authError">帳號或密碼錯誤！</p>
         </div>
     </div>
 
-    <!-- 頂部導覽列 -->
     <nav class="ref-navbar">
         <div class="ref-nav-container">
             <a href="index.html" class="ref-nav-brand">
@@ -78,42 +42,59 @@
             </a>
             <div class="ref-nav-links">
                 <a href="index.html" class="ref-nav-item">公投首頁</a>
-                <a href="results.html" class="ref-nav-item">開票結果</a>
+                <a href="results.html" class="ref-nav-item">開票與意見結果</a>
                 <a href="admin.html" class="ref-nav-item active ref-admin-btn">⚙️ 後台管理</a>
             </div>
         </div>
     </nav>
 
-    <!-- 主要內容區 -->
-    <main class="ref-container" style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
+    <main class="ref-container" style="max-width: 800px; margin: 40px auto;">
         
-        <!-- 新增提案 (意見箱風格區塊) -->
-        <section class="ref-info-box" style="margin-bottom: 30px; background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <h2 style="margin-bottom: 15px; color: #0f172a;">📮 發起新公投提案 / 意見徵集</h2>
+        <section class="ref-info-box">
+            <h2 style="margin-bottom: 15px; color: #0f172a;">📮 發起新提案 / 意見徵集</h2>
             <form id="createProposalForm" onsubmit="handleCreateProposal(event)">
+                
+                <!-- 格式選擇 -->
                 <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">提案主題：</label>
-                    <input type="text" id="pTitle" placeholder="例如：是否同意國中部增設休閒運動設施？" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">提案類型格式：</label>
+                    <select id="pType" onchange="toggleOptionsInput()" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; background: white;">
+                        <option value="poll">🗳️ 自訂選項投票 (例如: 同意/不同意/棄權)</option>
+                        <option value="feedback">💬 意見徵集 (學生自由填寫文字繳回)</option>
+                    </select>
                 </div>
+
                 <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">提案詳細說明 / 內容：</label>
-                    <textarea id="pDesc" rows="4" placeholder="請詳細說明此公投的目的與規畫..." required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;"></textarea>
+                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">提案名稱 / 主題：</label>
+                    <input type="text" id="pTitle" placeholder="例如：是否同意國中部增設休閒運動設施？" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
                 </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">詳細內容說明：</label>
+                    <textarea id="pDesc" rows="3" placeholder="請說明提案背景與目的..." required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;"></textarea>
+                </div>
+
+                <!-- 僅在選擇 poll 時顯示自訂選項 -->
+                <div id="optionsGroup" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">自訂投票選項（請用逗號隔開）：</label>
+                    <input type="text" id="pOptions" placeholder="例如：同意,不同意,棄權" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
+                    <small style="color:#64748b;">預設為：同意,不同意</small>
+                </div>
+
                 <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
                     <div style="flex:1; min-width: 200px;">
                         <label style="display:block; margin-bottom: 5px; font-weight:bold;">開始時間：</label>
-                        <input type="datetime-local" id="pStartTime" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+                        <input type="datetime-local" id="pStartTime" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
                     </div>
                     <div style="flex:1; min-width: 200px;">
                         <label style="display:block; margin-bottom: 5px; font-weight:bold;">截止時間：</label>
-                        <input type="datetime-local" id="pEndTime" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+                        <input type="datetime-local" id="pEndTime" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
                     </div>
                 </div>
-                <button type="submit" id="submitBtn" style="background:#059669; color:white; border:none; padding:12px 20px; border-radius:6px; font-size:1em; font-weight:bold; cursor:pointer; width:100%;">🚀 發布新提案</button>
+
+                <button type="submit" id="submitBtn" style="background:#0f172a; color:white; border:none; padding:12px 20px; border-radius:6px; font-size:1em; font-weight:bold; cursor:pointer; width:100%;">🚀 發布新提案</button>
             </form>
         </section>
 
-        <!-- 已發布的公投提案清單 -->
         <section>
             <h2 style="margin-bottom: 15px; color: #0f172a;">📋 目前系統中的提案</h2>
             <div id="adminProposalList">
@@ -125,63 +106,54 @@
 
     <script>
         const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-        
-        // 🔒 後台帳號與密碼設定
         const ADMIN_USERNAME = "tpshcmcscref";
         const ADMIN_PASSWORD = "referendum"; 
 
-        // 檢查帳號與密碼
+        function toggleOptionsInput() {
+            const type = document.getElementById("pType").value;
+            const optionsGroup = document.getElementById("optionsGroup");
+            optionsGroup.style.display = (type === "poll") ? "block" : "none";
+        }
+
         function checkAdminAuth() {
-            const inputUser = document.getElementById("adminUserInput").value;
-            const inputPass = document.getElementById("adminPassInput").value;
-            const errorMsg = document.getElementById("authError");
-            
-            // 同時驗證帳號與密碼
-            if (inputUser === ADMIN_USERNAME && inputPass === ADMIN_PASSWORD) {
+            const u = document.getElementById("adminUserInput").value;
+            const p = document.getElementById("adminPassInput").value;
+            if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) {
                 document.getElementById("authOverlay").style.display = "none";
-                errorMsg.style.display = "none";
                 loadAdminProposals();
             } else {
-                errorMsg.style.display = "block";
+                document.getElementById("authError").style.display = "block";
             }
         }
 
-        // 載入提案列表
         async function loadAdminProposals() {
-            const listContainer = document.getElementById("adminProposalList");
+            const container = document.getElementById("adminProposalList");
             try {
-                const response = await fetch(`${GAS_API}?action=getProposals`);
-                const proposals = await response.json();
+                const res = await fetch(`${GAS_API}?action=getProposals`);
+                const proposals = await res.json();
 
-                // 💡 若完全沒有資料，顯示「目前沒有資料」
                 if (!proposals || proposals.length === 0) {
-                    listContainer.innerHTML = `
-                        <div style="background: #f8fafc; border: 2px dashed #cbd5e1; padding: 40px; text-align: center; border-radius: 12px; color: #64748b;">
-                            📭 目前沒有任何提案資料
-                        </div>`;
+                    container.innerHTML = `<div style="background: white; padding: 30px; text-align: center; border-radius: 8px; color: #64748b;">目前無提案</div>`;
                     return;
                 }
 
-                listContainer.innerHTML = proposals.map(p => `
-                    <div style="background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                            <span style="font-size:0.85em; background:#e2e8f0; padding:2px 8px; border-radius:4px;">ID: #${p.id}</span>
-                            <span style="font-size:0.85em; color:${p.status === 'active' ? '#059669' : '#ef4444'}; font-weight:bold;">
-                                ${p.status === 'active' ? '● 進行中' : '✖ 已截止'}
-                            </span>
+                container.innerHTML = proposals.map(p => `
+                    <div style="background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.85em; background:#e2e8f0; padding:2px 8px; border-radius:4px;">ID: #${p.id} | ${p.type === 'feedback' ? '💬 意見徵集' : '🗳️ 選項投票'}</span>
+                            <span style="font-size:0.85em; color:${p.status === 'active' ? '#059669' : '#ef4444'}; font-weight:bold;">${p.status === 'active' ? '● 進行中' : '✖ 已截止'}</span>
                         </div>
-                        <h3 style="margin:0 0 8px 0; color:#1e293b;">${p.title}</h3>
-                        <p style="color:#475569; font-size:0.95em; margin-bottom:10px;">${p.description}</p>
-                        <p style="color:#94a3b8; font-size:0.85em; margin:0;">🕒 截止時間：${p.end_time}</p>
+                        <h3 style="margin:8px 0; color:#1e293b;">${p.title}</h3>
+                        <p style="color:#475569; font-size:0.95em;">${p.description}</p>
+                        ${p.type === 'poll' ? `<p style="font-size:0.85em; color:#059669; margin-top:5px;">選項：${p.options.join(', ')}</p>` : ''}
+                        <p style="color:#94a3b8; font-size:0.85em; margin-top:5px;">🕒 截止時間：${p.end_time}</p>
                     </div>
-                `).join("");
-
+                `).join('');
             } catch (err) {
-                listContainer.innerHTML = `<p style="color: #ef4444; text-align: center;">載入資料失敗，請檢查 API 連線。</p>`;
+                container.innerHTML = `<p style="color: #ef4444; text-align: center;">載入失敗。</p>`;
             }
         }
 
-        // 新增提案
         async function handleCreateProposal(e) {
             e.preventDefault();
             const btn = document.getElementById("submitBtn");
@@ -190,28 +162,27 @@
 
             const payload = {
                 action: "createProposal",
+                type: document.getElementById("pType").value,
                 title: document.getElementById("pTitle").value,
                 description: document.getElementById("pDesc").value,
+                options: document.getElementById("pOptions").value,
                 start_time: document.getElementById("pStartTime").value.replace("T", " "),
                 end_time: document.getElementById("pEndTime").value.replace("T", " ")
             };
 
             try {
-                const res = await fetch(GAS_API, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
+                const res = await fetch(GAS_API, { method: "POST", body: JSON.stringify(payload) });
                 const result = await res.json();
-                
                 if (result.success) {
-                    alert("✅ 成功發布新提案！");
+                    alert("✅ 成功發布！");
                     document.getElementById("createProposalForm").reset();
+                    toggleOptionsInput();
                     loadAdminProposals();
                 } else {
-                    alert("❌ 發布失敗：" + result.message);
+                    alert("❌ 失敗：" + result.message);
                 }
             } catch (err) {
-                alert("發布失敗，請重試");
+                alert("發布失敗");
             } finally {
                 btn.disabled = false;
                 btn.innerText = "🚀 發布新提案";
