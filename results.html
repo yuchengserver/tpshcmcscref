@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>開票結果 - TPSHCMCSC 公投專區</title>
+    <title>胡台校學生會 - 開票與歷史結果</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,30 +23,55 @@
     </nav>
 
     <main class="ref-container">
-        <h2 class="ref-section-title">📊 歷史公投與開票結果</h2>
-        <div id="resultsList">
-            <p style="color: #64748b;">載入開票結果中...</p>
+        <h2 class="ref-section-title">📊 開票與歷史公投結果</h2>
+        <div id="resultsList" class="ref-proposal-grid">
+            <p style="text-align: center; color: #64748b; grid-column: 1/-1; padding: 40px;">開票結果載入中...</p>
         </div>
     </main>
 
     <script>
-        const GAS_REFERENDUM_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
         async function loadResults() {
-            const res = await fetch(`${GAS_REFERENDUM_API}?action=getProposals`);
-            const proposals = await res.json();
-
             const container = document.getElementById("resultsList");
-            container.innerHTML = proposals.map(p => `
-                <div class="ref-card" style="margin-bottom: 20px;">
-                    <h3>${p.title}</h3>
-                    <p style="color: #475569; margin: 8px 0;">${p.description}</p>
-                    <p style="font-size: 0.85rem; color: #64748b;">🕒 截止時間：${p.end_time}</p>
-                    <div style="margin-top: 15px; padding: 10px; background: #f1f5f9; border-radius: 6px;">
-                        <b>狀態：</b> ${p.status === 'active' ? '🟢 投票進行中（尚未開票）' : '🔴 已截止（統計完成）'}
-                    </div>
-                </div>
-            `).join('');
+            try {
+                const res = await fetch(`${GAS_API}?action=getResults`);
+                const results = await res.json();
+
+                if (!results || results.length === 0) {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; background: white; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 50px 20px; text-align: center; color: #64748b;">
+                            📭 目前尚無已開票的紀錄
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = results.map(r => {
+                    const total = (r.agree || 0) + (r.disagree || 0);
+                    const agreeRatio = total > 0 ? ((r.agree / total) * 100).toFixed(1) : 0;
+                    
+                    return `
+                        <div class="ref-card">
+                            <h3 class="ref-card-title">${r.title}</h3>
+                            <div style="margin: 15px 0;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
+                                    <span>同意：${r.agree || 0} 票</span>
+                                    <span>${agreeRatio}%</span>
+                                </div>
+                                <div style="background:#e2e8f0; border-radius:8px; height:12px; overflow:hidden;">
+                                    <div style="background:#059669; width:${agreeRatio}%; height:100%;"></div>
+                                </div>
+                                <div style="margin-top: 10px; font-size: 0.9em; color:#64748b;">
+                                    不同意：${r.disagree || 0} 票
+                                </div>
+                            </div>
+                            <p style="font-size:0.85em; color:#94a3b8; text-align:right; margin:0;">總投票數：${total} 票</p>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = `<p style="grid-column: 1/-1; color: #ef4444; text-align: center;">開票結果載入失敗。</p>`;
+            }
         }
 
         loadResults();

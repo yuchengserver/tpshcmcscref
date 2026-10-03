@@ -10,14 +10,14 @@
 
 body {
     background-color: #f8fafc;
-    /* 使用 CSS 多重背景：淡白色遮罩 + 黑色化會徽圖案水印 */
+    /* 淡白遮罩 + 黑色化會徽浮水印 */
     background-image: 
         linear-gradient(rgba(248, 250, 252, 0.94), rgba(248, 250, 252, 0.94)),
         url('tpshcmcsc.png');
     background-repeat: no-repeat;
     background-position: center center;
     background-attachment: fixed;
-    background-size: 500px auto; /* 調整浮水印大小 */
+    background-size: 500px auto;
     color: #1e293b;
     line-height: 1.6;
 }
@@ -55,8 +55,7 @@ body {
     width: 45px;
     height: auto;
     margin-right: 10px;
-    /* 確保導覽列校徽呈現純黑色調 */
-    filter: brightness(0);
+    filter: brightness(0); /* 純黑會徽 */
 }
 
 .ref-nav-links {
@@ -84,13 +83,11 @@ body {
 }
 
 /* ==========================================================================
-   3. Hero 封面 Banner (Hero Banner)
+   3. Hero 封面 Banner (意見箱同款黃色漸層)
    ========================================================================== */
-
 .ref-hero {
-    /* 改為意見箱同款的活力黃色漸層 */
     background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
-    color: #0f172a; /* 文字改為深色以利清晰閱讀 */
+    color: #0f172a;
     text-align: center;
     padding: 60px 20px;
     box-shadow: 0 4px 15px rgba(234, 179, 8, 0.25);
@@ -100,8 +97,7 @@ body {
     width: 80px;
     height: auto;
     margin-bottom: 15px;
-    /* 將圖片亮度調至最大並反轉為純白色 */
-    filter: brightness(0) invert(1);
+    filter: brightness(0); /* 黑色會徽 */
 }
 
 .ref-hero h1 {
@@ -123,7 +119,7 @@ body {
 
 .ref-cta-btn {
     display: inline-block;
-    background-color: #0f172a; /* 按鈕搭配黑底白字，質感極佳 */
+    background-color: #0f172a;
     color: #ffffff;
     font-size: 1.1rem;
     font-weight: bold;
@@ -137,10 +133,10 @@ body {
 .ref-cta-btn:hover {
     background-color: #1e293b;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
 }
+
 /* ==========================================================================
-   4. 主要內容區與「意見箱」風格容器 (Container & Opinion Box)
+   4. 主要內容區與意見箱風格容器 (Container & Cards)
    ========================================================================== */
 .ref-container {
     max-width: 1000px;
@@ -148,39 +144,21 @@ body {
     padding: 0 20px;
 }
 
-/* 意見箱/須知區塊樣式 */
-.ref-info-box, .ref-opinion-box {
+.ref-info-box {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-top: 5px solid #0f172a; /* 頂部深色/黑色鋼印感條飾 */
+    border-top: 5px solid #0f172a;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.01);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
     margin-bottom: 40px;
     position: relative;
 }
 
-.ref-info-box::before, .ref-opinion-box::before {
-    content: "📮 意見箱提案投遞";
-    position: absolute;
-    top: -14px;
-    right: 25px;
-    background: #0f172a;
-    color: #ffffff;
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 3px 12px;
-    border-radius: 12px;
-    letter-spacing: 0.5px;
-}
-
-.ref-info-box h2, .ref-info-box h3, .ref-opinion-box h2 {
+.ref-info-box h2, .ref-info-box h3 {
     color: #0f172a;
     margin-bottom: 16px;
     font-size: 1.35rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .ref-info-box ul {
@@ -192,18 +170,13 @@ body {
     margin-bottom: 8px;
 }
 
-/* ==========================================================================
-   5. 提案卡片區與標籤 (Proposals Grid & Badges)
-   ========================================================================== */
+/* 提案卡片區 */
 .ref-section-title {
     font-size: 1.5rem;
     color: #0f172a;
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 10px;
     margin-bottom: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .ref-proposal-grid {
@@ -212,7 +185,6 @@ body {
     gap: 24px;
 }
 
-/* 意見箱風格提案卡片 */
 .ref-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -220,10 +192,6 @@ body {
     padding: 24px;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }
 
 .ref-card:hover {
@@ -231,7 +199,6 @@ body {
     box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
 }
 
-/* 狀態標籤：進行中與已截止 */
 .ref-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -259,7 +226,6 @@ body {
     color: #475569;
     font-size: 0.95rem;
     margin-bottom: 15px;
-    line-height: 1.5;
 }
 
 .ref-card-time {
@@ -287,169 +253,18 @@ body {
     background-color: #1e293b;
 }
 
-/* 空資料預設區塊 */
-.ref-empty-box {
-    background: #ffffff;
-    border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    padding: 50px 20px;
-    text-align: center;
-    color: #64748b;
-    font-size: 1rem;
-    grid-column: 1 / -1;
-}
-
-/* ==========================================================================
-   6. 通用表單控制項 (Form Controls)
-   ========================================================================== */
-.ref-form-group {
-    margin-bottom: 18px;
-}
-
-.ref-form-group label {
-    display: block;
-    font-weight: 600;
-    color: #334155;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-}
-
-.ref-input, .ref-textarea {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    color: #0f172a;
-    background-color: #ffffff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.ref-input:focus, .ref-textarea:focus {
-    outline: none;
-    border-color: #0f172a;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
-}
-
-/* ==========================================================================
-   7. 後台登入彈窗 (Admin Auth Overlay)
-   ========================================================================== */
-.admin-auth-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(6px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.admin-auth-card {
-    background: #ffffff;
-    padding: 36px 32px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    border-top: 5px solid #0f172a;
-}
-
-.admin-auth-card h3 {
-    margin-bottom: 12px;
-    color: #0f172a;
-    font-size: 1.25rem;
-}
-
-.admin-auth-card p {
-    color: #64748b;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-}
-
-.admin-auth-card input {
-    width: 100%;
-    padding: 11px 14px;
-    margin-bottom: 16px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-}
-
-.admin-auth-card input:focus {
-    border-color: #0f172a;
-}
-
-.admin-auth-card button {
-    width: 100%;
-    padding: 12px;
-    background: #0f172a;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.admin-auth-card button:hover {
-    background: #1e293b;
-}
-
-.error-msg {
-    color: #ef4444;
-    font-size: 0.85rem;
-    margin-top: 10px;
-    margin-bottom: 0;
-    display: none;
-}
-
-/* ==========================================================================
-   8. 頁尾 (Footer)
-   ========================================================================== */
-.ref-footer {
-    text-align: center;
-    padding: 30px 20px;
-    color: #64748b;
-    font-size: 0.9rem;
-    margin-top: 50px;
-    border-top: 1px solid #e2e8f0;
-}
-
-/* ==========================================================================
-   9. 響應式排版 (Responsive Design for Mobile)
-   ========================================================================== */
+/* 響應式排版 */
 @media (max-width: 768px) {
     .ref-nav-container {
         flex-direction: column;
         gap: 12px;
     }
-
     .ref-nav-links {
         width: 100%;
         justify-content: center;
         flex-wrap: wrap;
     }
-
-    .ref-hero h1 {
-        font-size: 1.75rem;
-    }
-
-    .ref-hero p {
-        font-size: 0.95rem;
-    }
-
-    .ref-container {
-        margin: 20px auto;
-    }
-
-    .ref-info-box, .ref-opinion-box {
-        padding: 20px;
-    }
+    .ref-hero h1 { font-size: 1.75rem; }
+    .ref-hero p { font-size: 0.95rem; }
+    .ref-container { margin: 20px auto; }
 }

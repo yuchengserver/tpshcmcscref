@@ -55,14 +55,17 @@
 </head>
 <body>
 
-    <!-- 🔒 後台密碼驗證彈窗 -->
+    <!-- 🔒 後台帳號與密碼驗證彈窗 -->
     <div class="admin-auth-overlay" id="authOverlay">
         <div class="admin-auth-card">
             <h3>🔒 管理員身份驗證</h3>
-            <p style="color: #64748b; font-size: 0.9em; margin-bottom: 12px;">請輸入後台管理密碼以存取系統</p>
+            <p style="color: #64748b; font-size: 0.9em; margin-bottom: 12px;">請輸入後台管理帳號與密碼以存取系統</p>
+            
+            <input type="text" id="adminUserInput" placeholder="請輸入管理員帳號" onkeypress="if(event.key==='Enter') checkAdminAuth()">
             <input type="password" id="adminPassInput" placeholder="請輸入管理員密碼" onkeypress="if(event.key==='Enter') checkAdminAuth()">
+            
             <button onclick="checkAdminAuth()">安全登入</button>
-            <p class="auth-error" id="authError">密碼錯誤，請重新輸入！</p>
+            <p class="auth-error" id="authError">帳號或密碼錯誤，請重新輸入！</p>
         </div>
     </div>
 
@@ -123,16 +126,20 @@
     <script>
         const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
         
-        // 🔒 後台密碼設定 (請在此自行修改密碼)
-        const ADMIN_PASSWORD = "tpshcmcscref"; 
+        // 🔒 後台帳號與密碼設定
+        const ADMIN_USERNAME = "tpshcmcscref";
+        const ADMIN_PASSWORD = "referendum"; 
 
-        // 檢查密碼
+        // 檢查帳號與密碼
         function checkAdminAuth() {
+            const inputUser = document.getElementById("adminUserInput").value;
             const inputPass = document.getElementById("adminPassInput").value;
             const errorMsg = document.getElementById("authError");
             
-            if (inputPass === ADMIN_PASSWORD) {
+            // 同時驗證帳號與密碼
+            if (inputUser === ADMIN_USERNAME && inputPass === ADMIN_PASSWORD) {
                 document.getElementById("authOverlay").style.display = "none";
+                errorMsg.style.display = "none";
                 loadAdminProposals();
             } else {
                 errorMsg.style.display = "block";

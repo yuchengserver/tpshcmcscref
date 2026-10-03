@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡台校學生會 - 公投專區</title>
-    <!-- 引入獨立的公投專區 CSS -->
+    <title>胡台校學生會 - 全校學生公投</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,91 +23,79 @@
         </div>
     </nav>
 
-    <!-- 封面 Banner 區 -->
+    <!-- Hero 封面 Banner (意見箱同款) -->
     <header class="ref-hero">
         <img src="tpshcmcsc.png" alt="會徽" class="ref-hero-logo">
         <h1>🗳️ 胡台校學生會 全校學生公投</h1>
-        <p>每一張選票，都是推動校園改變的力量<br>公開 · 公正 · 民主 ── 共同決定我們的校園未來！</p>
-        <a href="vote_page.html" class="ref-cta-btn">前往參與投票 ↓</a>
+        <p>每一張選票，都是推動校園改變的力量<br>公開．公正．民主 —— 共同決定我們的校園未來！</p>
+        <a href="#proposals" class="ref-cta-btn">前往參與投票 ↓</a>
     </header>
 
     <!-- 主要內容區 -->
-    <main class="ref-container">
+    <main class="ref-container" id="proposals">
         
-        <!-- 投票須知 -->
-        <section class="ref-info-section">
-            <div class="ref-info-box">
-                <h3>📌 公投須知事項</h3>
-                <ul>
-                    <li><strong>投票資格：</strong> 本校全體在學學生（含高中部與國中部）皆具備投票資格。</li>
-                    <li><strong>身分驗證：</strong> 需使用學校官方 Google 帳號（@tpshcm.edu.vn）登入驗證。</li>
-                    <li><strong>無記名原則：</strong> 系統僅驗證投票資格與重複投票，投遞結果完全匿名保密。</li>
-                </ul>
-            </div>
+        <!-- 須知事項區塊 -->
+        <section class="ref-info-box">
+            <h2>📌 公投須知事項</h2>
+            <ul>
+                <li><b>投票資格：</b> 本校全體在學學生（含高中部與國中部）皆具備投票資格。</li>
+                <li><b>身份驗證：</b> 需使用學校官方 Google 帳號 (`@tpshcm.edu.vn`) 登入驗證。</li>
+                <li><b>無記名原則：</b> 系統僅驗證投票資格與重複投票，投遞結果完全匿名保密。</li>
+            </ul>
         </section>
 
-        <!-- 進行中的提案列表 -->
-        <section id="active-proposals" class="ref-proposals-section">
-            <h2 class="ref-section-title">🔥 進行中的公投提案</h2>
-            
-            <!-- 將由 JavaScript 動態載入後台設定的提案 -->
-            <div class="ref-proposal-grid" id="proposalGrid">
-                <p style="color: #64748b; grid-column: 1/-1; text-align: center; padding: 20px;">載入公投提案中...</p>
+        <!-- 進行中的公投提案清單 -->
+        <section>
+            <h2 class="ref-section-title">🗳️ 目前進行中的提案</h2>
+            <div class="ref-proposal-grid" id="proposalList">
+                <p style="text-align: center; color: #64748b; grid-column: 1/-1; padding: 40px;">提案載入中...</p>
             </div>
         </section>
 
     </main>
 
-    <!-- 頁尾 -->
     <footer class="ref-footer">
-        <p>胡志明市台灣學校學生會 TPSHCMCSC © 2026</p>
+        <p>© 2026 胡志明市臺灣學校學生會 TPSHCMCSC All Rights Reserved.</p>
     </footer>
 
-    <!-- 串接 GAS 後端的 JavaScript 腳本 -->
     <script>
-        // 帶入你的 GAS Web App API 網址
-        const GAS_REFERENDUM_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
         async function loadProposals() {
-            const gridContainer = document.getElementById("proposalGrid");
-            
+            const container = document.getElementById("proposalList");
             try {
-                const response = await fetch(`${GAS_REFERENDUM_API}?action=getProposals`);
-                const proposals = await response.json();
+                const res = await fetch(`${GAS_API}?action=getProposals`);
+                const proposals = await res.json();
 
-                if (!proposals || proposals.length === 0) {
-                    gridContainer.innerHTML = `<p style="color: #64748b; grid-column: 1/-1; text-align: center; padding: 20px;">目前尚無進行中的公投提案。</p>`;
+                const activeProposals = proposals.filter(p => p.status === 'active');
+
+                if (activeProposals.length === 0) {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; background: white; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 50px 20px; text-align: center; color: #64748b;">
+                            📭 目前尚無進行中的公投提案
+                        </div>`;
                     return;
                 }
 
-                gridContainer.innerHTML = proposals.map(p => {
-                    const isActive = p.status === 'active';
-                    return `
-                        <div class="ref-card">
-                            <span class="ref-badge ${isActive ? 'active' : ''}">
-                                ${isActive ? '● 投票進行中' : '✖ 已截止'}
-                            </span>
+                container.innerHTML = activeProposals.map(p => `
+                    <div class="ref-card">
+                        <div>
+                            <span class="ref-badge active">● 進行中</span>
                             <h3 class="ref-card-title">${p.title}</h3>
                             <p class="ref-card-desc">${p.description}</p>
-                            <div class="ref-card-time">
-                                🕒 截止時間：${p.end_time}
-                            </div>
-                            ${isActive 
-                                ? `<a href="vote_page.html?id=${p.id}" class="ref-vote-btn">進入投票頁面</a>` 
-                                : `<button class="ref-vote-btn" style="background-color: #cbd5e1; cursor: not-allowed;" disabled>投票已結束</button>`
-                            }
                         </div>
-                    `;
-                }).join('');
-
-            } catch (error) {
-                console.error("無法載入提案資料:", error);
-                gridContainer.innerHTML = `<p style="color: #ef4444; grid-column: 1/-1; text-align: center; padding: 20px;">載入提案失敗，請重新整理頁面或連線管理者。</p>`;
+                        <div>
+                            <p class="ref-card-time">🕒 截止時間：${p.end_time}</p>
+                            <a href="vote_page.html?id=${p.id}" class="ref-vote-btn">參與投票</a>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = `<p style="grid-column: 1/-1; color: #ef4444; text-align: center;">資料載入失敗，請稍後再試。</p>`;
             }
         }
 
-        // 頁面載入時觸發
-        document.addEventListener("DOMContentLoaded", loadProposals);
+        loadProposals();
     </script>
 </body>
 </html>
