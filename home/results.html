@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開票結果 - TPSHCMCSC 公投專區</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="ref-navbar">
+        <div class="ref-nav-container">
+            <a href="index.html" class="ref-nav-brand">
+                <img src="tpshcmcsc.png" alt="會徽" class="ref-logo-img">
+                <span class="ref-brand-text">TPSHCMCSC 公投專區</span>
+            </a>
+            <div class="ref-nav-links">
+                <a href="index.html" class="ref-nav-item">公投首頁</a>
+                <a href="results.html" class="ref-nav-item active">開票與歷史結果</a>
+                <a href="admin.html" class="ref-nav-item ref-admin-btn">⚙️ 後台管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="ref-container">
+        <h2 class="ref-section-title">📊 歷史公投與開票結果</h2>
+        <div id="resultsList">
+            <p style="color: #64748b;">載入開票結果中...</p>
+        </div>
+    </main>
+
+    <script>
+        const GAS_REFERENDUM_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+        async function loadResults() {
+            const res = await fetch(`${GAS_REFERENDUM_API}?action=getProposals`);
+            const proposals = await res.json();
+
+            const container = document.getElementById("resultsList");
+            container.innerHTML = proposals.map(p => `
+                <div class="ref-card" style="margin-bottom: 20px;">
+                    <h3>${p.title}</h3>
+                    <p style="color: #475569; margin: 8px 0;">${p.description}</p>
+                    <p style="font-size: 0.85rem; color: #64748b;">🕒 截止時間：${p.end_time}</p>
+                    <div style="margin-top: 15px; padding: 10px; background: #f1f5f9; border-radius: 6px;">
+                        <b>狀態：</b> ${p.status === 'active' ? '🟢 投票進行中（尚未開票）' : '🔴 已截止（統計完成）'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        loadResults();
+    </script>
+</body>
+</html>

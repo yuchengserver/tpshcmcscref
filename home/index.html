@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台管理 - TPSHCMCSC 公投專區</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 管理員登入彈窗 CSS */
+        .admin-auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .admin-auth-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .admin-auth-card h3 {
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+
+        .admin-auth-card input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .admin-auth-card button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .admin-auth-card button:hover {
+            background: #1d4ed8;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 🔒 管理員身分驗證 Modal (強制手動輸入帳號密碼) -->
+    <div id="authOverlay" class="admin-auth-overlay">
+        <div class="admin-auth-card">
+            <h3>🔒 後台管理員登入</h3>
+            <p id="errorMsg" class="error-msg">帳號或密碼錯誤，請重新輸入！</p>
+            <form id="adminLoginForm">
+                <input type="text" id="adminAccount" placeholder="請輸入管理員帳號" required autocomplete="off">
+                <input type="password" id="adminPassword" placeholder="請輸入管理員密碼" required autocomplete="off">
+                <button type="submit">登入驗證</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 導覽列 -->
+    <nav class="ref-navbar">
+        <div class="ref-nav-container">
+            <a href="index.html" class="ref-nav-brand">
+                <span class="ref-brand-text">⚙️ 公投系統後台管理</span>
+            </a>
+            <div class="ref-nav-links">
+                <a href="index.html" class="ref-nav-item">返回公投首頁</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="ref-container">
+        <!-- 發起新公投表單 -->
+        <section class="ref-info-box" style="border-left-color: #f59e0b;">
+            <h2>➕ 發起新公投提案</h2>
+            <form id="createProposalForm" style="margin-top: 15px;">
+                <div style="margin-bottom: 12px;">
+                    <label><b>提案標題：</b></label><br>
+                    <input type="text" id="title" required placeholder="例如：【提案01】是否同意..." style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label><b>提案詳細說明：</b></label><br>
+                    <textarea id="description" rows="4" required placeholder="請輸入本案的背景說明與注意事項..." style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 4px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <label><b>🕒 開始時間：</b></label><br>
+                        <input type="datetime-local" id="start_time" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label><b>⏳ 截止時間：</b></label><br>
+                        <input type="datetime-local" id="end_time" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    </div>
+                </div>
+
+                <button type="submit" class="ref-cta-btn" style="border: none; cursor: pointer;">發布新公投提案</button>
+            </form>
+        </section>
+
+        <!-- 現有提案列表 -->
+        <section>
+            <h2>📋 已發起的公投提案</h2>
+            <div id="adminProposalList" style="margin-top: 15px;">
+                <p>資料載入中...</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const GAS_REFERENDUM_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+        // 🔑 設定管理員帳號與密碼
+        const ADMIN_ACCOUNT = "tpshcmcsc";
+        const ADMIN_PASSWORD = "referendum";
+
+        // 登入表單驗證 (每次開啟皆需手動輸入)
+        document.getElementById("adminLoginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const inputAccount = document.getElementById("adminAccount").value.trim();
+            const inputPassword = document.getElementById("adminPassword").value.trim();
+            const errorMsg = document.getElementById("errorMsg");
+
+            // 比對帳號與密碼
+            if (inputAccount === ADMIN_ACCOUNT && inputPassword === ADMIN_PASSWORD) {
+                document.getElementById("authOverlay").style.display = "none";
+                loadProposals(); // 驗證通過後才載入資料
+            } else {
+                errorMsg.style.display = "block";
+                document.getElementById("adminPassword").value = "";
+            }
+        });
+
+        // 發布新提案
+        document.getElementById("createProposalForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                action: "createProposal",
+                title: document.getElementById("title").value,
+                description: document.getElementById("description").value,
+                start_time: document.getElementById("start_time").value,
+                end_time: document.getElementById("end_time").value
+            };
+
+            const res = await fetch(GAS_REFERENDUM_API, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            if (result.success) {
+                alert("提案發布成功！");
+                location.reload();
+            } else {
+                alert("發布失敗：" + (result.error || result.message));
+            }
+        });
+
+        // 載入提案列表
+        async function loadProposals() {
+            const res = await fetch(`${GAS_REFERENDUM_API}?action=getProposals`);
+            const proposals = await res.json();
+            
+            const listDiv = document.getElementById("adminProposalList");
+            if(!proposals || proposals.length === 0) {
+                listDiv.innerHTML = "<p>目前沒有任何提案。</p>";
+                return;
+            }
+
+            listDiv.innerHTML = proposals.map(p => `
+                <div class="ref-card" style="margin-bottom: 15px;">
+                    <h3>${p.title}</h3>
+                    <p style="color: #475569; margin: 5px 0;">${p.description}</p>
+                    <p style="font-size: 0.85rem; color: #64748b;">
+                        🕒 開始時間：${p.start_time} | ⏳ 截止時間：${p.end_time}
+                    </p>
+                    <p style="margin-top: 5px;"><b>狀態：</b> ${p.status === 'active' ? '🟢 進行中' : '🔴 已截止'}</p>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
