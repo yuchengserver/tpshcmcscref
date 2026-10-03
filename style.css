@@ -10,9 +10,9 @@
 
 body {
     background-color: #f8fafc;
-    /* 使用 CSS 多重背景：淡白/淡藍色遮罩 + 會徽圖案 */
+    /* 使用 CSS 多重背景：淡白色遮罩 + 黑色化會徽圖案水印 */
     background-image: 
-        linear-gradient(rgba(248, 250, 252, 0.92), rgba(248, 250, 252, 0.92)),
+        linear-gradient(rgba(248, 250, 252, 0.94), rgba(248, 250, 252, 0.94)),
         url('tpshcmcsc.png');
     background-repeat: no-repeat;
     background-position: center center;
@@ -55,6 +55,8 @@ body {
     width: 45px;
     height: auto;
     margin-right: 10px;
+    /* 確保導覽列校徽呈現純黑色調 */
+    filter: brightness(0);
 }
 
 .ref-nav-links {
@@ -73,8 +75,8 @@ body {
 }
 
 .ref-nav-item:hover, .ref-nav-item.active {
-    color: #2563eb;
-    background-color: #eff6ff;
+    color: #0f172a;
+    background-color: #f1f5f9;
 }
 
 .ref-admin-btn {
@@ -85,7 +87,7 @@ body {
    3. Hero 封面 Banner (Hero Banner)
    ========================================================================== */
 .ref-hero {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
     color: #ffffff;
     text-align: center;
     padding: 60px 20px;
@@ -96,7 +98,8 @@ body {
     width: 80px;
     height: auto;
     margin-bottom: 15px;
-    filter: brightness(0) invert(1);
+    /* 將校徽設為純黑，並在暗色背景加上白色發光襯托，兼具黑色特色與清晰度 */
+    filter: brightness(0) drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.8));
 }
 
 .ref-hero h1 {
@@ -115,7 +118,7 @@ body {
 
 .ref-cta-btn {
     display: inline-block;
-    background-color: #f59e0b;
+    background-color: #2563eb;
     color: #ffffff;
     font-size: 1.1rem;
     font-weight: bold;
@@ -123,16 +126,16 @@ body {
     border-radius: 30px;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
 }
 
 .ref-cta-btn:hover {
-    background-color: #d97706;
+    background-color: #1d4ed8;
     transform: translateY(-2px);
 }
 
 /* ==========================================================================
-   4. 主要內容區與須知區塊 (Container & Info Box)
+   4. 主要內容區與「意見箱」風格容器 (Container & Opinion Box)
    ========================================================================== */
 .ref-container {
     max-width: 1000px;
@@ -140,18 +143,39 @@ body {
     padding: 0 20px;
 }
 
-.ref-info-box {
+/* 意見箱/須知區塊樣式 */
+.ref-info-box, .ref-opinion-box {
     background: #ffffff;
-    border-left: 5px solid #2563eb;
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #e2e8f0;
+    border-top: 5px solid #0f172a; /* 頂部深色/黑色鋼印感條飾 */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.01);
     margin-bottom: 40px;
+    position: relative;
 }
 
-.ref-info-box h2, .ref-info-box h3 {
-    color: #1e293b;
-    margin-bottom: 12px;
+.ref-info-box::before, .ref-opinion-box::before {
+    content: "📮 意見箱提案投遞";
+    position: absolute;
+    top: -14px;
+    right: 25px;
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 12px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+}
+
+.ref-info-box h2, .ref-info-box h3, .ref-opinion-box h2 {
+    color: #0f172a;
+    margin-bottom: 16px;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .ref-info-box ul {
@@ -171,27 +195,35 @@ body {
     color: #0f172a;
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .ref-proposal-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    gap: 24px;
 }
 
+/* 意見箱風格提案卡片 */
 .ref-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .ref-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
 }
 
 /* 狀態標籤：進行中與已截止 */
@@ -215,12 +247,14 @@ body {
     font-size: 1.2rem;
     color: #0f172a;
     margin-bottom: 10px;
+    font-weight: 700;
 }
 
 .ref-card-desc {
     color: #475569;
     font-size: 0.95rem;
     margin-bottom: 15px;
+    line-height: 1.5;
 }
 
 .ref-card-time {
@@ -233,41 +267,54 @@ body {
     display: block;
     width: 100%;
     text-align: center;
-    background-color: #2563eb;
-    color: white;
+    background-color: #0f172a;
+    color: #ffffff;
     padding: 10px 16px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: bold;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s ease;
 }
 
 .ref-vote-btn:hover {
-    background-color: #1d4ed8;
+    background-color: #1e293b;
+}
+
+/* 空資料預設區塊 */
+.ref-empty-box {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 50px 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    grid-column: 1 / -1;
 }
 
 /* ==========================================================================
    6. 通用表單控制項 (Form Controls)
    ========================================================================== */
 .ref-form-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .ref-form-group label {
     display: block;
     font-weight: 600;
     color: #334155;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
 }
 
 .ref-input, .ref-textarea {
     width: 100%;
-    padding: 10px 12px;
+    padding: 11px 14px;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
     color: #0f172a;
     background-color: #ffffff;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -275,8 +322,8 @@ body {
 
 .ref-input:focus, .ref-textarea:focus {
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    border-color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
 }
 
 /* ==========================================================================
@@ -289,7 +336,7 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -298,49 +345,63 @@ body {
 
 .admin-auth-card {
     background: #ffffff;
-    padding: 32px;
+    padding: 36px 32px;
     border-radius: 12px;
     width: 90%;
     max-width: 400px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
     text-align: center;
+    border-top: 5px solid #0f172a;
 }
 
 .admin-auth-card h3 {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     color: #0f172a;
+    font-size: 1.25rem;
+}
+
+.admin-auth-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
 }
 
 .admin-auth-card input {
     width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 15px;
+    padding: 11px 14px;
+    margin-bottom: 16px;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.admin-auth-card input:focus {
+    border-color: #0f172a;
 }
 
 .admin-auth-card button {
     width: 100%;
     padding: 12px;
-    background: #2563eb;
+    background: #0f172a;
     color: #ffffff;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .admin-auth-card button:hover {
-    background: #1d4ed8;
+    background: #1e293b;
 }
 
 .error-msg {
     color: #ef4444;
-    font-size: 0.9rem;
-    margin-bottom: 12px;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    margin-bottom: 0;
     display: none;
 }
 
@@ -381,5 +442,9 @@ body {
 
     .ref-container {
         margin: 20px auto;
+    }
+
+    .ref-info-box, .ref-opinion-box {
+        padding: 20px;
     }
 }
