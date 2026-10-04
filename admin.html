@@ -264,7 +264,8 @@
 
         // 初始化檢查登入狀態與設置預設時間
         function checkAuth() {
-            const savedPass = localStorage.getItem("admin_password");
+            // 將 localStorage 改為 sessionStorage，離開頁面或關閉分頁即清除
+            const savedPass = sessionStorage.getItem("admin_password");
             if (savedPass) {
                 currentAdminPassword = savedPass;
                 document.getElementById("loginSection").classList.add("d-none");
@@ -301,18 +302,24 @@
             const passInput = document.getElementById("adminPassword").value.trim();
             if (!passInput) return;
 
-            localStorage.setItem("admin_password", passInput);
+            // 使用 sessionStorage 儲存
+            sessionStorage.setItem("admin_password", passInput);
             currentAdminPassword = passInput;
             checkAuth();
         }
 
         // 登出
         function logout() {
-            localStorage.removeItem("admin_password");
+            sessionStorage.removeItem("admin_password");
             currentAdminPassword = "";
             document.getElementById("adminPassword").value = "";
             checkAuth();
         }
+
+        // 離開頁面（關閉分頁、跳轉至其他網頁）時主動清除登入 Session
+        window.addEventListener("beforeunload", function () {
+            sessionStorage.removeItem("admin_password");
+        });
 
         // 切換類型時隱藏/顯示選項輸入框
         function toggleOptionsField() {
@@ -334,7 +341,7 @@
 
             // 時間邏輯防呆檢查
             if (new Date(endTime) <= new Date(startTime)) {
-                alert("⚠️ 截止時間必須晚於開始時間！");
+                alert("⚠️️ 截止時間必須晚於開始時間！");
                 return;
             }
 
@@ -355,14 +362,14 @@
             }
 
             const payload = {
-                action: "addProposal",
+                action: "createProposal", // 配合 GAS 後端採用的指令名稱
                 password: currentAdminPassword,
                 type: type,
                 title: title,
                 description: description,
-                options: options,
-                startTime: startTime,
-                endTime: endTime,
+                options: options.join(","), // 配合 GAS 試算表存儲格式
+                start_time: startTime,
+                end_time: endTime,
                 active: isActive
             };
 
@@ -375,7 +382,7 @@
                 });
                 const result = await res.json();
 
-                if (result.status === "success") {
+                if (result.success || result.status === "success") {
                     alert("✅ 提案發布成功！");
                     location.reload();
                 } else {
