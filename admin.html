@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>胡志明市臺灣學校學生會 - 後台管理系統</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -161,21 +160,19 @@
 </head>
 <body>
 
-    <!-- 頂部導覽列 -->
     <nav class="ref-navbar">
         <div class="ref-nav-container">
-            <a href="index.html" class="ref-nav-brand">
+            <a href="index.html" class="ref-nav-brand nav-leave">
                 <span>TSSC13TH 公投專區</span>
             </a>
             <div class="ref-nav-links">
-                <a href="index.html" class="ref-nav-item">🏫 首頁與通知</a>
-                <a href="results.html" class="ref-nav-item">📊 開票與歷史結果</a>
+                <a href="index.html" class="ref-nav-item nav-leave">🏫 首頁與通知</a>
+                <a href="results.html" class="ref-nav-item nav-leave">📊 開票與歷史結果</a>
                 <a href="admin.html" class="ref-nav-item ref-admin-btn active">⚙️ 管理員後台</a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero 區塊 -->
     <header class="hero-section">
         <div class="hero-icon">⚙️</div>
         <h1 class="hero-title">後台管理系統</h1>
@@ -184,7 +181,6 @@
 
     <main class="ref-container">
 
-        <!-- 1. 登入介面 (未驗證時顯示) -->
         <div id="loginSection" class="ref-card text-center">
             <h3 class="h5 fw-bold mb-3">🔒 管理員身份驗證</h3>
             <p class="text-muted small mb-4">請輸入後台管理密碼以存取提案發布功能。</p>
@@ -196,7 +192,6 @@
             </form>
         </div>
 
-        <!-- 2. 後台新增提案表單 (登入成功後才顯示) -->
         <div id="adminPanel" class="ref-card d-none">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                 <h3 class="h5 fw-bold m-0">➕ 發布新提案 / 意見徵集</h3>
@@ -222,7 +217,6 @@
                     <textarea id="propDesc" class="form-control" rows="3" placeholder="請說明提案背景或規則..."></textarea>
                 </div>
 
-                <!-- 開放與截止時間選擇區塊 -->
                 <div class="row mb-3">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <label class="form-label">⏰ 開始時間</label>
@@ -253,7 +247,6 @@
 
     </main>
 
-    <!-- 底部著作權標籤 -->
     <footer class="ref-footer">
         胡志明市台灣學校學生會 TSSC13TH © 2026 yucheng
     </footer>
@@ -264,7 +257,6 @@
 
         // 初始化檢查登入狀態與設置預設時間
         function checkAuth() {
-            // 利用 sessionStorage：關閉分頁或視窗時自動清除，重新整理則可保留狀態
             const savedPass = sessionStorage.getItem("admin_password");
             if (savedPass) {
                 currentAdminPassword = savedPass;
@@ -316,6 +308,13 @@
             checkAuth();
         }
 
+        // 監聽所有導覽列中會離開後台的連結，點擊時立刻清除登入狀態
+        document.querySelectorAll(".nav-leave").forEach(el => {
+            el.addEventListener("click", () => {
+                sessionStorage.removeItem("admin_password");
+            });
+        });
+
         // 切換類型時隱藏/顯示選項輸入框
         function toggleOptionsField() {
             const type = document.getElementById("propType").value;
@@ -356,7 +355,7 @@
             }
 
             const payload = {
-                action: "createProposal", // 已修正為後端對應的指令
+                action: "createProposal",
                 password: currentAdminPassword,
                 type: type,
                 title: title,
@@ -378,8 +377,8 @@
 
                 if (result.success || result.status === "success") {
                     alert("✅ 提案發布成功！");
-                    document.getElementById("proposalForm").reset(); // 清空表單
-                    initDefaultTime(); // 重新設定預設時間
+                    document.getElementById("proposalForm").reset();
+                    initDefaultTime();
                 } else {
                     alert("❌ 發布失敗：" + (result.message || "密碼錯誤或服務器異常"));
                     if (result.message && (result.message.includes("密碼") || result.message.includes("權限"))) {
