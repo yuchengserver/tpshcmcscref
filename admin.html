@@ -1,193 +1,309 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡台校學生會 - 後台管理</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .admin-auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center; z-index: 9999;
-        }
-        .admin-auth-card {
-            background: #ffffff; padding: 30px; border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; max-width: 400px;
-            text-align: center; border-top: 5px solid #0f172a;
-        }
-        .admin-auth-card input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        .admin-auth-card button { width: 100%; padding: 10px; margin-top: 12px; background: #0f172a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .auth-error { color: #ef4444; font-size: 0.9em; margin-top: 8px; display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>胡台校學生會 - 管理員後台</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js 繪製投票圖表 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background-color: #f8f9fa; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    .nav-pills .nav-link.active { background-color: #0d6efd; }
+    .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .badge-poll { background-color: #0d6efd; }
+    .badge-feedback { background-color: #198754; }
+    .feedback-item { background-color: #f1f3f5; border-left: 4px solid #198754; }
+  </style>
 </head>
 <body>
 
-    <div class="admin-auth-overlay" id="authOverlay">
-        <div class="admin-auth-card">
-            <h3>🔒 管理員身份驗證</h3>
-            <p style="color: #64748b; font-size: 0.9em; margin-bottom: 12px;">請輸入帳號與密碼</p>
-            <input type="text" id="adminUserInput" placeholder="管理員帳號" onkeypress="if(event.key==='Enter') checkAdminAuth()">
-            <input type="password" id="adminPassInput" placeholder="管理員密碼" onkeypress="if(event.key==='Enter') checkAdminAuth()">
-            <button onclick="checkAdminAuth()">登入</button>
-            <p class="auth-error" id="authError">帳號或密碼錯誤！</p>
-        </div>
+  <!-- 導覽列 -->
+  <nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+      <span class="navbar-brand mb-0 h1">🏛️ 胡台校學生會 (TPSHCMCSC) - 後台管理系統</span>
     </div>
+  </nav>
 
-    <nav class="ref-navbar">
-        <div class="ref-nav-container">
-            <a href="index.html" class="ref-nav-brand">
-                <img src="tpshcmcsc.png" alt="會徽" class="ref-logo-img">
-                <span class="ref-brand-text">TPSHCMCSC 後台管理</span>
-            </a>
-            <div class="ref-nav-links">
-                <a href="index.html" class="ref-nav-item">公投首頁</a>
-                <a href="results.html" class="ref-nav-item">開票與意見結果</a>
-                <a href="admin.html" class="ref-nav-item active ref-admin-btn">⚙️ 後台管理</a>
+  <div class="container mb-5">
+    <!-- 頁籤選單 -->
+    <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" id="create-tab" data-bs-toggle="tab" data-bs-target="#create-panel">➕ 發布新提案 / 意見徵集</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results-panel" onclick="loadResults()">📊 開票數據與意見彙整</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabsContent">
+      
+      <!-- 頁籤 1: 發布新提案 -->
+      <div class="tab-pane fade show active" id="create-panel" role="tabpanel">
+        <div class="card p-4">
+          <h4 class="card-title mb-3">發布提案或意見徵集</h4>
+          <form id="createProposalForm" onsubmit="handleCreateProposal(event)">
+            
+            <div class="mb-3">
+              <label class="form-label fw-bold">發布類型</label>
+              <select class="form-select" id="propType" onchange="toggleOptionsInput()">
+                <option value="poll">🗳️ 選項投票 (Poll) - 例如：同意/不同意 或 自訂選項</option>
+                <option value="feedback">💡 意見徵集 (Feedback) - 純文字收集，不含投票選項</option>
+              </select>
             </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">提案主題 / 標題</label>
+              <input type="text" class="form-control" id="propTitle" placeholder="例如：113學年度學生會社團補助辦法公投" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">詳細說明 (支援文字與連結)</label>
+              <textarea class="form-control" id="propDesc" rows="4" placeholder="請詳細說明活動背景或提案動機..."></textarea>
+            </div>
+
+            <!-- 選項輸入欄位 (只有選擇 poll 時顯示) -->
+            <div class="mb-3" id="optionsGroup">
+              <label class="form-label fw-bold">投票選項 (請用半形逗號 `,` 分開)</label>
+              <input type="text" class="form-control" id="propOptions" placeholder="同意, 不同意 (若留空，預設為：同意, 不同意)">
+              <div class="form-text">例：選項A, 選項B, 選項C</div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">開始時間 (選填)</label>
+                <input type="datetime-local" class="form-control" id="startTime">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">結束時間 (選填)</label>
+                <input type="datetime-local" class="form-control" id="endTime">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100" id="btnSubmit">🚀 發布提案</button>
+          </form>
         </div>
-    </nav>
+      </div>
 
-    <main class="ref-container" style="max-width: 800px; margin: 40px auto;">
-        
-        <section class="ref-info-box">
-            <h2 style="margin-bottom: 15px; color: #0f172a;">📮 發起新提案 / 意見徵集</h2>
-            <form id="createProposalForm" onsubmit="handleCreateProposal(event)">
-                
-                <!-- 格式選擇 -->
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">提案類型格式：</label>
-                    <select id="pType" onchange="toggleOptionsInput()" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; background: white;">
-                        <option value="poll">🗳️ 自訂選項投票 (例如: 同意/不同意/棄權)</option>
-                        <option value="feedback">💬 意見徵集 (學生自由填寫文字繳回)</option>
-                    </select>
-                </div>
+      <!-- 頁籤 2: 開票數據與意見彙整 -->
+      <div class="tab-pane fade" id="results-panel" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4>最新即時統計</h4>
+          <button class="btn btn-outline-secondary btn-sm" onclick="loadResults()">🔄 重新整理</button>
+        </div>
+        <div id="resultsContainer">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">載入開票數據中...</p>
+          </div>
+        </div>
+      </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">提案名稱 / 主題：</label>
-                    <input type="text" id="pTitle" placeholder="例如：是否同意國中部增設休閒運動設施？" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
-                </div>
+    </div>
+  </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">詳細內容說明：</label>
-                    <textarea id="pDesc" rows="3" placeholder="請說明提案背景與目的..." required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;"></textarea>
-                </div>
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-                <!-- 僅在選擇 poll 時顯示自訂選項 -->
-                <div id="optionsGroup" style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">自訂投票選項（請用逗號隔開）：</label>
-                    <input type="text" id="pOptions" placeholder="例如：同意,不同意,棄權" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
-                    <small style="color:#64748b;">預設為：同意,不同意</small>
-                </div>
+  <script>
+    // ⚠️ 請填入您的 Google Apps Script 部署網址 (Web App URL)
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-                <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <div style="flex:1; min-width: 200px;">
-                        <label style="display:block; margin-bottom: 5px; font-weight:bold;">開始時間：</label>
-                        <input type="datetime-local" id="pStartTime" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex:1; min-width: 200px;">
-                        <label style="display:block; margin-bottom: 5px; font-weight:bold;">截止時間：</label>
-                        <input type="datetime-local" id="pEndTime" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
-                    </div>
-                </div>
+    // 切換是否顯示「投票選項」輸入框
+    function toggleOptionsInput() {
+      const type = document.getElementById("propType").value;
+      const optionsGroup = document.getElementById("optionsGroup");
+      if (type === "feedback") {
+        optionsGroup.style.display = "none";
+      } else {
+        optionsGroup.style.display = "block";
+      }
+    }
 
-                <button type="submit" id="submitBtn" style="background:#0f172a; color:white; border:none; padding:12px 20px; border-radius:6px; font-size:1em; font-weight:bold; cursor:pointer; width:100%;">🚀 發布新提案</button>
-            </form>
-        </section>
+    // 發布新提案
+    async function handleCreateProposal(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnSubmit");
+      btn.disabled = true;
+      btn.innerText = "處理中...";
 
-        <section>
-            <h2 style="margin-bottom: 15px; color: #0f172a;">📋 目前系統中的提案</h2>
-            <div id="adminProposalList">
-                <p style="text-align: center; color: #64748b; padding: 20px;">資料載入中...</p>
-            </div>
-        </section>
+      const type = document.getElementById("propType").value;
+      const title = document.getElementById("propTitle").value;
+      const description = document.getElementById("propDesc").value;
+      const options = document.getElementById("propOptions").value;
+      const start_time = document.getElementById("startTime").value;
+      const end_time = document.getElementById("endTime").value;
 
-    </main>
+      const payload = {
+        action: "createProposal",
+        type: type,
+        title: title,
+        description: description,
+        options: options,
+        start_time: start_time,
+        end_time: end_time
+      };
 
-    <script>
-        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-        const ADMIN_USERNAME = "tpshcmcscref";
-        const ADMIN_PASSWORD = "referendum"; 
+      try {
+        const response = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
 
-        function toggleOptionsInput() {
-            const type = document.getElementById("pType").value;
-            const optionsGroup = document.getElementById("optionsGroup");
-            optionsGroup.style.display = (type === "poll") ? "block" : "none";
+        const result = await response.json();
+        if (result.success) {
+          alert("✅ " + result.message);
+          document.getElementById("createProposalForm").reset();
+          toggleOptionsInput();
+        } else {
+          alert("❌ 發布失敗：" + result.message);
+        }
+      } catch (err) {
+        alert("網路錯誤或發布失敗：" + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 發布提案";
+      }
+    }
+
+    // 載入開票與意見數據
+    async function loadResults() {
+      const container = document.getElementById("resultsContainer");
+      container.innerHTML = `
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">載入開票數據中...</p>
+        </div>`;
+
+      try {
+        const response = await fetch(`${GAS_URL}?action=getResults`);
+        const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = `<div class="alert alert-info">目前尚無任何提案數據。</div>`;
+          return;
         }
 
-        function checkAdminAuth() {
-            const u = document.getElementById("adminUserInput").value;
-            const p = document.getElementById("adminPassInput").value;
-            if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) {
-                document.getElementById("authOverlay").style.display = "none";
-                loadAdminProposals();
+        container.innerHTML = ""; // 清空容器
+
+        data.forEach((item, index) => {
+          const card = document.createElement("div");
+          card.className = "card mb-4 p-4";
+
+          const isFeedback = item.type === "feedback";
+          
+          if (isFeedback) {
+            // 【純意見徵集 (feedback)】：完全不繪製圓餅圖與投票選項
+            let feedbackListHtml = "";
+            if (item.feedbacks && item.feedbacks.length > 0) {
+              feedbackListHtml = item.feedbacks.map(f => `
+                <div class="p-3 mb-2 feedback-item rounded">
+                  <div class="d-flex justify-content-between text-muted small mb-1">
+                    <span>💡 同學意見</span>
+                    <span>${f.time}</span>
+                  </div>
+                  <div>${escapeHtml(f.content)}</div>
+                </div>
+              `).join("");
             } else {
-                document.getElementById("authError").style.display = "block";
+              feedbackListHtml = `<p class="text-muted">目前尚無同學提交意見。</p>`;
             }
+
+            card.innerHTML = `
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge badge-feedback me-2">💡 意見徵集</span>
+                <span class="text-muted">提案 ID: #${item.id}</span>
+              </div>
+              <h5 class="fw-bold">${escapeHtml(item.title)}</h5>
+              <p class="mb-3 text-secondary">總收到回應數：<strong>${item.total_responses}</strong> 筆</p>
+              <hr>
+              <h6>意見列表：</h6>
+              <div style="max-height: 350px; overflow-y: auto;">
+                ${feedbackListHtml}
+              </div>
+            `;
+          } else {
+            // 【選項投票 (poll)】：繪製圓餅圖與投票統計
+            const canvasId = `chart-${index}`;
+            card.innerHTML = `
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge badge-poll me-2">🗳️ 選項投票</span>
+                <span class="text-muted">提案 ID: #${item.id}</span>
+              </div>
+              <h5 class="fw-bold">${escapeHtml(item.title)}</h5>
+              <p class="mb-3 text-secondary">總投票數：<strong>${item.total_votes}</strong> 票</p>
+              
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <canvas id="${canvasId}" style="max-height: 250px;"></canvas>
+                </div>
+                <div class="col-md-6">
+                  <ul class="list-group list-group-flush">
+                    ${Object.entries(item.options_count || {}).map(([opt, cnt]) => `
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${escapeHtml(opt)}
+                        <span class="badge bg-primary rounded-pill">${cnt} 票</span>
+                      </li>
+                    `).join('')}
+                  </ul>
+                </div>
+              </div>
+            `;
+
+            // 等待 DOM 插入後渲染圖表
+            setTimeout(() => {
+              renderChart(canvasId, item.options_count || {});
+            }, 50);
+          }
+
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">載入數據失敗：${err.message}</div>`;
+      }
+    }
+
+    // 渲染 Chart.js 圓餅圖
+    function renderChart(canvasId, optionsCount) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+
+      const labels = Object.keys(optionsCount);
+      const data = Object.values(optionsCount);
+
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#0d6efd', '#dc3545', '#ffc107', '#198754', '#0dcaf0', '#6c757d'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
         }
+      });
+    }
 
-        async function loadAdminProposals() {
-            const container = document.getElementById("adminProposalList");
-            try {
-                const res = await fetch(`${GAS_API}?action=getProposals`);
-                const proposals = await res.json();
-
-                if (!proposals || proposals.length === 0) {
-                    container.innerHTML = `<div style="background: white; padding: 30px; text-align: center; border-radius: 8px; color: #64748b;">目前無提案</div>`;
-                    return;
-                }
-
-                container.innerHTML = proposals.map(p => `
-                    <div style="background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:0.85em; background:#e2e8f0; padding:2px 8px; border-radius:4px;">ID: #${p.id} | ${p.type === 'feedback' ? '💬 意見徵集' : '🗳️ 選項投票'}</span>
-                            <span style="font-size:0.85em; color:${p.status === 'active' ? '#059669' : '#ef4444'}; font-weight:bold;">${p.status === 'active' ? '● 進行中' : '✖ 已截止'}</span>
-                        </div>
-                        <h3 style="margin:8px 0; color:#1e293b;">${p.title}</h3>
-                        <p style="color:#475569; font-size:0.95em;">${p.description}</p>
-                        ${p.type === 'poll' ? `<p style="font-size:0.85em; color:#059669; margin-top:5px;">選項：${p.options.join(', ')}</p>` : ''}
-                        <p style="color:#94a3b8; font-size:0.85em; margin-top:5px;">🕒 截止時間：${p.end_time}</p>
-                    </div>
-                `).join('');
-            } catch (err) {
-                container.innerHTML = `<p style="color: #ef4444; text-align: center;">載入失敗。</p>`;
-            }
-        }
-
-        async function handleCreateProposal(e) {
-            e.preventDefault();
-            const btn = document.getElementById("submitBtn");
-            btn.disabled = true;
-            btn.innerText = "處理中...";
-
-            const payload = {
-                action: "createProposal",
-                type: document.getElementById("pType").value,
-                title: document.getElementById("pTitle").value,
-                description: document.getElementById("pDesc").value,
-                options: document.getElementById("pOptions").value,
-                start_time: document.getElementById("pStartTime").value.replace("T", " "),
-                end_time: document.getElementById("pEndTime").value.replace("T", " ")
-            };
-
-            try {
-                const res = await fetch(GAS_API, { method: "POST", body: JSON.stringify(payload) });
-                const result = await res.json();
-                if (result.success) {
-                    alert("✅ 成功發布！");
-                    document.getElementById("createProposalForm").reset();
-                    toggleOptionsInput();
-                    loadAdminProposals();
-                } else {
-                    alert("❌ 失敗：" + result.message);
-                }
-            } catch (err) {
-                alert("發布失敗");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "🚀 發布新提案";
-            }
-        }
-    </script>
+    // XSS 防護處理
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>

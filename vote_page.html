@@ -5,6 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>胡台校學生會 - 參與表達</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .ref-vote-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            border: 2px solid #cbd5e1;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #334155;
+            transition: all 0.2s ease;
+        }
+        .option-label:hover {
+            border-color: #2563eb;
+            background-color: #f8fafc;
+        }
+        .option-label input[type="radio"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            accent-color: #2563eb;
+        }
+        .option-label:has(input[type="radio"]:checked) {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+            color: #1e40af;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,25 +50,37 @@
                 <img src="tpshcmcsc.png" alt="會徽" class="ref-logo-img">
                 <span class="ref-brand-text">TPSHCMCSC 專區</span>
             </a>
+            <div class="ref-nav-links">
+                <a href="index.html" class="ref-nav-item">回首頁</a>
+                <a href="results.html" class="ref-nav-item">開票與歷史結果</a>
+            </div>
         </div>
     </nav>
 
-    <main class="ref-container" style="max-width: 600px; margin: 40px auto;">
-        <div class="ref-info-box">
-            <h2 id="pTitle" style="color:#0f172a; margin-bottom: 12px;">載入中...</h2>
-            <p id="pDesc" style="color:#475569; margin-bottom: 20px; font-size: 1rem;">請稍候...</p>
-            <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 20px;">
+    <main class="ref-container" style="max-width: 600px; margin: 40px auto; padding: 0 16px;">
+        <div class="ref-vote-card">
+            <h2 id="pTitle" style="color:#0f172a; margin-bottom: 8px; font-size: 1.5rem;">載入提案中...</h2>
+            <p id="pDesc" style="color:#64748b; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.6;">請稍候，正在取得提案內容...</p>
+            
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 24px;">
 
             <form id="voteForm" onsubmit="handleVoteSubmit(event)">
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom: 5px; font-weight:bold;">學生 Email：</label>
-                    <input type="email" id="vEmail" placeholder="s123456@tpshcm.edu.vn" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display:block; margin-bottom: 6px; font-weight:bold; color:#1e293b;">
+                        學校 Email：<span style="color:#ef4444;">*</span>
+                    </label>
+                    <input type="email" id="vEmail" placeholder="例如：1141218@tshcmc.edu.vn" required 
+                           style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box; font-size:1rem;">
+                    <small style="color:#64748b; margin-top:4px; display:block;">必須使用學校官方帳號 (<code>@tshcmc.edu.vn</code>)</small>
                 </div>
 
                 <!-- 動態生成的選項或輸入框區域 -->
-                <div id="dynamicInputArea" style="margin-bottom: 20px;"></div>
+                <div id="dynamicInputArea" style="margin-bottom: 24px;"></div>
 
-                <button type="submit" id="vSubmitBtn" class="ref-vote-btn" style="padding: 12px; font-size: 1.05rem;">確認送出並寄送確認信</button>
+                <button type="submit" id="vSubmitBtn" class="ref-vote-btn" 
+                        style="width:100%; padding: 14px; font-size: 1.05rem; font-weight:bold; background:#2563eb; color:white; border:none; border-radius:8px; cursor:pointer;">
+                    確認送出並寄送確認信
+                </button>
             </form>
         </div>
     </main>
@@ -43,7 +91,11 @@
         const proposalId = urlParams.get('id');
 
         async function initVotePage() {
-            if (!proposalId) { window.location.href = "index.html"; return; }
+            if (!proposalId) { 
+                alert("未指定提案 ID！");
+                window.location.href = "index.html"; 
+                return; 
+            }
 
             try {
                 const res = await fetch(`${GAS_API}?action=getProposals`);
@@ -52,49 +104,72 @@
 
                 if (currentP) {
                     document.getElementById("pTitle").innerText = currentP.title;
-                    document.getElementById("pDesc").innerText = currentP.description;
+                    document.getElementById("pDesc").innerText = currentP.description || "無詳細說明";
                     
                     const inputArea = document.getElementById("dynamicInputArea");
 
                     if (currentP.type === "feedback") {
                         // 💬 意見徵集模式：顯示多行文字框
                         inputArea.innerHTML = `
-                            <label style="display:block; margin-bottom: 8px; font-weight:bold;">您的意見與建議：</label>
-                            <textarea id="vFeedbackText" rows="5" placeholder="請寫下您的想法與建議..." required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box;"></textarea>
+                            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#1e293b;">
+                                您的意見與建議：<span style="color:#ef4444;">*</span>
+                            </label>
+                            <textarea id="vFeedbackText" rows="5" placeholder="請詳細寫下您的想法與建言..." required 
+                                      style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:6px; box-sizing: border-box; font-size:0.95rem; line-height:1.5;"></textarea>
                         `;
                     } else {
-                        // 🗳️ 投票選項模式：顯示單選按鈕
-                        const options = currentP.options.length > 0 ? currentP.options : ["同意", "不同意"];
-                        const optionsHTML = options.map(opt => `
-                            <label style="display: flex; align-items: center; border: 2px solid #cbd5e1; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-weight: bold;">
-                                <input type="radio" name="choice" value="${opt}" required style="margin-right: 10px;"> ${opt}
+                        // 🗳️️ 投票選項模式：顯示單選按鈕
+                        const options = (currentP.options && currentP.options.length > 0) ? currentP.options : ["同意", "不同意"];
+                        const optionsHTML = options.map((opt, idx) => `
+                            <label class="option-label">
+                                <input type="radio" name="choice" value="${escapeHtml(opt)}" ${idx === 0 ? 'checked' : ''} required> 
+                                ${escapeHtml(opt)}
                             </label>
                         `).join('');
                         
-                        inputArea.innerHTML = `<label style="display:block; margin-bottom: 8px; font-weight:bold;">請選擇您的意向：</label>` + optionsHTML;
+                        inputArea.innerHTML = `<label style="display:block; margin-bottom: 10px; font-weight:bold; color:#1e293b;">請選擇您的意向：<span style="color:#ef4444;">*</span></label>` + optionsHTML;
                     }
+                } else {
+                    document.getElementById("pTitle").innerText = "找不到該提案";
+                    document.getElementById("pDesc").innerText = "請返回首頁重新選擇項目。";
+                    document.getElementById("voteForm").style.display = "none";
                 }
             } catch (err) {
-                alert("載入資料錯誤");
+                alert("載入資料錯誤，請確認網路連線！");
             }
         }
 
         async function handleVoteSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById("vSubmitBtn");
-            btn.disabled = true;
-            btn.innerText = "提交處理中...";
+            const emailInput = document.getElementById("vEmail");
+            const email = emailInput.value.trim().toLowerCase();
 
-            const email = document.getElementById("vEmail").value;
+            // 驗證 Email Domain
+            if (!email.endsWith("@tshcmc.edu.vn")) {
+                alert("請使用學校官方信箱 (@tshcmc.edu.vn) 進行登錄！");
+                emailInput.focus();
+                return;
+            }
+
             let content = "";
-
             const feedbackInput = document.getElementById("vFeedbackText");
+            
             if (feedbackInput) {
-                content = feedbackInput.value;
+                content = feedbackInput.value.trim();
+                if (!content) {
+                    alert("請填寫您的意見內容！");
+                    return;
+                }
             } else {
                 const selectedRadio = document.querySelector('input[name="choice"]:checked');
                 if (selectedRadio) content = selectedRadio.value;
             }
+
+            // 鎖定按鈕防止重複提交
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            btn.innerText = "⏳ 提交中，請稍候...";
 
             const payload = {
                 action: "vote",
@@ -104,21 +179,37 @@
             };
 
             try {
-                const res = await fetch(GAS_API, { method: "POST", body: JSON.stringify(payload) });
+                const res = await fetch(GAS_API, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload) 
+                });
                 const result = await res.json();
 
                 if (result.success) {
-                    alert("✅ " + result.message);
+                    alert("🎉 " + result.message);
                     window.location.href = "results.html";
                 } else {
-                    alert("❌ 失敗：" + result.message);
+                    alert("⚠️ 提交失敗：" + result.message);
                 }
             } catch (err) {
-                alert("連線失敗");
+                alert("連線失敗，請稍後再試！");
             } finally {
                 btn.disabled = false;
+                btn.style.opacity = "1";
                 btn.innerText = "確認送出並寄送確認信";
             }
+        }
+
+        // 防 XSS 攻擊字元轉義
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         initVotePage();

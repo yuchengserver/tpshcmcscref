@@ -1,101 +1,240 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡台校學生會 - 全校學生公投</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>胡志明市臺灣學校學生會 - 學生自治專區</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f9; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
+    .hero-header { background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: white; padding: 2.5rem 1rem; border-radius: 0 0 20px 20px; }
+    .card-proposal { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.2s; }
+    .card-proposal:hover { transform: translateY(-2px); }
+    .badge-poll { background-color: #0d6efd; }
+    .badge-feedback { background-color: #198754; }
+  </style>
 </head>
 <body>
 
-    <!-- 頂部導覽列 -->
-    <nav class="ref-navbar">
-        <div class="ref-nav-container">
-            <a href="index.html" class="ref-nav-brand">
-                <img src="tpshcmcsc.png" alt="會徽" class="ref-logo-img">
-                <span class="ref-brand-text">TPSHCMCSC 公投專區</span>
-            </a>
-            <div class="ref-nav-links">
-                <a href="index.html" class="ref-nav-item active">公投首頁</a>
-                <a href="results.html" class="ref-nav-item">開票與歷史結果</a>
-                <a href="admin.html" class="ref-nav-item ref-admin-btn">⚙️ 後台管理</a>
-            </div>
+  <!-- 頂部頁籤與標題 -->
+  <header class="hero-header text-center mb-4">
+    <div class="container">
+      <h2 class="fw-bold mb-2">🏛️ 胡志明市臺灣學校學生會</h2>
+      <p class="mb-0 fs-6">TPSHCMCSC Student Council - 學生公投與意見徵集平台</p>
+    </div>
+  </header>
+
+  <div class="container mb-5" style="max-width: 800px;">
+    
+    <!-- 身分驗證提示 -->
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+      <span class="fs-4 me-2">🔒</span>
+      <div>
+        <strong>提醒：</strong> 本平台採用實名驗證，提交時請填寫學校官方信箱（<code>@tshcmc.edu.vn</code>）。提交成功後系統將寄發憑證確認信。
+      </div>
+    </div>
+
+    <!-- 提案清單區域 -->
+    <div id="proposalsContainer">
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">正在載入最新提案與意見徵集項目...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 提交回應 Modal 彈窗 -->
+  <div class="modal fade" id="voteModal" tabindex="-1" aria-labelledby="voteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="border-radius: 12px;">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="voteModalLabel">參與討論 / 投票</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-    </nav>
+        <div class="modal-content-body p-4">
+          <form id="voteForm" onsubmit="submitResponse(event)">
+            <input type="hidden" id="modalPropId">
+            <input type="hidden" id="modalPropType">
 
-    <!-- Hero 封面 Banner (意見箱同款) -->
-    <header class="ref-hero">
-        <img src="tpshcmcsc.png" alt="會徽" class="ref-hero-logo">
-        <h1>🗳️ 胡台校學生會 全校學生公投</h1>
-        <p>每一張選票，都是推動校園改變的力量<br>公開．公正．民主 —— 共同決定我們的校園未來！</p>
-        <a href="#proposals" class="ref-cta-btn">前往參與投票 ↓</a>
-    </header>
-
-    <!-- 主要內容區 -->
-    <main class="ref-container" id="proposals">
-        
-        <!-- 須知事項區塊 -->
-        <section class="ref-info-box">
-            <h2>📌 公投須知事項</h2>
-            <ul>
-                <li><b>投票資格：</b> 本校全體在學學生（含高中部與國中部）皆具備投票資格。</li>
-                <li><b>身份驗證：</b> 需使用學校官方 Google 帳號 (`@tpshcm.edu.vn`) 登入驗證。</li>
-                <li><b>無記名原則：</b> 系統僅驗證投票資格與重複投票，投遞結果完全匿名保密。</li>
-            </ul>
-        </section>
-
-        <!-- 進行中的公投提案清單 -->
-        <section>
-            <h2 class="ref-section-title">🗳️ 目前進行中的提案</h2>
-            <div class="ref-proposal-grid" id="proposalList">
-                <p style="text-align: center; color: #64748b; grid-column: 1/-1; padding: 40px;">提案載入中...</p>
+            <div class="mb-3">
+              <label class="form-label text-muted small mb-1">提案標題</label>
+              <h6 class="fw-bold text-dark" id="modalPropTitle">---</h6>
             </div>
-        </section>
 
-    </main>
+            <div class="mb-3">
+              <label for="studentEmail" class="form-label fw-bold">學校信箱 (Email)</label>
+              <input type="email" class="form-control" id="studentEmail" placeholder="例如：1141218@tshcmc.edu.vn" required>
+              <div class="form-text">必須為 @tshcmc.edu.vn 結尾</div>
+            </div>
 
-    <footer class="ref-footer">
-        <p>© 2026 胡志明市臺灣學校學生會 TPSHCMCSC All Rights Reserved.</p>
-    </footer>
+            <!-- 動態切換：投票選項 vs 文字意見 -->
+            <div class="mb-4" id="responseArea">
+              <!-- JS 會動態將單選框或 textarea 插入於此 -->
+            </div>
 
-    <script>
-        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+            <button type="submit" class="btn btn-primary w-100 btn-lg" id="btnSubmit">送出回應</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        async function loadProposals() {
-            const container = document.getElementById("proposalList");
-            try {
-                const res = await fetch(`${GAS_API}?action=getProposals`);
-                const proposals = await res.json();
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-                const activeProposals = proposals.filter(p => p.status === 'active');
+  <script>
+    // 已自動替換為您的 GAS 部署 URL
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    let modalInstance = null;
 
-                if (activeProposals.length === 0) {
-                    container.innerHTML = `
-                        <div style="grid-column: 1/-1; background: white; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 50px 20px; text-align: center; color: #64748b;">
-                            📭 目前尚無進行中的公投提案
-                        </div>`;
-                    return;
-                }
+    document.addEventListener("DOMContentLoaded", () => {
+      modalInstance = new bootstrap.Modal(document.getElementById('voteModal'));
+      fetchProposals();
+    });
 
-                container.innerHTML = activeProposals.map(p => `
-                    <div class="ref-card">
-                        <div>
-                            <span class="ref-badge active">● 進行中</span>
-                            <h3 class="ref-card-title">${p.title}</h3>
-                            <p class="ref-card-desc">${p.description}</p>
-                        </div>
-                        <div>
-                            <p class="ref-card-time">🕒 截止時間：${p.end_time}</p>
-                            <a href="vote_page.html?id=${p.id}" class="ref-vote-btn">參與投票</a>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (err) {
-                container.innerHTML = `<p style="grid-column: 1/-1; color: #ef4444; text-align: center;">資料載入失敗，請稍後再試。</p>`;
-            }
+    // 取得所有進行中的提案
+    async function fetchProposals() {
+      const container = document.getElementById("proposalsContainer");
+      try {
+        const response = await fetch(`${GAS_URL}?action=getProposals`);
+        const proposals = await response.json();
+
+        if (!Array.isArray(proposals) || proposals.length === 0) {
+          container.innerHTML = `<div class="card p-4 text-center text-muted">目前暫無開放中的公投或意見徵集項目。</div>`;
+          return;
         }
 
-        loadProposals();
-    </script>
+        container.innerHTML = "";
+
+        proposals.forEach(item => {
+          const isFeedback = item.type === "feedback";
+          const badgeClass = isFeedback ? "badge-feedback" : "badge-poll";
+          const typeText = isFeedback ? "💡 意見徵集" : "🗳️ 選項投票";
+          const btnText = isFeedback ? "✍️ 發表意見" : "🗳️ 前往投票";
+          const btnClass = isFeedback ? "btn-success" : "btn-primary";
+
+          const card = document.createElement("div");
+          card.className = "card card-proposal mb-4 p-4";
+          card.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge ${badgeClass}">${typeText}</span>
+              <small class="text-muted">提案 ID: #${item.id}</small>
+            </div>
+            <h5 class="fw-bold mb-2">${escapeHtml(item.title)}</h5>
+            <p class="text-secondary mb-3">${escapeHtml(item.description || "暫無詳細說明")}</p>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <small class="text-muted">狀態：${item.status === "active" ? "🟢 開放參與中" : "🔴 已結束"}</small>
+              <button class="btn ${btnClass} btn-sm px-4" onclick="openModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                ${btnText}
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">載入提案失敗：${err.message}</div>`;
+      }
+    }
+
+    // 開啟 modal 彈窗並載入對應表單
+    function openModal(item) {
+      document.getElementById("modalPropId").value = item.id;
+      document.getElementById("modalPropType").value = item.type;
+      document.getElementById("modalPropTitle").innerText = item.title;
+
+      const responseArea = document.getElementById("responseArea");
+      responseArea.innerHTML = "";
+
+      if (item.type === "feedback") {
+        // 純意見徵集 -> 顯示 textarea
+        responseArea.innerHTML = `
+          <label for="feedbackContent" class="form-label fw-bold">您的寶貴意見 / 建議</label>
+          <textarea class="form-control" id="feedbackContent" rows="4" placeholder="請詳細填寫您的建言或想法..." required></textarea>
+        `;
+      } else {
+        // 選項投票 -> 顯示單選框 Radio Button
+        const options = (item.options && item.options.length > 0) ? item.options : ["同意", "不同意"];
+        let optionsHtml = `<label class="form-label fw-bold mb-2">請選擇您的意向</label>`;
+
+        options.forEach((opt, idx) => {
+          optionsHtml += `
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="pollChoice" id="opt_${idx}" value="${escapeHtml(opt)}" ${idx === 0 ? "checked" : ""}>
+              <label class="form-check-label" for="opt_${idx}">
+                ${escapeHtml(opt)}
+              </label>
+            </div>
+          `;
+        });
+        responseArea.innerHTML = optionsHtml;
+      }
+
+      modalInstance.show();
+    }
+
+    // 提交回應至 GAS 後端
+    async function submitResponse(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnSubmit");
+      btn.disabled = true;
+      btn.innerText = "提交中...";
+
+      const propId = document.getElementById("modalPropId").value;
+      const propType = document.getElementById("modalPropType").value;
+      const email = document.getElementById("studentEmail").value.trim();
+
+      let content = "";
+      if (propType === "feedback") {
+        content = document.getElementById("feedbackContent").value.trim();
+      } else {
+        const selectedRadio = document.querySelector('input[name="pollChoice"]:checked');
+        content = selectedRadio ? selectedRadio.value : "";
+      }
+
+      const payload = {
+        action: "vote",
+        proposal_id: propId,
+        email: email,
+        content: content
+      };
+
+      try {
+        const response = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert("🎉 " + result.message);
+          document.getElementById("voteForm").reset();
+          modalInstance.hide();
+        } else {
+          alert("⚠️ 提交失敗：" + result.message);
+        }
+      } catch (err) {
+        alert("網路通訊錯誤：" + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "送出回應";
+      }
+    }
+
+    // XSS 防護處理
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>

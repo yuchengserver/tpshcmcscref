@@ -5,6 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>胡台校學生會 - 開票與歷史結果</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* 補充基礎質感樣式 (若 style.css 已包含可自行調整) */
+        .ref-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .ref-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+        .badge-poll { background: #e0f2fe; color: #0284c7; }
+        .badge-feedback { background: #dcfce7; color: #15803d; }
+        .feedback-box {
+            background: #f8fafc;
+            border-left: 4px solid #10b981;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.92rem;
+            color: #334155;
+        }
+        .opt-progress-bar {
+            background: #e2e8f0;
+            border-radius: 8px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .opt-progress-fill {
+            background: #059669;
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,7 +67,13 @@
     </nav>
 
     <main class="ref-container">
-        <h2 class="ref-section-title">📊 開票與歷史公投結果</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 class="ref-section-title" style="margin: 0;">📊 開票與歷史公投結果</h2>
+            <button onclick="loadResults()" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                🔄 重新整理
+            </button>
+        </div>
+
         <div id="resultsList" class="ref-proposal-grid">
             <p style="text-align: center; color: #64748b; grid-column: 1/-1; padding: 40px;">開票結果載入中...</p>
         </div>
@@ -38,7 +88,7 @@
                 const res = await fetch(`${GAS_API}?action=getResults`);
                 const results = await res.json();
 
-                if (!results || results.length === 0) {
+                if (!results || !Array.isArray(results) || results.length === 0) {
                     container.innerHTML = `
                         <div style="grid-column: 1/-1; background: white; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 50px 20px; text-align: center; color: #64748b;">
                             📭 目前尚無已開票的紀錄
@@ -47,33 +97,102 @@
                 }
 
                 container.innerHTML = results.map(r => {
-                    const total = (r.agree || 0) + (r.disagree || 0);
-                    const agreeRatio = total > 0 ? ((r.agree / total) * 100).toFixed(1) : 0;
-                    
-                    return `
-                        <div class="ref-card">
-                            <h3 class="ref-card-title">${r.title}</h3>
-                            <div style="margin: 15px 0;">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
-                                    <span>同意：${r.agree || 0} 票</span>
-                                    <span>${agreeRatio}%</span>
+                    const isFeedback = r.type === "feedback";
+
+                    // 1. 純文字意見徵集渲染邏輯 (feedback)
+                    if (isFeedback) {
+                        const feedbackList = r.feedbacks || [];
+                        let feedbackHtml = "";
+
+                        if (feedbackList.length > 0) {
+                            feedbackHtml = feedbackList.map(fb => `
+                                <div class="feedback-box">
+                                    <div>${escapeHtml(fb.content)}</div>
+                                    <div style="font-size:0.75em; color:#94a3b8; text-align:right; margin-top:4px;">${fb.time || ''}</div>
                                 </div>
-                                <div style="background:#e2e8f0; border-radius:8px; height:12px; overflow:hidden;">
-                                    <div style="background:#059669; width:${agreeRatio}%; height:100%;"></div>
+                            `).join('');
+                        } else {
+                            feedbackHtml = `<p style="color:#94a3b8; font-size:0.9em; text-align:center; margin:15px 0;">目前暫無學生建言</p>`;
+                        }
+
+                        return `
+                            <div class="ref-card">
+                                <div>
+                                    <span class="ref-badge badge-feedback">💡 意見徵集</span>
+                                    <h3 class="ref-card-title" style="margin-top:0;">${escapeHtml(r.title)}</h3>
+                                    <div style="max-height: 240px; overflow-y: auto; margin: 15px 0; padding-right: 4px;">
+                                        ${feedbackHtml}
+                                    </div>
                                 </div>
-                                <div style="margin-top: 10px; font-size: 0.9em; color:#64748b;">
-                                    不同意：${r.disagree || 0} 票
+                                <div style="font-size:0.85em; color:#64748b; text-align:right; border-top: 1px solid #f1f5f9; pt-10px; margin-top: 10px;">
+                                    收到總建言數：<strong>${r.total_responses || 0}</strong> 筆
                                 </div>
                             </div>
-                            <p style="font-size:0.85em; color:#94a3b8; text-align:right; margin:0;">總投票數：${total} 票</p>
-                        </div>
-                    `;
+                        `;
+                    } 
+                    
+                    // 2. 選項投票渲染邏輯 (poll)
+                    else {
+                        const total = r.total_votes || 0;
+                        const counts = r.options_count || {};
+                        const options = Object.keys(counts);
+
+                        let optionsHtml = "";
+
+                        if (options.length > 0) {
+                            optionsHtml = options.map(opt => {
+                                const votes = counts[opt] || 0;
+                                const ratio = total > 0 ? ((votes / total) * 100).toFixed(1) : 0;
+                                return `
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="display:flex; justify-content:space-between; font-size:0.95em; font-weight:600; color:#334155;">
+                                            <span>${escapeHtml(opt)}: ${votes} 票</span>
+                                            <span>${ratio}%</span>
+                                        </div>
+                                        <div class="opt-progress-bar">
+                                            <div class="opt-progress-fill" style="width: ${ratio}%;"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        } else {
+                            optionsHtml = `<p style="color:#94a3b8; font-size:0.9em; text-align:center; margin:15px 0;">尚無投票數據</p>`;
+                        }
+
+                        return `
+                            <div class="ref-card">
+                                <div>
+                                    <span class="ref-badge badge-poll">🗳️ 選項投票</span>
+                                    <h3 class="ref-card-title" style="margin-top:0;">${escapeHtml(r.title)}</h3>
+                                    <div style="margin: 15px 0;">
+                                        ${optionsHtml}
+                                    </div>
+                                </div>
+                                <div style="font-size:0.85em; color:#64748b; text-align:right; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px;">
+                                    總投票數：<strong>${total}</strong> 票
+                                </div>
+                            </div>
+                        `;
+                    }
                 }).join('');
+
             } catch (err) {
-                container.innerHTML = `<p style="grid-column: 1/-1; color: #ef4444; text-align: center;">開票結果載入失敗。</p>`;
+                container.innerHTML = `<p style="grid-column: 1/-1; color: #ef4444; text-align: center; padding: 40px;">開票結果載入失敗，請確認網路連線。</p>`;
             }
         }
 
+        // 防 XSS 攻擊轉義字元
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 頁面載入時執行
         loadResults();
     </script>
 </body>

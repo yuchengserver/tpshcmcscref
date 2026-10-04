@@ -1,270 +1,273 @@
 /* ==========================================================================
-   1. 全域設定 (Global Styles)
+   1. 變數與全域設定 (Variables & Global Styles)
    ========================================================================== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+:root {
+  --primary: #0f172a;
+  --primary-hover: #1e293b;
+  --text-main: #1e293b;
+  --text-muted: #475569;
+  --text-sub: #64748b;
+  --border-color: #e2e8f0;
+  --bg-main: #f8fafc;
+  --hero-grad: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
-    background-color: #f8fafc;
-    /* 淡白遮罩 + 黑色化會徽浮水印 */
-    background-image: 
-        linear-gradient(rgba(248, 250, 252, 0.94), rgba(248, 250, 252, 0.94)),
-        url('tpshcmcsc.png');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-attachment: fixed;
-    background-size: 500px auto;
-    color: #1e293b;
-    line-height: 1.6;
+  background: linear-gradient(rgba(248, 250, 252, 0.94), rgba(248, 250, 252, 0.94)),
+              url('tpshcmcsc.png') no-repeat center center fixed / 500px auto;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.6;
 }
 
 /* ==========================================================================
-   2. 頂部導覽列 (Navbar)
+   2. 導覽列 (Navbar)
    ========================================================================== */
 .ref-navbar {
-    background-color: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .ref-nav-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .ref-nav-brand {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: #0f172a;
-    font-weight: bold;
-    font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.ref-logo-img, .ref-hero-logo {
+  filter: brightness(0); /* 純黑會徽 */
 }
 
 .ref-logo-img {
-    width: 45px;
-    height: auto;
-    margin-right: 10px;
-    filter: brightness(0); /* 純黑會徽 */
+  width: 45px;
+  height: auto;
+  margin-right: 10px;
 }
 
 .ref-nav-links {
-    display: flex;
-    gap: 12px;
-    align-items: center;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .ref-nav-item {
-    text-decoration: none;
-    color: #475569;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+  text-decoration: none;
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .ref-nav-item:hover, .ref-nav-item.active {
-    color: #0f172a;
-    background-color: #f1f5f9;
+  color: var(--primary);
+  background-color: #f1f5f9;
 }
 
-.ref-admin-btn {
-    border: 1px solid #cbd5e1;
-}
+.ref-admin-btn { border: 1px solid #cbd5e1; }
 
 /* ==========================================================================
-   3. Hero 封面 Banner (意見箱同款黃色漸層)
+   3. Hero 封面 Banner
    ========================================================================== */
 .ref-hero {
-    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
-    color: #0f172a;
-    text-align: center;
-    padding: 60px 20px;
-    box-shadow: 0 4px 15px rgba(234, 179, 8, 0.25);
+  background: var(--hero-grad);
+  color: var(--primary);
+  text-align: center;
+  padding: 60px 20px;
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.25);
 }
 
 .ref-hero-logo {
-    width: 80px;
-    height: auto;
-    margin-bottom: 15px;
-    filter: brightness(0); /* 黑色會徽 */
+  width: 80px;
+  height: auto;
+  margin-bottom: 15px;
 }
 
 .ref-hero h1 {
-    font-size: 2.2rem;
-    margin-bottom: 12px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: #0f172a;
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
 .ref-hero p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto 25px auto;
-    color: #1e293b;
-    font-weight: 500;
-}
-
-.ref-cta-btn {
-    display: inline-block;
-    background-color: #0f172a;
-    color: #ffffff;
-    font-size: 1.1rem;
-    font-weight: bold;
-    padding: 12px 30px;
-    border-radius: 30px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
-}
-
-.ref-cta-btn:hover {
-    background-color: #1e293b;
-    transform: translateY(-2px);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto 25px;
+  font-weight: 500;
+  opacity: 0.9;
 }
 
 /* ==========================================================================
-   4. 主要內容區與意見箱風格容器 (Container & Cards)
+   4. 通用按鈕與標籤 (Buttons & Badges)
    ========================================================================== */
-.ref-container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 0 20px;
+.ref-cta-btn, .ref-vote-btn {
+  display: inline-block;
+  background-color: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.ref-info-box {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-top: 5px solid #0f172a;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
-    margin-bottom: 40px;
-    position: relative;
-}
-
-.ref-info-box h2, .ref-info-box h3 {
-    color: #0f172a;
-    margin-bottom: 16px;
-    font-size: 1.35rem;
-}
-
-.ref-info-box ul {
-    padding-left: 20px;
-    color: #475569;
-}
-
-.ref-info-box li {
-    margin-bottom: 8px;
-}
-
-/* 提案卡片區 */
-.ref-section-title {
-    font-size: 1.5rem;
-    color: #0f172a;
-    border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 10px;
-    margin-bottom: 25px;
-}
-
-.ref-proposal-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
-}
-
-.ref-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ref-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
-}
-
-.ref-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    margin-bottom: 12px;
-    background-color: #f1f5f9;
-    color: #64748b;
-}
-
-.ref-badge.active {
-    background-color: #dcfce7;
-    color: #166534;
-}
-
-.ref-card-title {
-    font-size: 1.2rem;
-    color: #0f172a;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
-
-.ref-card-desc {
-    color: #475569;
-    font-size: 0.95rem;
-    margin-bottom: 15px;
-}
-
-.ref-card-time {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 20px;
+.ref-cta-btn {
+  font-size: 1.1rem;
+  padding: 12px 30px;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
 .ref-vote-btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    background-color: #0f172a;
-    color: #ffffff;
-    padding: 10px 16px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+  width: 100%;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
 }
 
-.ref-vote-btn:hover {
-    background-color: #1e293b;
+.ref-cta-btn:hover, .ref-vote-btn:hover {
+  background-color: var(--primary-hover);
 }
 
-/* 響應式排版 */
+.ref-cta-btn:hover {
+  transform: translateY(-2px);
+}
+
+.ref-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  background-color: #f1f5f9;
+  color: var(--text-sub);
+}
+
+.ref-badge.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* ==========================================================================
+   5. 主要內容區與卡片 (Container & Cards)
+   ========================================================================== */
+.ref-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.ref-info-box, .ref-card {
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.ref-info-box {
+  border-top: 5px solid var(--primary);
+  padding: 30px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+  margin-bottom: 40px;
+}
+
+.ref-info-box h2, .ref-info-box h3 {
+  color: var(--primary);
+  margin-bottom: 16px;
+  font-size: 1.35rem;
+}
+
+.ref-info-box ul {
+  padding-left: 20px;
+  color: var(--text-muted);
+}
+
+.ref-info-box li { margin-bottom: 8px; }
+
+.ref-section-title {
+  font-size: 1.5rem;
+  color: var(--primary);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 25px;
+}
+
+.ref-proposal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.ref-card {
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ref-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
+}
+
+.ref-card-title {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.ref-card-desc {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+}
+
+.ref-card-time {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   6. 響應式排版 (Responsive)
+   ========================================================================== */
 @media (max-width: 768px) {
-    .ref-nav-container {
-        flex-direction: column;
-        gap: 12px;
-    }
-    .ref-nav-links {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .ref-hero h1 { font-size: 1.75rem; }
-    .ref-hero p { font-size: 0.95rem; }
-    .ref-container { margin: 20px auto; }
+  .ref-nav-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ref-nav-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .ref-hero h1 { font-size: 1.75rem; }
+  .ref-hero p { font-size: 0.95rem; }
+  .ref-container { margin: 20px auto; }
 }
