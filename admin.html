@@ -25,7 +25,6 @@
             flex-direction: column;
         }
 
-        /* 導覽列 */
         .ref-navbar {
             background-color: #ffffff;
             border-bottom: 1px solid var(--border-color);
@@ -78,7 +77,6 @@
             color: #854d0e;
         }
 
-        /* Hero 區塊 */
         .hero-section {
             text-align: center;
             padding: 40px 20px 20px 20px;
@@ -102,7 +100,6 @@
             color: #94a3b8;
         }
 
-        /* 主要內容容器 */
         .ref-container {
             max-width: 720px;
             margin: 0 auto;
@@ -139,7 +136,6 @@
             color: #ffffff;
         }
 
-        /* 著作權 Footer */
         .ref-footer {
             text-align: center;
             padding: 20px 0;
@@ -181,6 +177,7 @@
 
     <main class="ref-container">
 
+        <!-- 密碼登入驗證卡片 -->
         <div id="loginSection" class="ref-card text-center">
             <h3 class="h5 fw-bold mb-3">🔒 管理員身份驗證</h3>
             <p class="text-muted small mb-4">請輸入後台管理密碼以存取提案發布功能。</p>
@@ -188,10 +185,11 @@
                 <div class="mb-3">
                     <input type="password" id="adminPassword" class="form-control text-center" placeholder="請輸入管理員密碼" required>
                 </div>
-                <button type="submit" class="btn btn-submit">登入後台</button>
+                <button type="submit" id="loginBtn" class="btn btn-submit">登入後台</button>
             </form>
         </div>
 
+        <!-- 後台功能主面板 (預設隱藏) -->
         <div id="adminPanel" class="ref-card d-none">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
                 <h3 class="h5 fw-bold m-0">➕ 發布新提案 / 意見徵集</h3>
@@ -255,7 +253,6 @@
         const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
         let currentAdminPassword = "";
 
-        // 初始化檢查登入狀態與設置預設時間
         function checkAuth() {
             const savedPass = sessionStorage.getItem("admin_password");
             if (savedPass) {
@@ -271,51 +268,79 @@
             }
         }
 
-        // 預設將開始時間設為「現在」，截止時間設為「7天後」
         function initDefaultTime() {
             const now = new Date();
             const startStr = formatDateTimeLocal(now);
-            const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 天後
+            const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
             const endStr = formatDateTimeLocal(endDate);
 
             document.getElementById("propStartTime").value = startStr;
             document.getElementById("propEndTime").value = endStr;
         }
 
-        // 轉換 Date 物件為 YYYY-MM-DDTHH:mm 格式
         function formatDateTimeLocal(date) {
             const tzOffset = date.getTimezoneOffset() * 60000;
             const localISOTime = (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
             return localISOTime;
         }
 
-        // 處理登入
-        function handleLogin(e) {
+        // 嚴格後端密碼驗證登入
+        async function handleLogin(e) {
             e.preventDefault();
             const passInput = document.getElementById("adminPassword").value.trim();
             if (!passInput) return;
 
-            sessionStorage.setItem("admin_password", passInput);
-            currentAdminPassword = passInput;
-            checkAuth();
+            const loginBtn = document.getElementById("loginBtn");
+            loginBtn.disabled = true;
+            loginBtn.innerText = "驗證中...";
+
+            try {
+                // 發送一個測試請求至後端驗證密碼
+                const payload = {
+                    action: "createProposal",
+                    password: passInput,
+                    title: "" // 空標題會被後端擋下，但若密碼錯會優先回傳密碼錯誤
+                };
+
+                const res = await fetch(GAS_API, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    redirect: "follow",
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                // 如果後端回傳密碼錯誤或權限不足
+                if (!result.success && result.message && (result.message.includes("密碼") || result.message.includes("權限"))) {
+                    alert("❌ 密碼錯誤！請輸入正確的管理員密碼。");
+                    document.getElementById("adminPassword").value = "";
+                } else {
+                    // 密碼正確，解鎖後台
+                    sessionStorage.setItem("admin_password", passInput);
+                    currentAdminPassword = passInput;
+                    document.getElementById("adminPassword").value = "";
+                    checkAuth();
+                }
+            } catch (err) {
+                alert("❌ 驗證連線失敗，請檢查網路連線。");
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerText = "登入後台";
+            }
         }
 
-        // 登出
         function logout() {
             sessionStorage.removeItem("admin_password");
             currentAdminPassword = "";
-            document.getElementById("adminPassword").value = "";
             checkAuth();
         }
 
-        // 監聽所有導覽列中會離開後台的連結，點擊時立刻清除登入狀態
         document.querySelectorAll(".nav-leave").forEach(el => {
             el.addEventListener("click", () => {
                 sessionStorage.removeItem("admin_password");
             });
         });
 
-        // 切換類型時隱藏/顯示選項輸入框
         function toggleOptionsField() {
             const type = document.getElementById("propType").value;
             const optionsGroup = document.getElementById("optionsGroup");
@@ -326,16 +351,14 @@
             }
         }
 
-        // 提交新提案
         async function submitNewProposal(e) {
             e.preventDefault();
 
             const startTime = document.getElementById("propStartTime").value;
             const endTime = document.getElementById("propEndTime").value;
 
-            // 時間邏輯防呆檢查
             if (new Date(endTime) <= new Date(startTime)) {
-                alert("⚠ 截止時間必須晚於開始時間！");
+                alert("⚠️ 截止時間必須晚於開始時間！");
                 return;
             }
 
@@ -375,12 +398,12 @@
                 });
                 const result = await res.json();
 
-                if (result.success || result.status === "success") {
+                if (result.success) {
                     alert("✅ 提案發布成功！");
                     document.getElementById("proposalForm").reset();
                     initDefaultTime();
                 } else {
-                    alert("❌ 發布失敗：" + (result.message || "密碼錯誤或服務器異常"));
+                    alert("❌ 發布失敗：" + (result.message || "密碼錯誤或權限不足"));
                     if (result.message && (result.message.includes("密碼") || result.message.includes("權限"))) {
                         logout();
                     }
@@ -393,7 +416,6 @@
             }
         }
 
-        // 頁面載入時驗證
         checkAuth();
     </script>
 </body>
