@@ -136,6 +136,16 @@
             color: #ffffff;
         }
 
+        .notice-banner {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #0369a1;
+            font-size: 0.88rem;
+            margin-bottom: 24px;
+        }
+
         .ref-footer {
             text-align: center;
             padding: 20px 0;
@@ -196,6 +206,11 @@
                 <button onclick="logout()" class="btn btn-outline-danger btn-sm">🚪 登出</button>
             </div>
 
+            <!-- 時區提醒橫幅 -->
+            <div class="notice-banner">
+                🕒 <strong>貼心提醒：</strong>本平台所有提案之開始與截止時間均以<strong>越南時間 (GMT+7)</strong> 為準，請依照當地時間進行排程設定。
+            </div>
+
             <form id="proposalForm" onsubmit="submitNewProposal(event)">
                 <div class="mb-3">
                     <label class="form-label">提案類型</label>
@@ -217,11 +232,11 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6 mb-3 mb-md-0">
-                        <label class="form-label">⏰ 開始時間</label>
+                        <label class="form-label">⏰ 開始時間 (越南時間)</label>
                         <input type="datetime-local" id="propStartTime" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">⏳ 截止時間</label>
+                        <label class="form-label">⏳ 截止時間 (越南時間)</label>
                         <input type="datetime-local" id="propEndTime" class="form-control" required>
                     </div>
                 </div>
@@ -295,11 +310,10 @@
             loginBtn.innerText = "驗證中...";
 
             try {
-                // 發送一個測試請求至後端驗證密碼
                 const payload = {
                     action: "createProposal",
                     password: passInput,
-                    title: "" // 空標題會被後端擋下，但若密碼錯會優先回傳密碼錯誤
+                    title: "" 
                 };
 
                 const res = await fetch(GAS_API, {
@@ -310,12 +324,10 @@
                 });
                 const result = await res.json();
 
-                // 如果後端回傳密碼錯誤或權限不足
                 if (!result.success && result.message && (result.message.includes("密碼") || result.message.includes("權限"))) {
                     alert("❌ 密碼錯誤！請輸入正確的管理員密碼。");
                     document.getElementById("adminPassword").value = "";
                 } else {
-                    // 密碼正確，解鎖後台
                     sessionStorage.setItem("admin_password", passInput);
                     currentAdminPassword = passInput;
                     document.getElementById("adminPassword").value = "";
