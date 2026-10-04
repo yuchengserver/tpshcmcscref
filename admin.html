@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡志明市臺灣學校學生會 - 學生會公投專區 (後台管理)</title>
+    <title>胡志明市臺灣學校學生會 - 後台管理系統</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Chart.js 繪製圖表 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-main: #f8fafc;
@@ -25,6 +23,7 @@
             line-height: 1.6;
         }
 
+        /* 導覽列 */
         .ref-navbar {
             background-color: #ffffff;
             border-bottom: 1px solid var(--border-color);
@@ -77,11 +76,7 @@
             color: #854d0e;
         }
 
-        .ref-admin-btn:hover {
-            background-color: #fef08a;
-            color: #713f12;
-        }
-
+        /* Hero 區塊 */
         .hero-section {
             text-align: center;
             padding: 40px 20px 20px 20px;
@@ -98,110 +93,53 @@
             font-weight: 800;
             color: var(--text-dark);
             margin-bottom: 6px;
-            letter-spacing: -0.5px;
         }
 
         .hero-subtitle {
             font-size: 0.95rem;
             color: #94a3b8;
-            margin-bottom: 0;
         }
 
+        /* 主要內容容器 */
         .ref-container {
-            max-width: 860px;
+            max-width: 720px;
             margin: 0 auto;
             padding: 0 20px 60px 20px;
-        }
-
-        .nav-pills {
-            background: #ffffff;
-            padding: 6px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        .nav-pills .nav-link {
-            color: var(--text-muted);
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 10px 20px;
-            transition: all 0.2s ease;
-        }
-
-        .nav-pills .nav-link.active {
-            background-color: var(--btn-primary);
-            color: #ffffff;
         }
 
         .ref-card {
             background: #ffffff;
             border-radius: 12px;
-            padding: 28px;
+            padding: 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
             border: 1px solid var(--border-color);
-            margin-bottom: 24px;
         }
 
-        .ref-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            font-size: 0.78rem;
+        .form-label {
             font-weight: 700;
-            border-radius: 20px;
-            margin-bottom: 12px;
-        }
-
-        .badge-poll { background: #e0f2fe; color: #0369a1; }
-        .badge-feedback { background: #dcfce7; color: #15803d; }
-
-        .feedback-item {
-            background-color: #f8fafc;
-            border-left: 4px solid #10b981;
-            padding: 12px 14px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 10px 14px;
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #0f172a;
-            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+            color: var(--text-dark);
         }
 
         .btn-submit {
             background-color: var(--btn-primary);
             color: #ffffff;
-            border-radius: 8px;
-            padding: 12px;
             font-weight: 700;
+            padding: 12px;
+            border-radius: 8px;
             border: none;
-            transition: background-color 0.2s ease;
+            width: 100%;
+            transition: background 0.2s;
         }
 
         .btn-submit:hover {
             background-color: var(--btn-primary-hover);
             color: #ffffff;
         }
-
-        @media (max-width: 576px) {
-            .ref-nav-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .hero-title {
-                font-size: 1.6rem;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <!-- 頂部滿版導覽列 -->
+    <!-- 頂部導覽列 -->
     <nav class="ref-navbar">
         <div class="ref-nav-container">
             <a href="index.html" class="ref-nav-brand">
@@ -210,307 +148,179 @@
             <div class="ref-nav-links">
                 <a href="index.html" class="ref-nav-item">首頁</a>
                 <a href="results.html" class="ref-nav-item">開票與歷史結果</a>
-                <a href="admin.html" class="ref-nav-item active ref-admin-btn">⚙️ 管理後台</a>
+                <a href="admin.html" class="ref-nav-item ref-admin-btn active">⚙️ 管理後台</a>
             </div>
         </div>
     </nav>
 
-    <!-- 置中 Hero 區塊 -->
+    <!-- Hero 區塊 -->
     <header class="hero-section">
         <div class="hero-icon">⚙️</div>
         <h1 class="hero-title">後台管理系統</h1>
-        <p class="hero-subtitle">胡志明市臺灣學校學生會 - 學生會公投網站</p>
+        <p class="hero-subtitle">胡志明市臺灣學校學生會 - 發布新提案與意見徵集</p>
     </header>
 
-    <!-- 主要內容區 -->
     <main class="ref-container">
-        
-        <!-- 頁籤選單 -->
-        <ul class="nav nav-pills mb-4 nav-justified" id="adminTabs" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active" id="create-tab" data-bs-toggle="tab" data-bs-target="#create-panel">➕ 發布新提案 / 意見徵集</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results-panel" onclick="loadResults()">📊 開票數據與意見彙整</button>
-            </li>
-        </ul>
 
-        <div class="tab-content" id="adminTabsContent">
-            
-            <!-- 頁籤 1: 發布新提案 -->
-            <div class="tab-pane fade show active" id="create-panel" role="tabpanel">
-                <div class="ref-card">
-                    <h4 class="fw-bold text-dark mb-4">發布提案或意見徵集</h4>
-                    <form id="createProposalForm" onsubmit="handleCreateProposal(event)">
-                        
-                        <!-- 後台管理密碼輸入欄位 -->
-                        <div class="mb-3 p-3 bg-light rounded-3 border">
-                            <label class="form-label fw-bold text-dark">🔑 管理員密碼</label>
-                            <input type="password" class="form-control" id="adminPassword" value="tpshcmcscadmin" placeholder="請輸入後台權限密碼" required>
-                            <div class="form-text text-muted">發送請求時將由 Google Apps Script 後端驗證此密碼。</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-dark">發布類型</label>
-                            <select class="form-select" id="propType" onchange="toggleOptionsInput()">
-                                <option value="poll">🗳️ 選項投票 (Poll) - 例如：同意/不同意 或 自訂選項</option>
-                                <option value="feedback">💡 意見徵集 (Feedback) - 純文字收集，不含投票選項</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-dark">提案主題 / 標題</label>
-                            <input type="text" class="form-control" id="propTitle" placeholder="例如：113學年度學生會社團補助辦法公投" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-dark">詳細說明 (支援文字與連結)</label>
-                            <textarea class="form-control" id="propDesc" rows="4" placeholder="請詳細說明活動背景或提案動機..."></textarea>
-                        </div>
-
-                        <!-- 選項輸入欄位 -->
-                        <div class="mb-3" id="optionsGroup">
-                            <label class="form-label fw-bold text-dark">投票選項 (請用半形逗號 `,` 分開)</label>
-                            <input type="text" class="form-control" id="propOptions" placeholder="同意, 不同意 (若留空，預設為：同意, 不同意)">
-                            <div class="form-text text-muted">例：選項A, 選項B, 選項C</div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <label class="form-label fw-bold text-dark">開始時間 (選填)</label>
-                                <input type="datetime-local" class="form-control" id="startTime">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-dark">結束時間 (選填)</label>
-                                <input type="datetime-local" class="form-control" id="endTime">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-submit btn-lg w-100" id="btnSubmit">🚀 發布提案</button>
-                    </form>
+        <!-- 1. 登入介面 (未驗證時顯示) -->
+        <div id="loginSection" class="ref-card text-center">
+            <h3 class="h5 fw-bold mb-3">🔒 管理員身份驗證</h3>
+            <p class="text-muted small mb-4">請輸入後台管理密碼以存取提案發布功能。</p>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-3">
+                    <input type="password" id="adminPassword" class="form-control text-center" placeholder="請輸入管理員密碼" required>
                 </div>
+                <button type="submit" class="btn btn-submit">登入後台</button>
+            </form>
+        </div>
+
+        <!-- 2. 後台新增提案表單 (登入成功後才顯示) -->
+        <div id="adminPanel" class="ref-card d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <h3 class="h5 fw-bold m-0">➕ 發布新提案 / 意見徵集</h3>
+                <button onclick="logout()" class="btn btn-outline-danger btn-sm">🚪 登出</button>
             </div>
 
-            <!-- 頁籤 2: 開票數據與意見彙整 -->
-            <div class="tab-pane fade" id="results-panel" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark m-0">最新即時統計</h5>
-                    <button class="btn btn-outline-secondary btn-sm rounded-2" onclick="loadResults()">🔄 重新整理</button>
+            <form onsubmit="submitNewProposal(event)">
+                <div class="mb-3">
+                    <label class="form-label">提案類型</label>
+                    <select id="propType" class="form-select" onchange="toggleOptionsField()" required>
+                        <option value="poll">🗳️ 選項投票 (多選一/單選投票)</option>
+                        <option value="feedback">💡 意見徵集 (學生自由留言)</option>
+                    </select>
                 </div>
-                <div id="resultsContainer">
-                    <div class="text-center py-5 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
-                        <div class="spinner-border text-dark" role="status"></div>
-                        <p class="mt-2 text-muted small mb-0">載入開票數據中...</p>
+
+                <div class="mb-3">
+                    <label class="form-label">提案標題</label>
+                    <input type="text" id="propTitle" class="form-control" placeholder="例：2026 舞會主題投票" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">詳細說明</label>
+                    <textarea id="propDesc" class="form-control" rows="3" placeholder="請說明提案背景或規則..."></textarea>
+                </div>
+
+                <div class="mb-3" id="optionsGroup">
+                    <label class="form-label">投票選項 (請用半形逗號分隔)</label>
+                    <input type="text" id="propOptions" class="form-control" placeholder="例：復古風, 科技風, 電影主題">
+                    <small class="text-muted">僅在「選項投票」時生效，項目之間請用逗號 <code>,</code> 隔開。</small>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="propActive" checked>
+                        <label class="form-check-input-label fw-bold" for="propActive">立即開放公投 / 徵集</label>
                     </div>
                 </div>
-            </div>
 
+                <button type="submit" id="submitBtn" class="btn btn-submit">🚀 立即發布提案</button>
+            </form>
         </div>
+
     </main>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+        let currentAdminPassword = "";
 
-        function toggleOptionsInput() {
-            const type = document.getElementById("propType").value;
-            const optionsGroup = document.getElementById("optionsGroup");
-            optionsGroup.style.display = (type === "feedback") ? "none" : "block";
+        // 初始化檢查登入狀態
+        function checkAuth() {
+            const savedPass = localStorage.getItem("admin_password");
+            if (savedPass) {
+                currentAdminPassword = savedPass;
+                document.getElementById("loginSection").classList.add("d-none");
+                document.getElementById("adminPanel").classList.remove("d-none");
+            } else {
+                document.getElementById("loginSection").classList.remove("d-none");
+                document.getElementById("adminPanel").classList.add("d-none");
+            }
         }
 
-        // 發布新提案 (將密碼傳至 GAS 後端比對)
-        async function handleCreateProposal(e) {
+        // 處理登入
+        function handleLogin(e) {
             e.preventDefault();
-            const btn = document.getElementById("btnSubmit");
-            btn.disabled = true;
-            btn.innerText = "驗證權限並發布中...";
+            const passInput = document.getElementById("adminPassword").value.trim();
+            if (!passInput) return;
 
-            const password = document.getElementById("adminPassword").value;
+            localStorage.setItem("admin_password", passInput);
+            currentAdminPassword = passInput;
+            checkAuth();
+        }
+
+        // 登出
+        function logout() {
+            localStorage.removeItem("admin_password");
+            currentAdminPassword = "";
+            document.getElementById("adminPassword").value = "";
+            checkAuth();
+        }
+
+        // 切換類型時隱藏/顯示選項輸入框
+        function toggleOptionsField() {
             const type = document.getElementById("propType").value;
-            const title = document.getElementById("propTitle").value;
-            const description = document.getElementById("propDesc").value;
-            const options = document.getElementById("propOptions").value;
-            const start_time = document.getElementById("startTime").value;
-            const end_time = document.getElementById("endTime").value;
+            const optionsGroup = document.getElementById("optionsGroup");
+            if (type === "feedback") {
+                optionsGroup.classList.add("d-none");
+            } else {
+                optionsGroup.classList.remove("d-none");
+            }
+        }
+
+        // 提交新提案
+        async function submitNewProposal(e) {
+            e.preventDefault();
+            const btn = document.getElementById("submitBtn");
+            btn.disabled = true;
+            btn.innerText = "發布中，請稍後...";
+
+            const type = document.getElementById("propType").value;
+            const title = document.getElementById("propTitle").value.trim();
+            const description = document.getElementById("propDesc").value.trim();
+            const optionsRaw = document.getElementById("propOptions").value.trim();
+            const isActive = document.getElementById("propActive").checked;
+
+            // 整理選項為陣列
+            let options = [];
+            if (type === "poll" && optionsRaw) {
+                options = optionsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            }
 
             const payload = {
-                action: "createProposal",
-                password: password,
+                action: "addProposal",
+                password: currentAdminPassword,
                 type: type,
                 title: title,
                 description: description,
                 options: options,
-                start_time: start_time,
-                end_time: end_time
+                active: isActive
             };
 
             try {
-                const response = await fetch(GAS_URL, {
+                const res = await fetch(GAS_API, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify(payload)
                 });
+                const result = await res.json();
 
-                const result = await response.json();
-                if (result.success) {
-                    alert("✅ " + result.message);
-                    document.getElementById("createProposalForm").reset();
-                    document.getElementById("adminPassword").value = "tpshcmcscadmin";
-                    toggleOptionsInput();
+                if (result.status === "success") {
+                    alert("✅ 提案發布成功！");
+                    location.reload();
                 } else {
-                    alert("❌ 發布失敗：" + result.message);
+                    alert("❌ 發布失敗：" + (result.message || "密碼錯誤或服務器異常"));
+                    if (result.message && result.message.includes("密碼")) {
+                        logout();
+                    }
                 }
             } catch (err) {
-                alert("網路錯誤或發布失敗：" + err.message);
+                alert("❌ 發布失敗，請確認網路連線或 GAS API 設定。");
             } finally {
                 btn.disabled = false;
-                btn.innerText = "🚀 發布提案";
+                btn.innerText = "🚀 立即發布提案";
             }
         }
 
-        // 載入後台數據 (帶入密碼至後端進行授權)
-        async function loadResults() {
-            const container = document.getElementById("resultsContainer");
-            let password = document.getElementById("adminPassword").value || "tpshcmcscadmin";
-
-            container.innerHTML = `
-                <div class="text-center py-5 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
-                    <div class="spinner-border text-dark" role="status"></div>
-                    <p class="mt-2 text-muted small mb-0">驗證權限並載入開票數據中...</p>
-                </div>`;
-
-            try {
-                const response = await fetch(`${GAS_URL}?action=getResults&password=${encodeURIComponent(password)}`);
-                const data = await response.json();
-
-                if (data.error) {
-                    container.innerHTML = `<div class="alert alert-danger text-center py-4">❌ ${escapeHtml(data.message)}</div>`;
-                    return;
-                }
-
-                if (!Array.isArray(data) || data.length === 0) {
-                    container.innerHTML = `
-                        <div class="bg-white border rounded-3 p-5 text-center text-muted" style="border-style: dashed !important;">
-                            目前尚無任何提案數據。
-                        </div>`;
-                    return;
-                }
-
-                container.innerHTML = "";
-
-                data.forEach((item, index) => {
-                    const card = document.createElement("div");
-                    card.className = "ref-card";
-
-                    const isFeedback = item.type === "feedback";
-                    
-                    if (isFeedback) {
-                        let feedbackListHtml = "";
-                        if (item.feedbacks && item.feedbacks.length > 0) {
-                            feedbackListHtml = item.feedbacks.map(f => `
-                                <div class="p-3 mb-2 feedback-item">
-                                    <div class="d-flex justify-content-between text-muted small mb-1">
-                                        <span>💡 同學意見</span>
-                                        <span>${escapeHtml(f.time || '')}</span>
-                                    </div>
-                                    <div>${escapeHtml(f.content)}</div>
-                                </div>
-                            `).join("");
-                        } else {
-                            feedbackListHtml = `<p class="text-muted text-center py-3">目前尚無同學提交意見。</p>`;
-                        }
-
-                        card.innerHTML = `
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="ref-badge badge-feedback me-2">💡 意見徵集</span>
-                                <span class="text-muted small">提案 ID: #${item.id}</span>
-                            </div>
-                            <h5 class="fw-bold text-dark">${escapeHtml(item.title)}</h5>
-                            <p class="mb-3 text-secondary small">總收到回應數：<strong>${item.total_responses}</strong> 筆</p>
-                            <hr style="border-color: var(--border-color);">
-                            <h6 class="fw-bold text-dark mb-3">意見列表：</h6>
-                            <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">
-                                ${feedbackListHtml}
-                            </div>
-                        `;
-                    } else {
-                        const canvasId = `chart-${index}`;
-                        card.innerHTML = `
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="ref-badge badge-poll me-2">🗳️ 選項投票</span>
-                                <span class="text-muted small">提案 ID: #${item.id}</span>
-                            </div>
-                            <h5 class="fw-bold text-dark">${escapeHtml(item.title)}</h5>
-                            <p class="mb-3 text-secondary small">總投票數：<strong>${item.total_votes}</strong> 票</p>
-                            
-                            <div class="row align-items-center mt-3">
-                                <div class="col-md-6 mb-3 mb-md-0">
-                                    <canvas id="${canvasId}" style="max-height: 220px;"></canvas>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul class="list-group list-group-flush border-0">
-                                        ${Object.entries(item.options_count || {}).map(([opt, cnt]) => `
-                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
-                                                <span>${escapeHtml(opt)}</span>
-                                                <span class="badge bg-dark rounded-pill">${cnt} 票</span>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                        `;
-
-                        setTimeout(() => {
-                            renderChart(canvasId, item.options_count || {});
-                        }, 50);
-                    }
-
-                    container.appendChild(card);
-                });
-
-            } catch (err) {
-                container.innerHTML = `<div class="alert alert-danger text-center py-4">載入數據失敗：${escapeHtml(err.message)}</div>`;
-            }
-        }
-
-        function renderChart(canvasId, optionsCount) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) return;
-
-            const labels = Object.keys(optionsCount);
-            const data = Object.values(optionsCount);
-
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: [
-                            '#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-        }
-
-        function escapeHtml(str) {
-            if (!str) return "";
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+        // 頁面載入時驗證
+        checkAuth();
     </script>
 </body>
 </html>
