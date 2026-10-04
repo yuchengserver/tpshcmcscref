@@ -23,6 +23,9 @@
             color: #1e293b;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* 頂部導覽列 */
@@ -94,6 +97,7 @@
             max-width: 680px;
             margin: 40px auto;
             padding: 0 20px 60px 20px;
+            flex: 1;
         }
 
         /* 卡片面板 */
@@ -103,6 +107,16 @@
             padding: 32px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
             border: 1px solid var(--border-color);
+        }
+
+        /* 時間資訊標籤 */
+        .time-badge-box {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #475569;
+            margin-bottom: 20px;
         }
 
         /* 單選選項卡片 */
@@ -162,9 +176,25 @@
             transition: background-color 0.2s ease;
         }
 
-        .btn-submit:hover {
+        .btn-submit:hover:not(:disabled) {
             background-color: var(--btn-primary-hover);
             color: #ffffff;
+        }
+
+        .btn-submit:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        .ref-footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            background-color: #ffffff;
+            margin-top: auto;
         }
 
         @media (max-width: 576px) {
@@ -198,7 +228,16 @@
     <!-- 主要內容卡片區塊 -->
     <main class="ref-container">
         <div class="ref-vote-card">
-            <h2 id="pTitle" class="fw-bold text-dark mb-2 fs-3">載入提案中...</h2>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h2 id="pTitle" class="fw-bold text-dark fs-3 m-0">載入提案中...</h2>
+                <span id="statusBadge" class="badge bg-secondary">載入中</span>
+            </div>
+
+            <!-- 時間資訊顯示區塊 -->
+            <div id="timeInfoArea" class="time-badge-box d-none">
+                🕒 開放時間：<span id="startTimeText">-</span> ～ <span id="endTimeText">-</span>
+            </div>
+
             <p id="pDesc" class="text-secondary mb-4 fs-6">請稍候，正在取得提案內容...</p>
             
             <hr class="my-4" style="border-color: var(--border-color);">
@@ -224,6 +263,11 @@
         </div>
     </main>
 
+    <!-- 底部著作權標籤 -->
+    <footer class="ref-footer">
+        胡志明市台灣學校學生會 TSSC13TH © 2026 yucheng
+    </footer>
+
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -231,6 +275,9 @@
         const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
         const urlParams = new URLSearchParams(window.location.search);
         const proposalId = urlParams.get('id');
+
+        // 快取當前提案的時間數據
+        let proposalTimeData = { startTime: null, endTime: null };
 
         async function initVotePage() {
             if (!proposalId) { 
@@ -248,10 +295,40 @@
                     document.getElementById("pTitle").innerText = currentP.title;
                     document.getElementById("pDesc").innerText = currentP.description || "無詳細說明";
                     
+                    // 時間資訊處裡
+                    proposalTimeData.startTime = currentP.startTime ? new Date(currentP.startTime) : null;
+                    proposalTimeData.endTime = currentP.endTime ? new Date(currentP.endTime) : null;
+
+                    if (proposalTimeData.startTime && proposalTimeData.endTime) {
+                        document.getElementById("startTimeText").innerText = formatDisplayTime(proposalTimeData.startTime);
+                        document.getElementById("endTimeText").innerText = formatDisplayTime(proposalTimeData.endTime);
+                        document.getElementById("timeInfoArea").classList.remove("d-none");
+                    }
+
+                    // 時間開放驗證
+                    const now = new Date();
+                    const badge = document.getElementById("statusBadge");
+                    const submitBtn = document.getElementById("vSubmitBtn");
+
+                    if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
+                        badge.className = "badge bg-warning text-dark";
+                        badge.innerText = "⏳ 尚未開放";
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = "🔒 該項目尚未開放投票";
+                    } else if (proposalTimeData.endTime && now > proposalTimeData.endTime) {
+                        badge.className = "badge bg-danger";
+                        badge.innerText = "🔒 已截止";
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = "🔒 投票時間已截止";
+                    } else {
+                        badge.className = "badge bg-success";
+                        badge.innerText = "🟢 開放中";
+                    }
+
+                    // 動態渲染選項或輸入欄位
                     const inputArea = document.getElementById("dynamicInputArea");
 
                     if (currentP.type === "feedback") {
-                        // 💬 意見徵集模式：顯示多行文字框
                         inputArea.innerHTML = `
                             <label class="form-label fw-bold text-dark">
                                 您的意見與建議：<span class="text-danger">*</span>
@@ -259,7 +336,6 @@
                             <textarea id="vFeedbackText" class="form-control" rows="5" placeholder="請詳細寫下您的想法與建言..." required></textarea>
                         `;
                     } else {
-                        // 🗳 投票選項模式：顯示單選按鈕
                         const options = (currentP.options && currentP.options.length > 0) ? currentP.options : ["同意", "不同意"];
                         const optionsHTML = options.map((opt, idx) => `
                             <label class="option-label">
@@ -282,6 +358,18 @@
 
         async function handleVoteSubmit(e) {
             e.preventDefault();
+
+            // 雙重防護：再次驗證提交當下的時間
+            const now = new Date();
+            if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
+                alert("⚠️ 該項目尚未開放投票！");
+                return;
+            }
+            if (proposalTimeData.endTime && now > proposalTimeData.endTime) {
+                alert("⚠️ 投票時間已截止，無法繼續提交！");
+                return;
+            }
+
             const btn = document.getElementById("vSubmitBtn");
             const emailInput = document.getElementById("vEmail");
             const email = emailInput.value.trim().toLowerCase();
@@ -323,6 +411,7 @@
                 const res = await fetch(GAS_API, { 
                     method: "POST", 
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    redirect: "follow",
                     body: JSON.stringify(payload) 
                 });
                 const result = await res.json();
@@ -340,6 +429,16 @@
                 btn.style.opacity = "1";
                 btn.innerText = "確認送出並寄送確認信";
             }
+        }
+
+        // 時間格式化工具
+        function formatDisplayTime(date) {
+            if (!date || isNaN(date)) return "-";
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            return `${m}/${d} ${hh}:${mm}`;
         }
 
         // 防 XSS 攻擊字元轉義
