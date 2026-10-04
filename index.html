@@ -200,7 +200,7 @@
 </head>
 <body>
 
-    <!-- 頂部 Header 導覽列 (左上角修改為 TSSC13TH 公投專區) -->
+    <!-- 頂部 Header 導覽列 -->
     <nav class="ref-navbar">
         <div class="ref-nav-container">
             <a href="index.html" class="ref-nav-brand">
@@ -214,7 +214,7 @@
         </div>
     </nav>
 
-    <!-- 淡藍色背景 Hero 區塊 (校徽為黑色) -->
+    <!-- 淡藍色背景 Hero 區塊 -->
     <header class="hero-section">
         <div>
             <img src="tpshcmcsc.png" alt="胡志明市臺灣學校學生會校徽" class="hero-logo-img">
@@ -259,10 +259,14 @@
         async function loadActivePolls() {
             const container = document.getElementById("activePollsList");
             try {
-                const res = await fetch(`${GAS_API}?action=getActivePolls`);
-                const polls = await res.json();
+                // 已修正：改回正確的 getProposals 動作指令
+                const res = await fetch(`${GAS_API}?action=getProposals`);
+                const allProposals = await res.json();
 
-                if (!polls || !Array.isArray(polls) || polls.length === 0) {
+                // 前端過濾出狀態為 active 的項目
+                const polls = Array.isArray(allProposals) ? allProposals.filter(p => String(p.status).toLowerCase() === "active") : [];
+
+                if (polls.length === 0) {
                     container.innerHTML = `
                         <div class="bg-white border rounded-3 p-5 text-center text-muted" style="border-style: dashed !important;">
                             目前暫無開放中的公投或意見徵集項目。
