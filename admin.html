@@ -203,7 +203,7 @@
                 <button onclick="logout()" class="btn btn-outline-danger btn-sm">🚪 登出</button>
             </div>
 
-            <form onsubmit="submitNewProposal(event)">
+            <form id="proposalForm" onsubmit="submitNewProposal(event)">
                 <div class="mb-3">
                     <label class="form-label">提案類型</label>
                     <select id="propType" class="form-select" onchange="toggleOptionsField()" required>
@@ -264,13 +264,15 @@
 
         // 初始化檢查登入狀態與設置預設時間
         function checkAuth() {
-            // 將 localStorage 改為 sessionStorage，離開頁面或關閉分頁即清除
+            // 利用 sessionStorage：關閉分頁或視窗時自動清除，重新整理則可保留狀態
             const savedPass = sessionStorage.getItem("admin_password");
             if (savedPass) {
                 currentAdminPassword = savedPass;
                 document.getElementById("loginSection").classList.add("d-none");
                 document.getElementById("adminPanel").classList.remove("d-none");
-                initDefaultTime();
+                if (!document.getElementById("propStartTime").value) {
+                    initDefaultTime();
+                }
             } else {
                 document.getElementById("loginSection").classList.remove("d-none");
                 document.getElementById("adminPanel").classList.add("d-none");
@@ -281,7 +283,6 @@
         function initDefaultTime() {
             const now = new Date();
             const startStr = formatDateTimeLocal(now);
-
             const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 天後
             const endStr = formatDateTimeLocal(endDate);
 
@@ -302,7 +303,6 @@
             const passInput = document.getElementById("adminPassword").value.trim();
             if (!passInput) return;
 
-            // 使用 sessionStorage 儲存
             sessionStorage.setItem("admin_password", passInput);
             currentAdminPassword = passInput;
             checkAuth();
@@ -315,11 +315,6 @@
             document.getElementById("adminPassword").value = "";
             checkAuth();
         }
-
-        // 離開頁面（關閉分頁、跳轉至其他網頁）時主動清除登入 Session
-        window.addEventListener("beforeunload", function () {
-            sessionStorage.removeItem("admin_password");
-        });
 
         // 切換類型時隱藏/顯示選項輸入框
         function toggleOptionsField() {
@@ -341,13 +336,13 @@
 
             // 時間邏輯防呆檢查
             if (new Date(endTime) <= new Date(startTime)) {
-                alert("⚠️️ 截止時間必須晚於開始時間！");
+                alert("⚠ 截止時間必須晚於開始時間！");
                 return;
             }
 
             const btn = document.getElementById("submitBtn");
             btn.disabled = true;
-            btn.innerText = "發布中，請稍後...";
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>發布中，請稍後...`;
 
             const type = document.getElementById("propType").value;
             const title = document.getElementById("propTitle").value.trim();
@@ -355,19 +350,18 @@
             const optionsRaw = document.getElementById("propOptions").value.trim();
             const isActive = document.getElementById("propActive").checked;
 
-            // 整理選項為陣列
             let options = [];
             if (type === "poll" && optionsRaw) {
                 options = optionsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
             }
 
             const payload = {
-                action: "createProposal", // 配合 GAS 後端採用的指令名稱
+                action: "createProposal", // 已修正為後端對應的指令
                 password: currentAdminPassword,
                 type: type,
                 title: title,
                 description: description,
-                options: options.join(","), // 配合 GAS 試算表存儲格式
+                options: options.join(","),
                 start_time: startTime,
                 end_time: endTime,
                 active: isActive
@@ -384,10 +378,11 @@
 
                 if (result.success || result.status === "success") {
                     alert("✅ 提案發布成功！");
-                    location.reload();
+                    document.getElementById("proposalForm").reset(); // 清空表單
+                    initDefaultTime(); // 重新設定預設時間
                 } else {
                     alert("❌ 發布失敗：" + (result.message || "密碼錯誤或服務器異常"));
-                    if (result.message && result.message.includes("密碼")) {
+                    if (result.message && (result.message.includes("密碼") || result.message.includes("權限"))) {
                         logout();
                     }
                 }
@@ -395,7 +390,7 @@
                 alert("❌ 發布失敗，請確認網路連線或 GAS API 設定。");
             } finally {
                 btn.disabled = false;
-                btn.innerText = "🚀 立即發布提案";
+                btn.innerHTML = "🚀 立即發布提案";
             }
         }
 
