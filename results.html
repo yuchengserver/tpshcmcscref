@@ -115,7 +115,7 @@
             padding: 0 20px 60px 20px;
         }
 
-        /* 卡片與元件風格 */
+        /* 卡片風格 */
         .ref-card {
             background: #ffffff;
             border-radius: 12px;
@@ -222,7 +222,7 @@
         </div>
     </nav>
 
-    <!-- 置中 Hero 區塊 -->
+    <!-- Hero 區塊 -->
     <header class="hero-section">
         <div class="hero-icon">📊</div>
         <h1 class="hero-title">開票與歷史結果</h1>
@@ -231,7 +231,6 @@
 
     <!-- 主要內容區 -->
     <main class="ref-container">
-        
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h5 fw-bold text-dark m-0">即時開票與建言列表</h2>
             <button onclick="loadResults()" class="btn refresh-btn">
@@ -245,7 +244,6 @@
                 <p class="mt-2 text-muted small mb-0">開票結果載入中...</p>
             </div>
         </div>
-
     </main>
 
     <script>
@@ -253,28 +251,10 @@
 
         async function loadResults() {
             const container = document.getElementById("resultsList");
-            
-            // 若後端有啟用密碼驗證，優先讀取儲存的密碼
-            let password = localStorage.getItem("admin_password") || "";
-            
             try {
-                const res = await fetch(`${GAS_API}?action=getResults&password=${encodeURIComponent(password)}`);
+                // 完全不需要帶入密碼
+                const res = await fetch(`${GAS_API}?action=getResults`);
                 const results = await res.json();
-
-                // 若後端驗證失敗 (回傳權限錯誤)
-                if (results && results.error) {
-                    const inputPass = prompt("請輸入管理員密碼以檢視開票結果：");
-                    if (inputPass) {
-                        localStorage.setItem("admin_password", inputPass);
-                        return loadResults(); // 密碼輸入完後自動重試
-                    } else {
-                        container.innerHTML = `
-                            <div class="alert alert-warning text-center py-4">
-                                🔒 需要管理員權限才能檢視開票結果。
-                            </div>`;
-                        return;
-                    }
-                }
 
                 if (!results || !Array.isArray(results) || results.length === 0) {
                     container.innerHTML = `
@@ -287,7 +267,6 @@
                 container.innerHTML = results.map(r => {
                     const isFeedback = r.type === "feedback";
 
-                    // 1. 純文字意見徵集渲染邏輯 (feedback)
                     if (isFeedback) {
                         const feedbackList = r.feedbacks || [];
                         let feedbackHtml = "";
@@ -317,10 +296,7 @@
                                 </div>
                             </div>
                         `;
-                    } 
-                    
-                    // 2. 選項投票渲染邏輯 (poll)
-                    else {
+                    } else {
                         const total = r.total_votes || 0;
                         const counts = r.options_count || {};
                         const options = Object.keys(counts);
@@ -369,7 +345,6 @@
             }
         }
 
-        // 防 XSS 攻擊轉義字元
         function escapeHtml(str) {
             if (!str) return "";
             return String(str)
@@ -380,7 +355,6 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // 頁面載入時執行
         loadResults();
     </script>
 </body>
