@@ -3,28 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡志明市臺灣學校學生會 - 學生會公投專區</title>
+    <title>胡志明市臺灣學校學生會 - 參與表達平台</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #f8fafc;
+            --bg-main: #f1f5f9;
+            --header-bg: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
             --text-dark: #0f172a;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --accent-yellow: #eab308;
-            --btn-primary: #0f172a;
-            --btn-primary-hover: #1e293b;
         }
 
         body {
             background-color: var(--bg-main);
-            color: #1e293b;
+            color: var(--text-dark);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
+            min-height: 100vh;
         }
 
-        /* 頂部導覽列 */
+        /* 頂部藍色 Banner 區塊 (參考意見箱風格) */
+        .hero-header {
+            background: var(--header-bg);
+            color: #ffffff;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .hero-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            color: #dbeafe;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        /* 導覽列 (右上角專屬頁面按鈕區) */
         .ref-navbar {
             background-color: #ffffff;
             border-bottom: 1px solid var(--border-color);
@@ -48,19 +73,25 @@
             text-decoration: none;
             color: var(--text-dark);
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
+        }
+
+        .ref-logo-img {
+            height: 32px;
+            width: auto;
+            margin-right: 10px;
         }
 
         .ref-nav-links {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
         .ref-nav-item {
             text-decoration: none;
             color: var(--text-muted);
-            padding: 6px 14px;
+            padding: 7px 14px;
             border-radius: 8px;
             font-size: 0.9rem;
             font-weight: 600;
@@ -82,162 +113,66 @@
             color: #713f12;
         }
 
-        /* 置中 Hero 區塊 */
-        .hero-section {
-            text-align: center;
-            padding: 45px 20px 20px 20px;
-        }
-
-        .hero-icon {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            display: inline-block;
-        }
-
-        .hero-title {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-
-        .hero-subtitle {
-            font-size: 0.95rem;
-            color: #94a3b8;
-            margin-bottom: 0;
-        }
-
-        /* 主容器 */
-        .ref-container {
-            max-width: 760px;
-            margin: 0 auto;
+        /* 內容容器 */
+        .main-container {
+            max-width: 800px;
+            margin: 30px auto;
             padding: 0 20px 60px 20px;
         }
 
-        /* 提醒須知卡片 (黃色頂邊框風格) */
-        .info-card {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-top: 4px solid var(--accent-yellow);
+        /* 規則提醒卡片 */
+        .notice-card {
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
             border-radius: 12px;
-            padding: 20px 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            margin-bottom: 32px;
-        }
-
-        .info-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 8px;
+            padding: 16px 20px;
+            color: #0369a1;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .info-text {
-            font-size: 0.92rem;
-            color: var(--text-muted);
-            margin-bottom: 0;
-        }
-
-        /* 提案卡片設計 */
-        .section-title {
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 20px;
-        }
-
-        .card-proposal {
+        /* 卡片面板 */
+        .content-card {
             background: #ffffff;
-            border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 22px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            margin-bottom: 20px;
+            padding: 28px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px;
         }
 
-        .card-proposal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+        .proposal-item {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+            background: #ffffff;
         }
 
-        .badge-type {
-            font-size: 0.78rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
+        .proposal-item:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
         }
 
-        .badge-poll {
-            background-color: #e0f2fe;
-            color: #0369a1;
-        }
-
-        .badge-feedback {
-            background-color: #dcfce7;
-            color: #15803d;
-        }
-
-        .prop-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-top: 10px;
-            margin-bottom: 8px;
-        }
-
-        .prop-desc {
-            font-size: 0.92rem;
-            color: var(--text-muted);
-            margin-bottom: 18px;
-        }
-
-        .card-action-btn {
-            background-color: var(--btn-primary);
+        .btn-vote-go {
+            background-color: #2563eb;
             color: #ffffff;
+            border-radius: 6px;
+            padding: 6px 16px;
             font-weight: 600;
             font-size: 0.9rem;
-            border-radius: 8px;
-            padding: 8px 18px;
-            border: none;
-            transition: background-color 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s ease;
         }
 
-        .card-action-btn:hover {
-            background-color: var(--btn-primary-hover);
+        .btn-vote-go:hover {
+            background-color: #1d4ed8;
             color: #ffffff;
-        }
-
-        /* Modal 彈窗微調 */
-        .modal-content {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .modal-header {
-            background-color: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
-            padding: 16px 24px;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .form-control, .form-check-input {
-            border-color: #cbd5e1;
-        }
-
-        .form-control:focus {
-            border-color: #0f172a;
-            box-shadow: 0 0 0 0.2rem rgba(15, 23, 42, 0.1);
         }
 
         @media (max-width: 576px) {
@@ -246,242 +181,108 @@
                 gap: 10px;
             }
             .hero-title {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- 頂部滿版導覽列 -->
+    <!-- 頂部藍色簡潔 Header -->
+    <header class="hero-header">
+        <div class="hero-title">
+            <span>🏛️ 胡志明市臺灣學校學生會</span>
+        </div>
+        <p class="hero-subtitle">TPSHCMCSC Student Council - 學生公投與意見徵集平台</p>
+    </header>
+
+    <!-- 導覽列：右上角專屬頁面按鈕 -->
     <nav class="ref-navbar">
         <div class="ref-nav-container">
             <a href="index.html" class="ref-nav-brand">
-                <span>🗳️ 學生會公投專區</span>
+                <img src="tpshcmcsc.png" alt="會徽" class="ref-logo-img">
+                <span>TPSHCMCSC 專區</span>
             </a>
             <div class="ref-nav-links">
-                <a href="index.html" class="ref-nav-item active">首頁</a>
-                <a href="results.html" class="ref-nav-item">開票結果</a>
-                <a href="admin.html" class="ref-nav-item ref-admin-btn">⚙️ 管理後台</a>
+                <a href="index.html" class="ref-nav-item active">🏠 首頁與通知</a>
+                <a href="results.html" class="ref-nav-item">📊 開票與歷史結果</a>
+                <a href="admin.html" class="ref-nav-item ref-admin-btn">⚙️ 管理員後台</a>
             </div>
         </div>
     </nav>
 
-    <!-- 置中 Hero 區塊 -->
-    <header class="hero-section">
-        <div class="hero-icon">🗳️</div>
-        <h1 class="hero-title">學生會公投網站</h1>
-        <p class="hero-subtitle">胡志明市臺灣學校學生會 - 凝聚共識，表達多元聲音</p>
-    </header>
-
-    <!-- 主內容容器 -->
-    <main class="ref-container">
-
-        <!-- 黃邊框提醒卡片 -->
-        <div class="info-card">
-            <div class="info-title">
-                <span>🔒</span> 學生參與與身分驗證須知
+    <!-- 主體內容區塊 -->
+    <main class="main-container">
+        <!-- 規則與提示 -->
+        <div class="notice-card">
+            <span style="font-size: 1.3rem;">🔒</span>
+            <div>
+                <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (<code>@tshcmc.edu.vn</code>)。提交成功後系統將寄發憑證確認信。
             </div>
-            <p class="info-text">
-                本平台採用實名驗證，提交時請務必填寫學校官方信箱（<code>@tshcmc.edu.vn</code>）。完成提交後系統將自動寄發憑證確認信至您的信箱。
-            </p>
         </div>
 
-        <!-- 提案列表區域 -->
-        <section>
-            <h2 class="section-title">進行中的提案與意見徵集</h2>
+        <!-- 開放中的投票與意見項目列表 -->
+        <div class="content-card">
+            <h4 class="fw-bold mb-3 text-dark">📢 目前開放中的項目</h4>
             <div id="proposalsContainer">
-                <div class="text-center py-5">
-                    <div class="spinner-border text-dark" role="status"></div>
-                    <p class="mt-2 text-muted small">正在載入最新項目...</p>
+                <div class="text-center text-muted py-4">
+                    <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                    <div>正在載入最新提案與意見徵集項目...</div>
                 </div>
             </div>
-        </section>
-
+        </div>
     </main>
 
-    <!-- 提交回應 Modal 彈窗 -->
-    <div class="modal fade" id="voteModal" tabindex="-1" aria-labelledby="voteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="voteModalLabel" style="font-size: 1.1rem; color: #0f172a;">參與討論 / 投票</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="voteForm" onsubmit="submitResponse(event)">
-                        <input type="hidden" id="modalPropId">
-                        <input type="hidden" id="modalPropType">
-
-                        <div class="mb-3">
-                            <label class="form-label text-muted small mb-1">當前提案</label>
-                            <h6 class="fw-bold text-dark" id="modalPropTitle" style="font-size: 1.05rem;">---</h6>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="studentEmail" class="form-label fw-bold small">學校信箱 (Email) <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="studentEmail" placeholder="例如：1141218@tshcmc.edu.vn" required>
-                            <div class="form-text small">限定使用 <code>@tshcmc.edu.vn</code> 結尾</div>
-                        </div>
-
-                        <!-- 動態切換區域 -->
-                        <div class="mb-4" id="responseArea"></div>
-
-                        <button type="submit" class="btn btn-dark w-100 py-2 fw-bold" id="btnSubmit" style="border-radius: 8px;">送出回應並寄送確認信</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap 5 JS Bundle -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-        let modalInstance = null;
+        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-        document.addEventListener("DOMContentLoaded", () => {
-            modalInstance = new bootstrap.Modal(document.getElementById('voteModal'));
-            fetchProposals();
-        });
-
-        // 取得提案清單
-        async function fetchProposals() {
+        async function loadProposals() {
             const container = document.getElementById("proposalsContainer");
             try {
-                const response = await fetch(`${GAS_URL}?action=getProposals`);
-                const proposals = await response.json();
+                const res = await fetch(`${GAS_API}?action=getProposals`);
+                const proposals = await res.json();
 
-                if (!Array.isArray(proposals) || proposals.length === 0) {
-                    container.innerHTML = `<div class="p-4 text-center text-muted bg-white border rounded-3">目前暫無開放中的公投或意見徵集項目。</div>`;
+                // 篩選出開放中的項目
+                const activeProposals = proposals.filter(p => p.status === "active" || p.status === "開放中" || !p.status);
+
+                if (!activeProposals || activeProposals.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            目前暫無開放中的公投或意見徵集項目。
+                        </div>
+                    `;
                     return;
                 }
 
-                container.innerHTML = "";
-
-                proposals.forEach(item => {
-                    const isFeedback = item.type === "feedback";
-                    const badgeClass = isFeedback ? "badge-feedback" : "badge-poll";
-                    const typeText = isFeedback ? "💡 意見徵集" : "🗳️ 選項投票";
-                    const btnText = isFeedback ? "前往表達建言 ➔" : "前往參與投票 ➔";
-
-                    const card = document.createElement("div");
-                    card.className = "card-proposal";
-                    card.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge-type ${badgeClass}">${typeText}</span>
-                            <small class="text-muted" style="font-size: 0.8rem;">ID: #${item.id}</small>
+                container.innerHTML = activeProposals.map(p => `
+                    <div class="proposal-item d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge ${p.type === 'feedback' ? 'bg-info text-dark' : 'bg-primary'}">
+                                    ${p.type === 'feedback' ? '💬 意見徵集' : '🗳️ 投票議題'}
+                                </span>
+                                <h5 class="mb-0 fw-bold text-dark">${escapeHtml(p.title)}</h5>
+                            </div>
+                            <p class="text-secondary small mb-0 mt-2">${escapeHtml(p.description || '點擊右側按鈕參與表達意見')}</p>
                         </div>
-                        <h3 class="prop-title">${escapeHtml(item.title)}</h3>
-                        <p class="prop-desc">${escapeHtml(item.description || "暫無詳細說明")}</p>
-                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                            <small class="text-muted">狀態：${item.status === "active" ? "🟢 開放參與中" : "🔴 已結束"}</small>
-                            <button class="btn card-action-btn" onclick="openModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-                                ${btnText}
-                            </button>
+                        <div>
+                            <a href="vote.html?id=${p.id}" class="btn-vote-go">前往表達意向 →</a>
                         </div>
-                    `;
-                    container.appendChild(card);
-                });
+                    </div>
+                `).join('');
 
             } catch (err) {
-                container.innerHTML = `<div class="alert alert-danger">載入提案失敗：${err.message}</div>`;
-            }
-        }
-
-        // 開啟 Modal 彈窗
-        function openModal(item) {
-            document.getElementById("modalPropId").value = item.id;
-            document.getElementById("modalPropType").value = item.type;
-            document.getElementById("modalPropTitle").innerText = item.title;
-
-            const responseArea = document.getElementById("responseArea");
-            responseArea.innerHTML = "";
-
-            if (item.type === "feedback") {
-                responseArea.innerHTML = `
-                    <label for="feedbackContent" class="form-label fw-bold small">您的寶貴意見 / 建議 <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="feedbackContent" rows="4" placeholder="請詳細填寫您的建言或想法..." required></textarea>
+                container.innerHTML = `
+                    <div class="text-center text-danger py-4">
+                        ⚠️ 載入資料失敗，請重新整理頁面或確認網路連線。
+                    </div>
                 `;
-            } else {
-                const options = (item.options && item.options.length > 0) ? item.options : ["同意", "不同意"];
-                let optionsHtml = `<label class="form-label fw-bold small mb-2">請選擇您的意向 <span class="text-danger">*</span></label>`;
-
-                options.forEach((opt, idx) => {
-                    optionsHtml += `
-                        <div class="form-check p-2 border rounded mb-2" style="background-color: #f8fafc;">
-                            <input class="form-check-input ms-1 me-2" type="radio" name="pollChoice" id="opt_${idx}" value="${escapeHtml(opt)}" ${idx === 0 ? "checked" : ""}>
-                            <label class="form-check-label fw-semibold" for="opt_${idx}">
-                                ${escapeHtml(opt)}
-                            </label>
-                        </div>
-                    `;
-                });
-                responseArea.innerHTML = optionsHtml;
-            }
-
-            modalInstance.show();
-        }
-
-        // 提交表單至 GAS
-        async function submitResponse(e) {
-            e.preventDefault();
-            const btn = document.getElementById("btnSubmit");
-            btn.disabled = true;
-            btn.innerText = "提交處理中...";
-
-            const propId = document.getElementById("modalPropId").value;
-            const propType = document.getElementById("modalPropType").value;
-            const email = document.getElementById("studentEmail").value.trim().toLowerCase();
-
-            if (!email.endsWith("@tshcmc.edu.vn")) {
-                alert("請使用官方 @tshcmc.edu.vn 信箱提交！");
-                btn.disabled = false;
-                btn.innerText = "送出回應並寄送確認信";
-                return;
-            }
-
-            let content = "";
-            if (propType === "feedback") {
-                content = document.getElementById("feedbackContent").value.trim();
-            } else {
-                const selectedRadio = document.querySelector('input[name="pollChoice"]:checked');
-                content = selectedRadio ? selectedRadio.value : "";
-            }
-
-            const payload = {
-                action: "vote",
-                proposal_id: propId,
-                email: email,
-                content: content
-            };
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert("🎉 " + result.message);
-                    document.getElementById("voteForm").reset();
-                    modalInstance.hide();
-                } else {
-                    alert("⚠️ 提交失敗：" + result.message);
-                }
-            } catch (err) {
-                alert("網路通訊錯誤：" + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "送出回應並寄送確認信";
             }
         }
 
-        // XSS 防護
         function escapeHtml(str) {
             if (!str) return "";
             return String(str)
@@ -491,6 +292,8 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+
+        loadProposals();
     </script>
 </body>
 </html>
