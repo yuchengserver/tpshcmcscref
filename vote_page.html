@@ -276,8 +276,16 @@
         const urlParams = new URLSearchParams(window.location.search);
         const proposalId = urlParams.get('id');
 
-        // 快取當前提案的時間數據
         let proposalTimeData = { startTime: null, endTime: null };
+
+        // 安全解析日期字串的輔助函式
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            // 處理常見的 "YYYY-MM-DD HH:mm:ss" 格式轉 ISO 格式以相容各瀏覽器
+            const formattedStr = String(dateStr).includes('T') ? dateStr : String(dateStr).replace(' ', 'T');
+            const d = new Date(formattedStr);
+            return isNaN(d.getTime()) ? null : d;
+        }
 
         async function initVotePage() {
             if (!proposalId) { 
@@ -295,9 +303,9 @@
                     document.getElementById("pTitle").innerText = currentP.title;
                     document.getElementById("pDesc").innerText = currentP.description || "無詳細說明";
                     
-                    // 時間資訊處裡
-                    proposalTimeData.startTime = currentP.startTime ? new Date(currentP.startTime) : null;
-                    proposalTimeData.endTime = currentP.endTime ? new Date(currentP.endTime) : null;
+                    // 使用強健的日期解析
+                    proposalTimeData.startTime = parseDate(currentP.startTime);
+                    proposalTimeData.endTime = parseDate(currentP.endTime);
 
                     if (proposalTimeData.startTime && proposalTimeData.endTime) {
                         document.getElementById("startTimeText").innerText = formatDisplayTime(proposalTimeData.startTime);
@@ -305,7 +313,6 @@
                         document.getElementById("timeInfoArea").classList.remove("d-none");
                     }
 
-                    // 時間開放驗證
                     const now = new Date();
                     const badge = document.getElementById("statusBadge");
                     const submitBtn = document.getElementById("vSubmitBtn");
@@ -325,7 +332,6 @@
                         badge.innerText = "🟢 開放中";
                     }
 
-                    // 動態渲染選項或輸入欄位
                     const inputArea = document.getElementById("dynamicInputArea");
 
                     if (currentP.type === "feedback") {
@@ -352,6 +358,7 @@
                     document.getElementById("voteForm").style.display = "none";
                 }
             } catch (err) {
+                console.error(err);
                 alert("載入資料錯誤，請確認網路連線！");
             }
         }
@@ -359,7 +366,6 @@
         async function handleVoteSubmit(e) {
             e.preventDefault();
 
-            // 雙重防護：再次驗證提交當下的時間
             const now = new Date();
             if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
                 alert("⚠️ 該項目尚未開放投票！");
@@ -374,7 +380,6 @@
             const emailInput = document.getElementById("vEmail");
             const email = emailInput.value.trim().toLowerCase();
 
-            // 驗證 Email Domain
             if (!email.endsWith("@tshcmc.edu.vn")) {
                 alert("請使用學校官方信箱 (@tshcmc.edu.vn) 進行登錄！");
                 emailInput.focus();
@@ -395,7 +400,6 @@
                 if (selectedRadio) content = selectedRadio.value;
             }
 
-            // 鎖定按鈕防止重複提交
             btn.disabled = true;
             btn.style.opacity = "0.7";
             btn.innerText = "⏳ 提交中，請稍候...";
@@ -420,10 +424,11 @@
                     alert("🎉 " + result.message);
                     window.location.href = "results.html";
                 } else {
-                    alert("⚠️ 提交失敗：" + result.message);
+                    alert("⚠️️ 提交失敗：" + result.message);
                 }
             } catch (err) {
-                alert("連線失敗，請稍後再試！");
+                console.error(err);
+                alert("連線失敗或後端回傳格式錯誤，請稍後再試！");
             } finally {
                 btn.disabled = false;
                 btn.style.opacity = "1";
@@ -431,7 +436,6 @@
             }
         }
 
-        // 時間格式化工具
         function formatDisplayTime(date) {
             if (!date || isNaN(date)) return "-";
             const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -441,7 +445,6 @@
             return `${m}/${d} ${hh}:${mm}`;
         }
 
-        // 防 XSS 攻擊字元轉義
         function escapeHtml(str) {
             if (!str) return "";
             return String(str)

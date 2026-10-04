@@ -302,3 +302,11 @@ body {
     padding: 0 16px 40px 16px;
   }
 }
+.ref-card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-top: 0;
+    margin-bottom: 12px;
+    word-break: break-word; /* 避免長文字撐破版面 */
+}
