@@ -1,309 +1,516 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>胡台校學生會 - 管理員後台</title>
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Chart.js 繪製投票圖表 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { background-color: #f8f9fa; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
-    .nav-pills .nav-link.active { background-color: #0d6efd; }
-    .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .badge-poll { background-color: #0d6efd; }
-    .badge-feedback { background-color: #198754; }
-    .feedback-item { background-color: #f1f3f5; border-left: 4px solid #198754; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>胡志明市臺灣學校學生會 - 學生會公投專區 (後台管理)</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js 繪製投票圖表 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --accent-yellow: #eab308;
+            --btn-primary: #0f172a;
+            --btn-primary-hover: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        /* 頂部導覽列 */
+        .ref-navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .ref-nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ref-nav-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .ref-nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ref-nav-item {
+            text-decoration: none;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .ref-nav-item:hover, .ref-nav-item.active {
+            color: var(--text-dark);
+            background-color: #f1f5f9;
+        }
+
+        .ref-admin-btn {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+
+        .ref-admin-btn:hover {
+            background-color: #fef08a;
+            color: #713f12;
+        }
+
+        /* 置中 Hero 區塊 */
+        .hero-section {
+            text-align: center;
+            padding: 40px 20px 20px 20px;
+        }
+
+        .hero-icon {
+            font-size: 2.8rem;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 0;
+        }
+
+        /* 主內容容器 */
+        .ref-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 20px 60px 20px;
+        }
+
+        /* 頁籤樣式 */
+        .nav-pills {
+            background: #ffffff;
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px 20px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--btn-primary);
+            color: #ffffff;
+        }
+
+        /* 卡片與元件風格 */
+        .ref-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .ref-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .badge-poll { background: #e0f2fe; color: #0369a1; }
+        .badge-feedback { background: #dcfce7; color: #15803d; }
+
+        .feedback-item {
+            background-color: #f8fafc;
+            border-left: 4px solid #10b981;
+            padding: 12px 14px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .btn-submit {
+            background-color: var(--btn-primary);
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 700;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--btn-primary-hover);
+            color: #ffffff;
+        }
+
+        @media (max-width: 576px) {
+            .ref-nav-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .hero-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- 導覽列 -->
-  <nav class="navbar navbar-dark bg-dark mb-4">
-    <div class="container">
-      <span class="navbar-brand mb-0 h1">🏛️ 胡台校學生會 (TPSHCMCSC) - 後台管理系統</span>
-    </div>
-  </nav>
+    <!-- 頂部滿版導覽列 -->
+    <nav class="ref-navbar">
+        <div class="ref-nav-container">
+            <a href="index.html" class="ref-nav-brand">
+                <span>🗳️ 學生會公投專區</span>
+            </a>
+            <div class="ref-nav-links">
+                <a href="index.html" class="ref-nav-item">首頁</a>
+                <a href="results.html" class="ref-nav-item">開票與歷史結果</a>
+                <a href="admin.html" class="ref-nav-item active ref-admin-btn">⚙️ 管理後台</a>
+            </div>
+        </div>
+    </nav>
 
-  <div class="container mb-5">
-    <!-- 頁籤選單 -->
-    <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
-      <li class="nav-item">
-        <button class="nav-link active" id="create-tab" data-bs-toggle="tab" data-bs-target="#create-panel">➕ 發布新提案 / 意見徵集</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results-panel" onclick="loadResults()">📊 開票數據與意見彙整</button>
-      </li>
-    </ul>
+    <!-- 置中 Hero 區塊 -->
+    <header class="hero-section">
+        <div class="hero-icon">⚙️</div>
+        <h1 class="hero-title">後台管理系統</h1>
+        <p class="hero-subtitle">胡志明市臺灣學校學生會 - 學生會公投網站</p>
+    </header>
 
-    <div class="tab-content" id="adminTabsContent">
-      
-      <!-- 頁籤 1: 發布新提案 -->
-      <div class="tab-pane fade show active" id="create-panel" role="tabpanel">
-        <div class="card p-4">
-          <h4 class="card-title mb-3">發布提案或意見徵集</h4>
-          <form id="createProposalForm" onsubmit="handleCreateProposal(event)">
+    <!-- 主要內容區 -->
+    <main class="ref-container">
+        
+        <!-- 頁籤選單 -->
+        <ul class="nav nav-pills mb-4 nav-justified" id="adminTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="create-tab" data-bs-toggle="tab" data-bs-target="#create-panel">➕ 發布新提案 / 意見徵集</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results-panel" onclick="loadResults()">📊 開票數據與意見彙整</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabsContent">
             
-            <div class="mb-3">
-              <label class="form-label fw-bold">發布類型</label>
-              <select class="form-select" id="propType" onchange="toggleOptionsInput()">
-                <option value="poll">🗳️ 選項投票 (Poll) - 例如：同意/不同意 或 自訂選項</option>
-                <option value="feedback">💡 意見徵集 (Feedback) - 純文字收集，不含投票選項</option>
-              </select>
-            </div>
+            <!-- 頁籤 1: 發布新提案 -->
+            <div class="tab-pane fade show active" id="create-panel" role="tabpanel">
+                <div class="ref-card">
+                    <h4 class="fw-bold text-dark mb-4">發布提案或意見徵集</h4>
+                    <form id="createProposalForm" onsubmit="handleCreateProposal(event)">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">發布類型</label>
+                            <select class="form-select" id="propType" onchange="toggleOptionsInput()">
+                                <option value="poll">🗳️ 選項投票 (Poll) - 例如：同意/不同意 或 自訂選項</option>
+                                <option value="feedback">💡 意見徵集 (Feedback) - 純文字收集，不含投票選項</option>
+                            </select>
+                        </div>
 
-            <div class="mb-3">
-              <label class="form-label fw-bold">提案主題 / 標題</label>
-              <input type="text" class="form-control" id="propTitle" placeholder="例如：113學年度學生會社團補助辦法公投" required>
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">提案主題 / 標題</label>
+                            <input type="text" class="form-control" id="propTitle" placeholder="例如：113學年度學生會社團補助辦法公投" required>
+                        </div>
 
-            <div class="mb-3">
-              <label class="form-label fw-bold">詳細說明 (支援文字與連結)</label>
-              <textarea class="form-control" id="propDesc" rows="4" placeholder="請詳細說明活動背景或提案動機..."></textarea>
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">詳細說明 (支援文字與連結)</label>
+                            <textarea class="form-control" id="propDesc" rows="4" placeholder="請詳細說明活動背景或提案動機..."></textarea>
+                        </div>
 
-            <!-- 選項輸入欄位 (只有選擇 poll 時顯示) -->
-            <div class="mb-3" id="optionsGroup">
-              <label class="form-label fw-bold">投票選項 (請用半形逗號 `,` 分開)</label>
-              <input type="text" class="form-control" id="propOptions" placeholder="同意, 不同意 (若留空，預設為：同意, 不同意)">
-              <div class="form-text">例：選項A, 選項B, 選項C</div>
-            </div>
+                        <!-- 選項輸入欄位 (只有選擇 poll 時顯示) -->
+                        <div class="mb-3" id="optionsGroup">
+                            <label class="form-label fw-bold text-dark">投票選項 (請用半形逗號 `,` 分開)</label>
+                            <input type="text" class="form-control" id="propOptions" placeholder="同意, 不同意 (若留空，預設為：同意, 不同意)">
+                            <div class="form-text text-muted">例：選項A, 選項B, 選項C</div>
+                        </div>
 
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold">開始時間 (選填)</label>
-                <input type="datetime-local" class="form-control" id="startTime">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">結束時間 (選填)</label>
-                <input type="datetime-local" class="form-control" id="endTime">
-              </div>
-            </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label fw-bold text-dark">開始時間 (選填)</label>
+                                <input type="datetime-local" class="form-control" id="startTime">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark">結束時間 (選填)</label>
+                                <input type="datetime-local" class="form-control" id="endTime">
+                            </div>
+                        </div>
 
-            <button type="submit" class="btn btn-primary btn-lg w-100" id="btnSubmit">🚀 發布提案</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- 頁籤 2: 開票數據與意見彙整 -->
-      <div class="tab-pane fade" id="results-panel" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h4>最新即時統計</h4>
-          <button class="btn btn-outline-secondary btn-sm" onclick="loadResults()">🔄 重新整理</button>
-        </div>
-        <div id="resultsContainer">
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted">載入開票數據中...</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Bootstrap 5 JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script>
-    // ⚠️ 請填入您的 Google Apps Script 部署網址 (Web App URL)
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-
-    // 切換是否顯示「投票選項」輸入框
-    function toggleOptionsInput() {
-      const type = document.getElementById("propType").value;
-      const optionsGroup = document.getElementById("optionsGroup");
-      if (type === "feedback") {
-        optionsGroup.style.display = "none";
-      } else {
-        optionsGroup.style.display = "block";
-      }
-    }
-
-    // 發布新提案
-    async function handleCreateProposal(e) {
-      e.preventDefault();
-      const btn = document.getElementById("btnSubmit");
-      btn.disabled = true;
-      btn.innerText = "處理中...";
-
-      const type = document.getElementById("propType").value;
-      const title = document.getElementById("propTitle").value;
-      const description = document.getElementById("propDesc").value;
-      const options = document.getElementById("propOptions").value;
-      const start_time = document.getElementById("startTime").value;
-      const end_time = document.getElementById("endTime").value;
-
-      const payload = {
-        action: "createProposal",
-        type: type,
-        title: title,
-        description: description,
-        options: options,
-        start_time: start_time,
-        end_time: end_time
-      };
-
-      try {
-        const response = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          alert("✅ " + result.message);
-          document.getElementById("createProposalForm").reset();
-          toggleOptionsInput();
-        } else {
-          alert("❌ 發布失敗：" + result.message);
-        }
-      } catch (err) {
-        alert("網路錯誤或發布失敗：" + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "🚀 發布提案";
-      }
-    }
-
-    // 載入開票與意見數據
-    async function loadResults() {
-      const container = document.getElementById("resultsContainer");
-      container.innerHTML = `
-        <div class="text-center py-5">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-2 text-muted">載入開票數據中...</p>
-        </div>`;
-
-      try {
-        const response = await fetch(`${GAS_URL}?action=getResults`);
-        const data = await response.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          container.innerHTML = `<div class="alert alert-info">目前尚無任何提案數據。</div>`;
-          return;
-        }
-
-        container.innerHTML = ""; // 清空容器
-
-        data.forEach((item, index) => {
-          const card = document.createElement("div");
-          card.className = "card mb-4 p-4";
-
-          const isFeedback = item.type === "feedback";
-          
-          if (isFeedback) {
-            // 【純意見徵集 (feedback)】：完全不繪製圓餅圖與投票選項
-            let feedbackListHtml = "";
-            if (item.feedbacks && item.feedbacks.length > 0) {
-              feedbackListHtml = item.feedbacks.map(f => `
-                <div class="p-3 mb-2 feedback-item rounded">
-                  <div class="d-flex justify-content-between text-muted small mb-1">
-                    <span>💡 同學意見</span>
-                    <span>${f.time}</span>
-                  </div>
-                  <div>${escapeHtml(f.content)}</div>
+                        <button type="submit" class="btn btn-submit btn-lg w-100" id="btnSubmit">🚀 發布提案</button>
+                    </form>
                 </div>
-              `).join("");
+            </div>
+
+            <!-- 頁籤 2: 開票數據與意見彙整 -->
+            <div class="tab-pane fade" id="results-panel" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark m-0">最新即時統計</h5>
+                    <button class="btn btn-outline-secondary btn-sm rounded-2" onclick="loadResults()">🔄 重新整理</button>
+                </div>
+                <div id="resultsContainer">
+                    <div class="text-center py-5 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
+                        <div class="spinner-border text-dark" role="status"></div>
+                        <p class="mt-2 text-muted small mb-0">載入開票數據中...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Google Apps Script 部署網址 (Web App URL)
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+        // 切換是否顯示「投票選項」輸入框
+        function toggleOptionsInput() {
+            const type = document.getElementById("propType").value;
+            const optionsGroup = document.getElementById("optionsGroup");
+            if (type === "feedback") {
+                optionsGroup.style.display = "none";
             } else {
-              feedbackListHtml = `<p class="text-muted">目前尚無同學提交意見。</p>`;
+                optionsGroup.style.display = "block";
             }
-
-            card.innerHTML = `
-              <div class="d-flex align-items-center mb-2">
-                <span class="badge badge-feedback me-2">💡 意見徵集</span>
-                <span class="text-muted">提案 ID: #${item.id}</span>
-              </div>
-              <h5 class="fw-bold">${escapeHtml(item.title)}</h5>
-              <p class="mb-3 text-secondary">總收到回應數：<strong>${item.total_responses}</strong> 筆</p>
-              <hr>
-              <h6>意見列表：</h6>
-              <div style="max-height: 350px; overflow-y: auto;">
-                ${feedbackListHtml}
-              </div>
-            `;
-          } else {
-            // 【選項投票 (poll)】：繪製圓餅圖與投票統計
-            const canvasId = `chart-${index}`;
-            card.innerHTML = `
-              <div class="d-flex align-items-center mb-2">
-                <span class="badge badge-poll me-2">🗳️ 選項投票</span>
-                <span class="text-muted">提案 ID: #${item.id}</span>
-              </div>
-              <h5 class="fw-bold">${escapeHtml(item.title)}</h5>
-              <p class="mb-3 text-secondary">總投票數：<strong>${item.total_votes}</strong> 票</p>
-              
-              <div class="row align-items-center">
-                <div class="col-md-6">
-                  <canvas id="${canvasId}" style="max-height: 250px;"></canvas>
-                </div>
-                <div class="col-md-6">
-                  <ul class="list-group list-group-flush">
-                    ${Object.entries(item.options_count || {}).map(([opt, cnt]) => `
-                      <li class="list-group-item d-flex justify-content-between align-items-center">
-                        ${escapeHtml(opt)}
-                        <span class="badge bg-primary rounded-pill">${cnt} 票</span>
-                      </li>
-                    `).join('')}
-                  </ul>
-                </div>
-              </div>
-            `;
-
-            // 等待 DOM 插入後渲染圖表
-            setTimeout(() => {
-              renderChart(canvasId, item.options_count || {});
-            }, 50);
-          }
-
-          container.appendChild(card);
-        });
-
-      } catch (err) {
-        container.innerHTML = `<div class="alert alert-danger">載入數據失敗：${err.message}</div>`;
-      }
-    }
-
-    // 渲染 Chart.js 圓餅圖
-    function renderChart(canvasId, optionsCount) {
-      const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-
-      const labels = Object.keys(optionsCount);
-      const data = Object.values(optionsCount);
-
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: [
-              '#0d6efd', '#dc3545', '#ffc107', '#198754', '#0dcaf0', '#6c757d'
-            ]
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
         }
-      });
-    }
 
-    // XSS 防護處理
-    function escapeHtml(str) {
-      if (!str) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-  </script>
+        // 發布新提案
+        async function handleCreateProposal(e) {
+            e.preventDefault();
+            const btn = document.getElementById("btnSubmit");
+            btn.disabled = true;
+            btn.innerText = "處理中...";
+
+            const type = document.getElementById("propType").value;
+            const title = document.getElementById("propTitle").value;
+            const description = document.getElementById("propDesc").value;
+            const options = document.getElementById("propOptions").value;
+            const start_time = document.getElementById("startTime").value;
+            const end_time = document.getElementById("endTime").value;
+
+            const payload = {
+                action: "createProposal",
+                type: type,
+                title: title,
+                description: description,
+                options: options,
+                start_time: start_time,
+                end_time: end_time
+            };
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("✅ " + result.message);
+                    document.getElementById("createProposalForm").reset();
+                    toggleOptionsInput();
+                } else {
+                    alert("❌ 發布失敗：" + result.message);
+                }
+            } catch (err) {
+                alert("網路錯誤或發布失敗：" + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 發布提案";
+            }
+        }
+
+        // 載入開票與意見數據
+        async function loadResults() {
+            const container = document.getElementById("resultsContainer");
+            container.innerHTML = `
+                <div class="text-center py-5 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
+                    <div class="spinner-border text-dark" role="status"></div>
+                    <p class="mt-2 text-muted small mb-0">載入開票數據中...</p>
+                </div>`;
+
+            try {
+                const response = await fetch(`${GAS_URL}?action=getResults`);
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white border rounded-3 p-5 text-center text-muted" style="border-style: dashed !important;">
+                            目前尚無任何提案數據。
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = ""; // 清空容器
+
+                data.forEach((item, index) => {
+                    const card = document.createElement("div");
+                    card.className = "ref-card";
+
+                    const isFeedback = item.type === "feedback";
+                    
+                    if (isFeedback) {
+                        // 【純意見徵集 (feedback)】：完全不繪製圓餅圖與投票選項
+                        let feedbackListHtml = "";
+                        if (item.feedbacks && item.feedbacks.length > 0) {
+                            feedbackListHtml = item.feedbacks.map(f => `
+                                <div class="p-3 mb-2 feedback-item">
+                                    <div class="d-flex justify-content-between text-muted small mb-1">
+                                        <span>💡 同學意見</span>
+                                        <span>${escapeHtml(f.time || '')}</span>
+                                    </div>
+                                    <div>${escapeHtml(f.content)}</div>
+                                </div>
+                            `).join("");
+                        } else {
+                            feedbackListHtml = `<p class="text-muted text-center py-3">目前尚無同學提交意見。</p>`;
+                        }
+
+                        card.innerHTML = `
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="ref-badge badge-feedback me-2">💡 意見徵集</span>
+                                <span class="text-muted small">提案 ID: #${item.id}</span>
+                            </div>
+                            <h5 class="fw-bold text-dark">${escapeHtml(item.title)}</h5>
+                            <p class="mb-3 text-secondary small">總收到回應數：<strong>${item.total_responses}</strong> 筆</p>
+                            <hr style="border-color: var(--border-color);">
+                            <h6 class="fw-bold text-dark mb-3">意見列表：</h6>
+                            <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">
+                                ${feedbackListHtml}
+                            </div>
+                        `;
+                    } else {
+                        // 【選項投票 (poll)】：繪製圓餅圖與投票統計
+                        const canvasId = `chart-${index}`;
+                        card.innerHTML = `
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="ref-badge badge-poll me-2">🗳️ 選項投票</span>
+                                <span class="text-muted small">提案 ID: #${item.id}</span>
+                            </div>
+                            <h5 class="fw-bold text-dark">${escapeHtml(item.title)}</h5>
+                            <p class="mb-3 text-secondary small">總投票數：<strong>${item.total_votes}</strong> 票</p>
+                            
+                            <div class="row align-items-center mt-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <canvas id="${canvasId}" style="max-height: 220px;"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-group list-group-flush border-0">
+                                        ${Object.entries(item.options_count || {}).map(([opt, cnt]) => `
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
+                                                <span>${escapeHtml(opt)}</span>
+                                                <span class="badge bg-dark rounded-pill">${cnt} 票</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+
+                        // 等待 DOM 插入後渲染圖表
+                        setTimeout(() => {
+                            renderChart(canvasId, item.options_count || {});
+                        }, 50);
+                    }
+
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                container.innerHTML = `<div class="alert alert-danger text-center py-4">載入數據失敗：${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        // 渲染 Chart.js 圓餅圖
+        function renderChart(canvasId, optionsCount) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            const labels = Object.keys(optionsCount);
+            const data = Object.values(optionsCount);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // XSS 防護處理
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
 </body>
 </html>
