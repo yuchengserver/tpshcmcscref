@@ -241,17 +241,22 @@
                     </div>
                 </div>
 
+                <!-- 狀態手動選擇區塊：避免時間誤差造成誤判 -->
+                <div class="mb-3">
+                    <label for="forceStatus" class="form-label">⚙️ 初始狀態控制</label>
+                    <select id="forceStatus" class="form-select">
+                        <option value="">自動依時間判定 (預設)</option>
+                        <option value="active" selected>🟢 立即開放 (Active)</option>
+                        <option value="upcoming">⏳ 稍後開始 (Upcoming)</option>
+                        <option value="closed">🔒 手動關閉 (Closed)</option>
+                    </select>
+                    <small class="text-muted">若不想讓系統因時間差自動判定，可在此手動指定發布時的初始狀態。</small>
+                </div>
+
                 <div class="mb-3" id="optionsGroup">
                     <label class="form-label">投票選項 (請用半形逗號分隔)</label>
                     <input type="text" id="propOptions" class="form-control" placeholder="例：復古風, 科技風, 電影主題">
                     <small class="text-muted">僅在「選項投票」時生效，項目之間請用逗號 <code>,</code> 隔開。</small>
-                </div>
-
-                <div class="mb-4">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="propActive" checked>
-                        <label class="form-check-input-label fw-bold" for="propActive">立即啟用此提案</label>
-                    </div>
                 </div>
 
                 <button type="submit" id="submitBtn" class="btn btn-submit">🚀 立即發布提案</button>
@@ -382,7 +387,7 @@
             const title = document.getElementById("propTitle").value.trim();
             const description = document.getElementById("propDesc").value.trim();
             const optionsRaw = document.getElementById("propOptions").value.trim();
-            const isActive = document.getElementById("propActive").checked;
+            const forceStatus = document.getElementById("forceStatus").value; // 抓取選單數值
 
             let options = [];
             if (type === "poll" && optionsRaw) {
@@ -398,7 +403,7 @@
                 options: options.join(","),
                 start_time: startTime,
                 end_time: endTime,
-                active: isActive
+                force_status: forceStatus // 傳遞給後端強制狀態
             };
 
             try {
