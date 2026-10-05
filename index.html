@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡志明市臺灣學校學生會 - 學生會公投與意見徵集平台</title>
-    <!-- Bootstrap 5 CSS -->
+    <title>胡志明市臺灣學校學生會 - 公投專區</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #f0f7ff;
+            --bg-main: #f8fafc;
             --text-dark: #0f172a;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --btn-primary: #0f172a;
-            --btn-primary-hover: #1e293b;
         }
 
         body {
@@ -26,7 +24,6 @@
             flex-direction: column;
         }
 
-        /* 頂部導覽列 */
         .ref-navbar {
             background-color: #ffffff;
             border-bottom: 1px solid var(--border-color);
@@ -79,111 +76,117 @@
             color: #854d0e;
         }
 
-        .ref-admin-btn:hover {
-            background-color: #fef08a;
-            color: #713f12;
-        }
-
-        /* Hero 區塊 */
         .hero-section {
-            background-color: #f0f7ff;
-            border-bottom: 1px solid var(--border-color);
             text-align: center;
-            padding: 36px 20px 28px 20px;
+            padding: 40px 20px 20px 20px;
         }
 
-        .hero-logo-img {
-            height: 70px;
-            width: auto;
-            object-fit: contain;
+        .hero-logo {
+            width: 60px;
+            height: auto;
             margin-bottom: 12px;
-            filter: brightness(0);
         }
 
         .hero-title {
-            font-size: 1.9rem;
+            font-size: 2.2rem;
             font-weight: 800;
             color: var(--text-dark);
-            margin-bottom: 4px;
-            letter-spacing: -0.5px;
+            margin-bottom: 6px;
         }
 
         .hero-subtitle {
-            font-size: 0.92rem;
-            color: var(--text-muted);
-            margin-bottom: 0;
-            font-weight: 500;
+            font-size: 0.95rem;
+            color: #94a3b8;
         }
 
-        /* 主要內容區域 */
         .ref-container {
-            max-width: 860px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 30px 20px 40px 20px;
+            padding: 0 20px 60px 20px;
             flex: 1;
+            width: 100%;
         }
 
         .notice-banner {
-            background-color: #ffffff;
+            background-color: #f0f9ff;
             border: 1px solid #bae6fd;
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 14px 18px;
             color: #0369a1;
             font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
             margin-bottom: 30px;
         }
 
-        .ref-card {
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .proposal-card {
             background: #ffffff;
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
             border: 1px solid var(--border-color);
-            margin-bottom: 24px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .ref-card:hover {
+        .proposal-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .ref-card-upcoming {
-            background: #f8fafc;
-            border: 1px dashed var(--border-color);
-            opacity: 0.9;
-        }
-
-        .ref-badge {
-            display: inline-block;
+        .badge-active {
+            background-color: #dcfce7;
+            color: #15803d;
+            font-weight: 700;
             padding: 4px 10px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            border-radius: 20px;
-            margin-bottom: 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
         }
 
-        .badge-poll { background: #e0f2fe; color: #0369a1; }
-        .badge-feedback { background: #dcfce7; color: #15803d; }
-        .badge-upcoming { background: #fef3c7; color: #92400e; }
-
-        .ref-card-title {
-            font-size: 1.2rem;
+        .badge-upcoming {
+            background-color: #fef3c7;
+            color: #b45309;
             font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 10px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
         }
 
-        .ref-card-desc {
+        .btn-action {
+            background-color: var(--btn-primary);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-action:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        .empty-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
             color: var(--text-muted);
-            font-size: 0.92rem;
-            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
         }
 
-        /* 著作權 Footer */
         .ref-footer {
             text-align: center;
             padding: 20px 0;
@@ -193,21 +196,10 @@
             background-color: #ffffff;
             margin-top: auto;
         }
-
-        @media (max-width: 576px) {
-            .ref-nav-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .hero-title {
-                font-size: 1.5rem;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <!-- 頂部 Header 導覽列 -->
     <nav class="ref-navbar">
         <div class="ref-nav-container">
             <a href="index.html" class="ref-nav-brand">
@@ -221,51 +213,45 @@
         </div>
     </nav>
 
-    <!-- 淡藍色背景 Hero 區塊 -->
     <header class="hero-section">
-        <div>
-            <img src="tpshcmcsc.png" alt="胡志明市臺灣學校學生會校徽" class="hero-logo-img">
-        </div>
-        <h1 class="hero-title">胡志明市臺灣學校學生會</h1>
+        <div class="hero-title">胡志明市臺灣學校學生會</div>
         <p class="hero-subtitle">TPSHCMCSC Student Council - 學生公投與意見徵集平台</p>
     </header>
 
-    <!-- 主要內容區域 -->
     <main class="ref-container">
-        
-        <!-- 提示訊息 -->
-        <div class="notice-banner">
-            <span style="font-size: 1.2rem;">🔒</span>
+
+        <div class="notice-banner d-flex justify-content-between align-items-center">
             <div>
-                <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (<code>@tshcmc.edu.vn</code>)。提交成功後系統將寄發憑證確認信。
+                🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (<code>@tshcmc.edu.vn</code>)。提交成功後系統將寄發憑證確認信。
+            </div>
+            <!-- 加入刷新按鈕 -->
+            <button onclick="fetchProposals()" id="refreshBtn" class="btn btn-sm btn-outline-primary ms-3 text-nowrap">
+                🔄 重新整理
+            </button>
+        </div>
+
+        <!-- 開放中區域 -->
+        <div class="mb-5">
+            <div class="section-title">
+                📢 目前開放中的項目
+            </div>
+            <div id="activeContainer">
+                <div class="empty-box">載入中，請稍後...</div>
             </div>
         </div>
 
-        <!-- 1. 目前開放中的項目 -->
-        <div class="mb-4">
-            <h2 class="h5 fw-bold text-dark mb-3">📢 目前開放中的項目</h2>
-            <div id="activePollsList">
-                <div class="text-center py-4 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
-                    <div class="spinner-border text-dark spinner-border-sm" role="status"></div>
-                    <span class="ms-2 text-muted small">資料載入中...</span>
-                </div>
+        <!-- 預告中區域 -->
+        <div class="mb-5">
+            <div class="section-title">
+                ⏳ 即將開始 / 預告中的項目
             </div>
-        </div>
-
-        <!-- 2. 尚未開始 / 未開通的項目區塊 -->
-        <div class="mt-5">
-            <h2 class="h5 fw-bold text-dark mb-3">⏳ 即將開始 / 預告中的項目</h2>
-            <div id="upcomingPollsList">
-                <div class="text-center py-4 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
-                    <div class="spinner-border text-dark spinner-border-sm" role="status"></div>
-                    <span class="ms-2 text-muted small">資料載入中...</span>
-                </div>
+            <div id="upcomingContainer">
+                <div class="empty-box">載入中，請稍後...</div>
             </div>
         </div>
 
     </main>
 
-    <!-- 底部著作權標籤 -->
     <footer class="ref-footer">
         胡志明市台灣學校學生會 TSSC13TH © 2026 yucheng
     </footer>
@@ -273,159 +259,121 @@
     <script>
         const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-        /**
-         * 時間解析器（將時間統一轉為 GMT+7 越南時間）
-         */
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            let str = String(dateStr).trim();
-            if (!str) return null;
+        async function fetchProposals() {
+            const activeContainer = document.getElementById("activeContainer");
+            const upcomingContainer = document.getElementById("upcomingContainer");
+            const refreshBtn = document.getElementById("refreshBtn");
 
-            const numbers = str.match(/\d+/g);
-            if (!numbers || numbers.length < 3) return null;
-
-            const year = numbers[0];
-            const month = String(numbers[1]).padStart(2, '0');
-            const day = String(numbers[2]).padStart(2, '0');
-            const hours = numbers[3] ? String(numbers[3]).padStart(2, '0') : "00";
-            const minutes = numbers[4] ? String(numbers[4]).padStart(2, '0') : "00";
-            const seconds = numbers[5] ? String(numbers[5]).padStart(2, '0') : "00";
-
-            const isoString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+07:00`;
-            const d = new Date(isoString);
-            return isNaN(d.getTime()) ? null : d;
-        }
-
-        function formatDisplayTime(date) {
-            if (!date || isNaN(date.getTime())) return "-";
-            return date.toLocaleString('zh-TW', {
-                timeZone: 'Asia/Ho_Chi_Minh',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            });
-        }
-
-        async function loadAllPolls() {
-            const activeContainer = document.getElementById("activePollsList");
-            const upcomingContainer = document.getElementById("upcomingPollsList");
+            refreshBtn.disabled = true;
+            refreshBtn.innerText = "🔄 載入中...";
 
             try {
-                const res = await fetch(`${GAS_API}?action=getProposals`);
-                const allProposals = await res.json();
+                const res = await fetch(GAS_API);
+                const proposals = await res.json();
 
-                if (!Array.isArray(allProposals)) {
-                    throw new Error("資料格式錯誤");
-                }
+                activeContainer.innerHTML = "";
+                upcomingContainer.innerHTML = "";
+
+                let activeCount = 0;
+                let upcomingCount = 0;
 
                 const now = new Date();
-                const activePolls = [];
-                const upcomingPolls = [];
 
-                // 根據狀態與時間進行精確分類
-                allProposals.forEach(p => {
-                    const status = String(p.status).toLowerCase();
-                    const startTime = parseDate(p.startTime);
-                    const endTime = parseDate(p.endTime);
+                proposals.forEach(p => {
+                    // 自動時間判定 (若沒有 force_status 或 status 未指定時)
+                    const startTime = new Date(p.start_time.replace(/-/g, '/'));
+                    const endTime = new Date(p.end_time.replace(/-/g, '/'));
+                    
+                    let currentStatus = p.status;
+                    
+                    // 若後端沒有寫死 status，透過時間判定
+                    if (!currentStatus || currentStatus === "auto") {
+                        if (now < startTime) {
+                            currentStatus = "upcoming";
+                        } else if (now >= startTime && now <= endTime) {
+                            currentStatus = "active";
+                        } else {
+                            currentStatus = "closed";
+                        }
+                    }
 
-                    if (status === "closed") return; // 已結案不顯示在首頁
-
-                    // 若時間未到，強制歸類為即將開始
-                    if (startTime && now < startTime) {
-                        upcomingPolls.push({ ...p, parsedStartTime: startTime });
+                    // 1. 渲染【開放中】項目 (active)
+                    if (currentStatus === "active") {
+                        activeCount++;
+                        activeContainer.innerHTML += createProposalHTML(p, "active");
                     } 
-                    // 若已截止，不納入開放中
-                    else if (endTime && now > endTime) {
-                        return;
-                    } 
-                    // 狀態為 active 且在時間內
-                    else if (status === "active") {
-                        activePolls.push(p);
-                    } 
-                    // 狀態為 upcoming
-                    else if (status === "upcoming") {
-                        upcomingPolls.push({ ...p, parsedStartTime: startTime });
+                    // 2. 渲染【預告中】項目 (upcoming) - 修正未開啟提案進不去的關鍵！
+                    else if (currentStatus === "upcoming") {
+                        upcomingCount++;
+                        upcomingContainer.innerHTML += createProposalHTML(p, "upcoming");
                     }
                 });
 
-                // 1. 渲染「開放中」清單
-                if (activePolls.length === 0) {
-                    activeContainer.innerHTML = `
-                        <div class="bg-white border rounded-3 p-4 text-center text-muted small" style="border-style: dashed !important;">
-                            目前暫無開放中的公投或意見徵集項目。
-                        </div>`;
-                } else {
-                    activeContainer.innerHTML = activePolls.map(p => {
-                        const isFeedback = p.type === "feedback";
-                        return `
-                            <div class="ref-card">
-                                <div>
-                                    <span class="ref-badge ${isFeedback ? 'badge-feedback' : 'badge-poll'}">
-                                        ${isFeedback ? '💡 意見徵集' : '🗳️ 選項投票'}
-                                    </span>
-                                    <h3 class="ref-card-title">${escapeHtml(p.title)}</h3>
-                                    <p class="ref-card-desc">${escapeHtml(p.description || '無詳細說明')}</p>
-                                </div>
-                                <div class="text-end">
-                                    <a href="vote.html?id=${encodeURIComponent(p.id)}" class="btn btn-dark fw-bold px-4" style="border-radius: 8px;">
-                                        ${isFeedback ? '前往填寫建言 ➔' : '前往投票 ➔'}
-                                    </a>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
+                if (activeCount === 0) {
+                    activeContainer.innerHTML = `<div class="empty-box">目前暫無開放中的公投或意見徵集項目。</div>`;
                 }
 
-                // 2. 渲染「即將開始」清單
-                if (upcomingPolls.length === 0) {
-                    upcomingContainer.innerHTML = `
-                        <div class="bg-white border rounded-3 p-4 text-center text-muted small" style="border-style: dashed !important;">
-                            目前沒有即將開始的預告項目。
-                        </div>`;
-                } else {
-                    upcomingContainer.innerHTML = upcomingPolls.map(p => {
-                        const timeStr = p.parsedStartTime ? formatDisplayTime(p.parsedStartTime) : p.startTime;
-                        return `
-                            <div class="ref-card ref-card-upcoming">
-                                <div>
-                                    <span class="ref-badge badge-upcoming">
-                                        ⏳ 尚未開始 / 敬請期待
-                                    </span>
-                                    <h3 class="ref-card-title text-secondary">${escapeHtml(p.title)}</h3>
-                                    <p class="ref-card-desc">${escapeHtml(p.description || '無詳細說明')}</p>
-                                    ${timeStr ? `<div class="small text-muted mb-3">🕒 開放時間：${escapeHtml(timeStr)} (越南時間) 起</div>` : ''}
-                                </div>
-                                <div class="text-end">
-                                    <button class="btn btn-outline-secondary fw-bold px-4" disabled style="border-radius: 8px;">
-                                        尚未開放投票
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
+                if (upcomingCount === 0) {
+                    upcomingContainer.innerHTML = `<div class="empty-box">目前沒有即將開始的預告項目。</div>`;
                 }
 
             } catch (err) {
                 console.error(err);
-                activeContainer.innerHTML = `<div class="alert alert-danger text-center py-3 small">資料載入失敗，請稍後再試。</div>`;
-                upcomingContainer.innerHTML = `<div class="alert alert-danger text-center py-3 small">資料載入失敗，請稍後再試。</div>`;
+                activeContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請重新整理頁面。</div>`;
+                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請重新整理頁面。</div>`;
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.innerText = "🔄 重新整理";
             }
         }
 
-        function escapeHtml(str) {
-            if (!str) return "";
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function createProposalHTML(p, statusType) {
+            const isPoll = p.type === "poll";
+            const typeLabel = isPoll ? "🗳️ 選項投票" : "💡 意見徵集";
+            
+            if (statusType === "active") {
+                return `
+                    <div class="proposal-card d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="mb-2">
+                                <span class="badge-active me-2">🟢 開放中</span>
+                                <span class="text-muted small">${typeLabel}</span>
+                            </div>
+                            <h4 class="h5 fw-bold mb-1">${p.title}</h4>
+                            <p class="text-muted small mb-2">${p.description || "無詳細說明"}</p>
+                            <div class="text-muted extra-small" style="font-size: 0.8rem;">
+                                📅 截止時間：${p.end_time} (越南時間)
+                            </div>
+                        </div>
+                        <div>
+                            <a href="vote.html?id=${p.id}" class="btn-action">前往參與 ➔</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="proposal-card d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="mb-2">
+                                <span class="badge-upcoming me-2">⏳ 稍後開始</span>
+                                <span class="text-muted small">${typeLabel}</span>
+                            </div>
+                            <h4 class="h5 fw-bold mb-1">${p.title}</h4>
+                            <p class="text-muted small mb-2">${p.description || "無詳細說明"}</p>
+                            <div class="text-muted extra-small" style="font-size: 0.8rem;">
+                                ⏰ 開放時間：${p.start_time} ~ ${p.end_time} (越南時間)
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-secondary btn-sm" disabled>尚未開放</button>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
-        loadAllPolls();
+        // 頁面載入時自動執行
+        fetchProposals();
     </script>
 </body>
 </html>
