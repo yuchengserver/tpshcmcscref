@@ -81,12 +81,6 @@
             padding: 40px 20px 20px 20px;
         }
 
-        .hero-logo {
-            width: 60px;
-            height: auto;
-            margin-bottom: 12px;
-        }
-
         .hero-title {
             font-size: 2.2rem;
             font-weight: 800;
@@ -220,12 +214,12 @@
 
     <main class="ref-container">
 
-        <div class="notice-banner d-flex justify-content-between align-items-center">
+        <div class="notice-banner d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (<code>@tshcmc.edu.vn</code>)。提交成功後系統將寄發憑證確認信。
             </div>
-            <!-- 加入刷新按鈕 -->
-            <button onclick="fetchProposals()" id="refreshBtn" class="btn btn-sm btn-outline-primary ms-3 text-nowrap">
+            <!-- 手動重新整理按鈕 -->
+            <button onclick="fetchProposals()" id="refreshBtn" class="btn btn-sm btn-outline-primary ms-auto text-nowrap">
                 🔄 重新整理
             </button>
         </div>
@@ -268,7 +262,14 @@
             refreshBtn.innerText = "🔄 載入中...";
 
             try {
-                const res = await fetch(GAS_API);
+                // 加上 timestamp 防止瀏覽器快取
+                const res = await fetch(GAS_API + "?t=" + new Date().getTime(), {
+                    method: "GET",
+                    redirect: "follow"
+                });
+
+                if (!res.ok) throw new Error("Network response was not ok");
+
                 const proposals = await res.json();
 
                 activeContainer.innerHTML = "";
@@ -277,37 +278,20 @@
                 let activeCount = 0;
                 let upcomingCount = 0;
 
-                const now = new Date();
-
-                proposals.forEach(p => {
-                    // 自動時間判定 (若沒有 force_status 或 status 未指定時)
-                    const startTime = new Date(p.start_time.replace(/-/g, '/'));
-                    const endTime = new Date(p.end_time.replace(/-/g, '/'));
-                    
-                    let currentStatus = p.status;
-                    
-                    // 若後端沒有寫死 status，透過時間判定
-                    if (!currentStatus || currentStatus === "auto") {
-                        if (now < startTime) {
-                            currentStatus = "upcoming";
-                        } else if (now >= startTime && now <= endTime) {
-                            currentStatus = "active";
-                        } else {
-                            currentStatus = "closed";
+                if (Array.isArray(proposals)) {
+                    proposals.forEach(p => {
+                        // 1. 開放中項目
+                        if (p.status === "active") {
+                            activeCount++;
+                            activeContainer.innerHTML += createProposalHTML(p, "active");
+                        } 
+                        // 2. 預告中項目
+                        else if (p.status === "upcoming") {
+                            upcomingCount++;
+                            upcomingContainer.innerHTML += createProposalHTML(p, "upcoming");
                         }
-                    }
-
-                    // 1. 渲染【開放中】項目 (active)
-                    if (currentStatus === "active") {
-                        activeCount++;
-                        activeContainer.innerHTML += createProposalHTML(p, "active");
-                    } 
-                    // 2. 渲染【預告中】項目 (upcoming) - 修正未開啟提案進不去的關鍵！
-                    else if (currentStatus === "upcoming") {
-                        upcomingCount++;
-                        upcomingContainer.innerHTML += createProposalHTML(p, "upcoming");
-                    }
-                });
+                    });
+                }
 
                 if (activeCount === 0) {
                     activeContainer.innerHTML = `<div class="empty-box">目前暫無開放中的公投或意見徵集項目。</div>`;
@@ -318,9 +302,9 @@
                 }
 
             } catch (err) {
-                console.error(err);
-                activeContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請重新整理頁面。</div>`;
-                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請重新整理頁面。</div>`;
+                console.error("載入失敗:", err);
+                activeContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請確認網路連線或重試。</div>`;
+                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請確認網路連線或重試。</div>`;
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerText = "🔄 重新整理";
@@ -372,7 +356,7 @@
             }
         }
 
-        // 頁面載入時自動執行
+        // 頁面初次載入時自動刷新
         fetchProposals();
     </script>
 </body>
