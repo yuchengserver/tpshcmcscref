@@ -379,20 +379,27 @@
                 return;
             }
 
-            const btn = document.getElementById("submitBtn");
-            btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>發布中，請稍後...`;
-
             const type = document.getElementById("propType").value;
             const title = document.getElementById("propTitle").value.trim();
             const description = document.getElementById("propDesc").value.trim();
             const optionsRaw = document.getElementById("propOptions").value.trim();
-            const forceStatus = document.getElementById("forceStatus").value; // 抓取選單數值
+            const forceStatus = document.getElementById("forceStatus").value;
 
             let options = [];
-            if (type === "poll" && optionsRaw) {
-                options = optionsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            if (type === "poll") {
+                if (optionsRaw) {
+                    options = optionsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                }
+                // 優化 1：選項必填與數量驗證
+                if (options.length < 2) {
+                    alert("⚠️ 選項投票類型至少需要提供 2 個選項 (請用半形逗號分隔)！");
+                    return;
+                }
             }
+
+            const btn = document.getElementById("submitBtn");
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>發布中，請稍後...`;
 
             const payload = {
                 action: "createProposal",
@@ -403,7 +410,7 @@
                 options: options.join(","),
                 start_time: startTime,
                 end_time: endTime,
-                force_status: forceStatus // 傳遞給後端強制狀態
+                force_status: forceStatus
             };
 
             try {
@@ -419,6 +426,7 @@
                     alert("✅ 提案發布成功！");
                     document.getElementById("proposalForm").reset();
                     initDefaultTime();
+                    toggleOptionsField(); // 優化 2：發布後重置表單欄位顯示狀態
                 } else {
                     alert("❌ 發布失敗：" + (result.message || "密碼錯誤或權限不足"));
                     if (result.message && (result.message.includes("密碼") || result.message.includes("權限"))) {

@@ -162,6 +162,7 @@
             border-radius: 0 8px 8px 0;
             font-size: 0.92rem;
             color: #334155;
+            word-break: break-word;
         }
 
         .opt-progress-bar {
@@ -233,7 +234,7 @@
     <main class="ref-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h5 fw-bold text-dark m-0">即時開票與建言列表</h2>
-            <button onclick="loadResults()" class="btn refresh-btn">
+            <button id="btnRefresh" onclick="loadResults()" class="btn refresh-btn">
                 🔄 重新整理
             </button>
         </div>
@@ -251,10 +252,22 @@
 
         async function loadResults() {
             const container = document.getElementById("resultsList");
+            const btnRefresh = document.getElementById("btnRefresh");
+
+            // 禁用按鈕提升體驗
+            if (btnRefresh) {
+                btnRefresh.disabled = true;
+                btnRefresh.innerHTML = "⏳ 載入中...";
+            }
+
             try {
-                // 完全不需要帶入密碼
                 const res = await fetch(`${GAS_API}?action=getResults`);
                 const results = await res.json();
+
+                // 處理後端傳回的錯誤物件
+                if (results && results.error) {
+                    throw new Error(results.error);
+                }
 
                 if (!results || !Array.isArray(results) || results.length === 0) {
                     container.innerHTML = `
@@ -306,15 +319,18 @@
                         if (options.length > 0) {
                             optionsHtml = options.map(opt => {
                                 const votes = counts[opt] || 0;
-                                const ratio = total > 0 ? ((votes / total) * 100).toFixed(1) : "0.0";
+                                const rawRatio = total > 0 ? ((votes / total) * 100) : 0;
+                                const displayRatio = rawRatio.toFixed(1);
+                                const fillWidth = Math.min(rawRatio, 100).toFixed(1); // 防止進度條溢出
+
                                 return `
                                     <div style="margin-bottom: 14px;">
                                         <div style="display:flex; justify-content:space-between; font-size:0.95em; font-weight:600; color:#334155;">
                                             <span>${escapeHtml(opt)}: ${votes} 票</span>
-                                            <span>${ratio}%</span>
+                                            <span>${displayRatio}%</span>
                                         </div>
                                         <div class="opt-progress-bar">
-                                            <div class="opt-progress-fill" style="width: ${ratio}%;"></div>
+                                            <div class="opt-progress-fill" style="width: ${fillWidth}%;"></div>
                                         </div>
                                     </div>
                                 `;
@@ -341,7 +357,13 @@
                 }).join('');
 
             } catch (err) {
-                container.innerHTML = `<div class="alert alert-danger text-center py-4">開票結果載入失敗，請確認網路連線。</div>`;
+                console.error(err);
+                container.innerHTML = `<div class="alert alert-danger text-center py-4">開票結果載入失敗，請確認網路連線或稍後再試。</div>`;
+            } finally {
+                if (btnRefresh) {
+                    btnRefresh.disabled = false;
+                    btnRefresh.innerHTML = "🔄 重新整理";
+                }
             }
         }
 

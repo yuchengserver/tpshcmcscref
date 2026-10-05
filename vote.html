@@ -280,207 +280,221 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
- <script>
-    const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-const urlParams = new URLSearchParams(window.location.search);
-const proposalId = urlParams.get('id');
+    <script>
+        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const proposalId = urlParams.get('id');
 
-let proposalTimeData = { startTime: null, endTime: null };
-let isProposalActive = false; // 紀錄提案是否處於可投票狀態
+        let proposalTimeData = { startTime: null, endTime: null };
+        let isProposalActive = false; // 紀錄提案是否處於可投票狀態
 
-function parseDate(dateStr) {
-    if (!dateStr) return null;
-    let str = String(dateStr).trim();
-    if (!str) return null;
-    
-    if (str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str)) {
-        const d = new Date(str);
-        return isNaN(d.getTime()) ? null : d;
-    }
+        /**
+         * 強大且精確的時間解析器，專門處理越南時間 GMT+7
+         */
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            let str = String(dateStr).trim();
+            if (!str) return null;
 
-    str = str.includes('T') ? str : str.replace(' ', 'T');
-    const d = new Date(str + "+07:00");
-    return isNaN(d.getTime()) ? null : d;
-}
+            // 提取字串中的所有數字 [年, 月, 日, 時, 分, 秒]
+            const numbers = str.match(/\d+/g);
+            if (!numbers || numbers.length < 3) return null;
 
-async function initVotePage() {
-    if (!proposalId) { 
-        alert("未指定提案 ID！");
-        window.location.href = "index.html"; 
-        return; 
-    }
+            const year = numbers[0];
+            const month = String(numbers[1]).padStart(2, '0');
+            const day = String(numbers[2]).padStart(2, '0');
+            const hours = numbers[3] ? String(numbers[3]).padStart(2, '0') : "00";
+            const minutes = numbers[4] ? String(numbers[4]).padStart(2, '0') : "00";
+            const seconds = numbers[5] ? String(numbers[5]).padStart(2, '0') : "00";
 
-    try {
-        const res = await fetch(`${GAS_API}?action=getProposals`);
-        const proposals = await res.json();
-        const currentP = proposals.find(p => String(p.id) === String(proposalId));
+            // 組合成標準 ISO 8601 並明確附帶 +07:00 (越南時區)
+            const isoString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+07:00`;
+            const d = new Date(isoString);
 
-        if (currentP) {
-            document.getElementById("pTitle").innerText = currentP.title;
-            document.getElementById("pDesc").innerText = currentP.description || "無詳細說明";
-            
-            proposalTimeData.startTime = parseDate(currentP.startTime);
-            proposalTimeData.endTime = parseDate(currentP.endTime);
+            return isNaN(d.getTime()) ? null : d;
+        }
 
-            if (proposalTimeData.startTime && proposalTimeData.endTime) {
-                document.getElementById("startTimeText").innerText = formatDisplayTime(proposalTimeData.startTime);
-                document.getElementById("endTimeText").innerText = formatDisplayTime(proposalTimeData.endTime);
-                document.getElementById("timeInfoArea").classList.remove("d-none");
+        async function initVotePage() {
+            if (!proposalId) { 
+                alert("未指定提案 ID！");
+                window.location.href = "index.html"; 
+                return; 
             }
+
+            try {
+                const res = await fetch(`${GAS_API}?action=getProposals`);
+                const proposals = await res.json();
+                const currentP = proposals.find(p => String(p.id) === String(proposalId));
+
+                if (currentP) {
+                    document.getElementById("pTitle").innerText = currentP.title;
+                    document.getElementById("pDesc").innerText = currentP.description || "無詳細說明";
+                    
+                    proposalTimeData.startTime = parseDate(currentP.startTime);
+                    proposalTimeData.endTime = parseDate(currentP.endTime);
+
+                    if (proposalTimeData.startTime && proposalTimeData.endTime) {
+                        document.getElementById("startTimeText").innerText = formatDisplayTime(proposalTimeData.startTime);
+                        document.getElementById("endTimeText").innerText = formatDisplayTime(proposalTimeData.endTime);
+                        document.getElementById("timeInfoArea").classList.remove("d-none");
+                    }
+
+                    const now = new Date();
+                    const badge = document.getElementById("statusBadge");
+                    const submitBtn = document.getElementById("vSubmitBtn");
+
+                    if (currentP.status === "closed" || (proposalTimeData.endTime && now > proposalTimeData.endTime)) {
+                        badge.className = "badge bg-danger";
+                        badge.innerText = "🔒 已截止";
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = "🔒 投票時間已截止";
+                        isProposalActive = false;
+                    } else if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
+                        badge.className = "badge bg-warning text-dark";
+                        badge.innerText = "⏳ 尚未開放";
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = "🔒 該項目尚未開放投票";
+                        isProposalActive = false;
+                    } else {
+                        badge.className = "badge bg-success";
+                        badge.innerText = "🟢 開放中";
+                        isProposalActive = true;
+                    }
+
+                    const inputArea = document.getElementById("dynamicInputArea");
+
+                    if (currentP.type === "feedback") {
+                        inputArea.innerHTML = `
+                            <label class="form-label fw-bold text-dark">
+                                您的意見與建議：<span class="text-danger">*</span>
+                            </label>
+                            <textarea id="vFeedbackText" class="form-control" rows="5" placeholder="請詳細寫下您的想法與建言..." required></textarea>
+                        `;
+                    } else {
+                        const options = (currentP.options && currentP.options.length > 0) ? currentP.options : ["同意", "不同意"];
+                        const optionsHTML = options.map((opt, idx) => `
+                            <label class="option-label">
+                                <input type="radio" name="choice" value="${escapeHtml(opt)}" ${idx === 0 ? 'checked' : ''} required> 
+                                <span>${escapeHtml(opt)}</span>
+                            </label>
+                        `).join('');
+                        
+                        inputArea.innerHTML = `<label class="form-label fw-bold text-dark mb-2">請選擇您的意向：<span class="text-danger">*</span></label>` + optionsHTML;
+                    }
+                } else {
+                    document.getElementById("pTitle").innerText = "找不到該提案";
+                    document.getElementById("pDesc").innerText = "請返回首頁重新選擇項目。";
+                    document.getElementById("voteForm").style.display = "none";
+                }
+            } catch (err) {
+                console.error(err);
+                alert("載入資料錯誤，請確認網路連線！");
+            }
+        }
+
+        async function handleVoteSubmit(e) {
+            e.preventDefault();
 
             const now = new Date();
-            const badge = document.getElementById("statusBadge");
-            const submitBtn = document.getElementById("vSubmitBtn");
-
-            if (currentP.status === "closed" || (proposalTimeData.endTime && now > proposalTimeData.endTime)) {
-                badge.className = "badge bg-danger";
-                badge.innerText = "🔒 已截止";
-                submitBtn.disabled = true;
-                submitBtn.innerText = "🔒 投票時間已截止";
-                isProposalActive = false;
-            } else if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
-                badge.className = "badge bg-warning text-dark";
-                badge.innerText = "⏳ 尚未開放";
-                submitBtn.disabled = true;
-                submitBtn.innerText = "🔒 該項目尚未開放投票";
-                isProposalActive = false;
-            } else {
-                badge.className = "badge bg-success";
-                badge.innerText = "🟢 開放中";
-                isProposalActive = true;
+            if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
+                alert("⚠️ 該項目尚未開放投票！");
+                return;
+            }
+            if (proposalTimeData.endTime && now > proposalTimeData.endTime) {
+                alert("⚠️ 投票時間已截止，無法繼續提交！");
+                return;
             }
 
-            const inputArea = document.getElementById("dynamicInputArea");
+            const btn = document.getElementById("vSubmitBtn");
+            const emailInput = document.getElementById("vEmail");
+            const email = emailInput.value.trim().toLowerCase();
 
-            if (currentP.type === "feedback") {
-                inputArea.innerHTML = `
-                    <label class="form-label fw-bold text-dark">
-                        您的意見與建議：<span class="text-danger">*</span>
-                    </label>
-                    <textarea id="vFeedbackText" class="form-control" rows="5" placeholder="請詳細寫下您的想法與建言..." required></textarea>
-                `;
-            } else {
-                const options = (currentP.options && currentP.options.length > 0) ? currentP.options : ["同意", "不同意"];
-                const optionsHTML = options.map((opt, idx) => `
-                    <label class="option-label">
-                        <input type="radio" name="choice" value="${escapeHtml(opt)}" ${idx === 0 ? 'checked' : ''} required> 
-                        <span>${escapeHtml(opt)}</span>
-                    </label>
-                `).join('');
-                
-                inputArea.innerHTML = `<label class="form-label fw-bold text-dark mb-2">請選擇您的意向：<span class="text-danger">*</span></label>` + optionsHTML;
+            if (!email.endsWith("@tshcmc.edu.vn")) {
+                alert("請使用學校官方信箱 (@tshcmc.edu.vn) 進行登錄！");
+                emailInput.focus();
+                return;
             }
-        } else {
-            document.getElementById("pTitle").innerText = "找不到該提案";
-            document.getElementById("pDesc").innerText = "請返回首頁重新選擇項目。";
-            document.getElementById("voteForm").style.display = "none";
+
+            let content = "";
+            const feedbackInput = document.getElementById("vFeedbackText");
+            
+            if (feedbackInput) {
+                content = feedbackInput.value.trim();
+                if (!content) {
+                    alert("請填寫您的意見內容！");
+                    return;
+                }
+            } else {
+                const selectedRadio = document.querySelector('input[name="choice"]:checked');
+                if (selectedRadio) content = selectedRadio.value;
+            }
+
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            btn.innerText = "⏳ 提交中，請稍候...";
+
+            const payload = {
+                action: "vote",
+                proposal_id: proposalId,
+                content: content,
+                email: email
+            };
+
+            try {
+                const res = await fetch(GAS_API, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    redirect: "follow",
+                    body: JSON.stringify(payload) 
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert("🎉 " + result.message);
+                    window.location.href = "results.html";
+                } else {
+                    alert("⚠ 提交失敗：" + result.message);
+                    if (isProposalActive) {
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
+                        btn.innerText = "確認送出並寄送確認信";
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert("連線失敗或後端回傳格式錯誤，請稍後再試！");
+                if (isProposalActive) {
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.innerText = "確認送出並寄送確認信";
+                }
+            }
         }
-    } catch (err) {
-        console.error(err);
-        alert("載入資料錯誤，請確認網路連線！");
-    }
-}
 
-async function handleVoteSubmit(e) {
-    e.preventDefault();
-
-    const now = new Date();
-    if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
-        alert("⚠️ 該項目尚未開放投票！");
-        return;
-    }
-    if (proposalTimeData.endTime && now > proposalTimeData.endTime) {
-        alert("⚠️ 投票時間已截止，無法繼續提交！");
-        return;
-    }
-
-    const btn = document.getElementById("vSubmitBtn");
-    const emailInput = document.getElementById("vEmail");
-    const email = emailInput.value.trim().toLowerCase();
-
-    if (!email.endsWith("@tshcmc.edu.vn")) {
-        alert("請使用學校官方信箱 (@tshcmc.edu.vn) 進行登錄！");
-        emailInput.focus();
-        return;
-    }
-
-    let content = "";
-    const feedbackInput = document.getElementById("vFeedbackText");
-    
-    if (feedbackInput) {
-        content = feedbackInput.value.trim();
-        if (!content) {
-            alert("請填寫您的意見內容！");
-            return;
+        function formatDisplayTime(date) {
+            if (!date || isNaN(date.getTime())) return "-";
+            return date.toLocaleString('zh-TW', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }) + " (越南時間)";
         }
-    } else {
-        const selectedRadio = document.querySelector('input[name="choice"]:checked');
-        if (selectedRadio) content = selectedRadio.value;
-    }
 
-    btn.disabled = true;
-    btn.style.opacity = "0.7";
-    btn.innerText = "⏳ 提交中，請稍候...";
-
-    const payload = {
-        action: "vote",
-        proposal_id: proposalId,
-        content: content,
-        email: email
-    };
-
-    try {
-        const res = await fetch(GAS_API, { 
-            method: "POST", 
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            redirect: "follow",
-            body: JSON.stringify(payload) 
-        });
-        const result = await res.json();
-
-        if (result.success) {
-            alert("🎉 " + result.message);
-            window.location.href = "results.html";
-        } else {
-            alert("⚠ 提交失敗：" + result.message);
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
-    } catch (err) {
-        console.error(err);
-        alert("連線失敗或後端回傳格式錯誤，請稍後再試！");
-    } finally {
-        // 僅在提案仍為開放狀態時還原按鈕，避免覆蓋已截止狀態
-        if (isProposalActive) {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            btn.innerText = "確認送出並寄送確認信";
-        }
-    }
-}
 
-function formatDisplayTime(date) {
-    if (!date || isNaN(date)) return "-";
-    return date.toLocaleString('zh-TW', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    }) + " (越南時間)";
-}
-
-function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-initVotePage();
- </script>
+        initVotePage();
+    </script>
 </body>
 </html>
