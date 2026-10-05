@@ -290,8 +290,18 @@
 
         function parseDate(dateStr) {
             if (!dateStr) return null;
-            const formattedStr = String(dateStr).includes('T') ? dateStr : String(dateStr).replace(' ', 'T');
-            const d = new Date(formattedStr);
+            let str = String(dateStr).trim();
+            if (!str) return null;
+            
+            // 如果字串已經包含時區資訊（例如 Z 或 +07:00 等），直接解析
+            if (str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str)) {
+                const d = new Date(str);
+                return isNaN(d.getTime()) ? null : d;
+            }
+
+            // 調整格式並強制指定為越南時間 (+07:00)，避免因瀏覽器當地時區導致時間差
+            str = str.includes('T') ? str : str.replace(' ', 'T');
+            const d = new Date(str + "+07:00");
             return isNaN(d.getTime()) ? null : d;
         }
 
@@ -431,7 +441,7 @@
                     alert("🎉 " + result.message);
                     window.location.href = "results.html";
                 } else {
-                    alert("⚠️ 提交失敗：" + result.message);
+                    alert("⚠️️ 提交失敗：" + result.message);
                 }
             } catch (err) {
                 console.error(err);
@@ -445,11 +455,15 @@
 
         function formatDisplayTime(date) {
             if (!date || isNaN(date)) return "-";
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            const hh = String(date.getHours()).padStart(2, '0');
-            const mm = String(date.getMinutes()).padStart(2, '0');
-            return `${m}/${d} ${hh}:${mm} (越南時間)`;
+            // 使用 toLocaleString 指定時區強制以越南時間顯示，確保呈現正確的小時
+            return date.toLocaleString('zh-TW', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }) + " (越南時間)";
         }
 
         function escapeHtml(str) {
