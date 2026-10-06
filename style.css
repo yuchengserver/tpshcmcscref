@@ -1,7 +1,8 @@
 /* ==========================================================================
-   TSSC13TH 公投專區 - 全局通用樣式
+   TSSC13TH 公投專區 - 全局通用樣式 (重構優化版)
    ========================================================================== */
 
+/* --- 基礎設定 --- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -18,34 +19,59 @@ body {
   flex-direction: column;
 }
 
-/* --- 頁首導覽列 --- */
-header {
+/* --- 頁首導覽列 (Header & Navbar 整合) --- */
+header, .navbar {
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  padding: 1rem 2rem;
+  padding: 0.85rem 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.logo {
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+  text-decoration: none;
+}
+
+.school-logo {
+  height: 38px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.site-title, .logo {
   font-size: 1.25rem;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.025em;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* 導覽選單連結 */
+nav {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 nav a {
   text-decoration: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.85rem;
   border-radius: 6px;
   font-weight: 500;
   color: #64748b;
-  margin-left: 0.5rem;
+  font-size: 0.95rem;
   display: inline-block;
+  white-space: nowrap;
   transition: all 0.2s ease;
 }
 
@@ -55,7 +81,7 @@ nav a:hover {
   color: #0f172a;
 }
 
-/* --- 容器 layout --- */
+/* --- 容器 Layout --- */
 .container {
   max-width: 760px;
   width: 100%;
@@ -64,17 +90,23 @@ nav a:hover {
   flex: 1;
 }
 
-/* --- 卡片元件 --- */
-.card {
+/* --- 投遞規則與卡片區塊 --- */
+.rules-section {
+  max-width: 760px;
+  margin: 1.5rem auto 0;
+  padding: 0 1rem;
+}
+
+.card, .rules-card {
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 1.75rem;
+  padding: 1.5rem 1.75rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.section-title {
+.rules-header, .section-title {
   font-size: 1.1rem;
   font-weight: 700;
   color: #0f172a;
@@ -82,6 +114,28 @@ nav a:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 0.5rem;
+}
+
+.rules-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #334155;
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.rules-list li {
+  margin-bottom: 0.4rem;
+}
+
+.rules-list code {
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
 }
 
 .tag {
@@ -133,13 +187,12 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* 學校信箱輸入錯誤時的 CSS 提示 */
+/* 學校信箱輸入錯誤與提示框 */
 input[type="email"]:invalid:not(:placeholder-shown) {
   border-color: #ef4444;
   background-color: #fef2f2;
 }
 
-/* 學校信箱專屬提示區塊 */
 .email-notice {
   background-color: #f0f9ff;
   border-left: 4px solid #0284c7;
@@ -151,7 +204,18 @@ input[type="email"]:invalid:not(:placeholder-shown) {
   line-height: 1.4;
 }
 
-/* 確認信件發送狀態提示框 */
+.alert-box {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
 .mail-status-box {
   display: none;
   background-color: #f0fdf4;
@@ -224,19 +288,19 @@ input[type="email"]:invalid:not(:placeholder-shown) {
   background-color: #2563eb;
   color: #ffffff;
   border: none;
-  padding: 0.4rem 0.8rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .btn-refresh:hover {
   background-color: #1d4ed8;
 }
 
-/* --- 投票與結果長條圖 --- */
+/* --- 投票結果與長條圖 --- */
 .bar-container {
   background: #f1f5f9;
   border-radius: 6px;
@@ -298,127 +362,30 @@ footer {
 
 /* --- RWD 響應式調整 --- */
 @media (max-width: 640px) {
-  header {
+  header, .navbar {
     flex-direction: column;
-    gap: 0.8rem;
-    padding: 1rem;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
   }
   
-  nav a {
-    margin: 0 0.2rem;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.9rem;
+  nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
-  .card {
+  nav a {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .card, .rules-card {
     padding: 1.25rem;
   }
-}
-/* 頂部導線與 Logo 樣式 */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
 
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  user-select: none;
-}
-
-.school-logo {
-  height: 42px;
-  width: auto;
-  object-fit: contain;
-}
-
-.site-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-}
-
-/* 投遞規則區塊樣式 */
-.rules-section {
-  max-width: 1000px;
-  margin: 20px auto;
-  padding: 0 20px;
-}
-
-.rules-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.rules-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 8px;
-}
-
-.rules-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #0f172a;
-}
-
-.rules-list {
-  margin: 0;
-  padding-left: 20px;
-  color: #334155;
-  line-height: 1.7;
-  font-size: 0.95rem;
-}
-
-.rules-list li {
-  margin-bottom: 6px;
-}
-
-.rules-list code {
-  background-color: #eff6ff;
-  color: #2563eb;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
-/* 提醒 Box 樣式 */
-.alert-box {
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
-  padding: 12px 20px;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.95rem;
-}
-
-.btn-refresh {
-  background-color: #2563eb;
-  color: #ffffff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s;
-}
-
-.btn-refresh:hover {
-  background-color: #1d4ed8;
+  .alert-box {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
 }
