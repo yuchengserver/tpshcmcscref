@@ -31,14 +31,50 @@
 </head>
 <body>
 
-  <header>
-    <div class="logo">TSSC13TH 公投專區</div>
-    <nav>
-      <a href="index.html" class="active">🏠 首頁與通知</a>
-      <a href="results.html">📊 開票與歷史結果</a>
-      <a href="admin.html">⚙️ 管理員後台</a>
-    </nav>
-  </header>
+ <!-- 導引列 Header -->
+<header class="navbar">
+  <div class="logo-container" onclick="switchTab('home')" style="cursor: pointer;">
+    <!-- 校徽圖檔 -->
+    <img src="tpshcmcsc.png" alt="校徽" class="school-logo">
+    <h1 class="site-title">TSSC13TH 公投專區</h1>
+  </div>
+
+  <nav class="nav-buttons">
+    <button class="nav-btn active" id="btn-home" onclick="switchTab('home')">
+      🏠 首頁與通知
+    </button>
+    <button class="nav-btn" id="btn-results" onclick="switchTab('results')">
+      📊 開票與歷史結果
+    </button>
+    <button class="nav-btn" id="btn-admin" onclick="switchTab('admin')">
+      ⚙️ 管理員後台
+    </button>
+  </nav>
+</header>
+<main>
+    <!-- 導引列下方：投遞規則與提醒說明區塊 -->
+<section class="rules-section">
+  <!-- 投遞規則卡片 -->
+  <div class="rules-card">
+    <div class="rules-header">
+      <span class="icon">📜</span>
+      <h3>公投與意見投遞規則</h3>
+    </div>
+    <ul class="rules-list">
+      <li><strong>實名驗證：</strong>為確保投票公正性，本平台全面採用學校官方信箱（<code>@tshcmc.edu.vn</code>）進行身分驗證。</li>
+      <li><strong>防重複提交：</strong>每一位同學針對同一項提案或意見徵集項目，僅能提交一次意見或投票。</li>
+      <li><strong>隱私與資訊安全：</strong>您所填寫的信箱僅用於驗證學生身分與寄發「提交確認憑證」，意見內容將依規範處理。</li>
+      <li><strong>理性參與：</strong>請勿發表包含攻擊性、歧視性或無關之言論，共同維護良好的校園公共討論品質。</li>
+    </ul>
+  </div>
+
+  <!-- 提示訊息 -->
+  <div class="alert-box">
+    <span>🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (@tshcmc.edu.vn)。</span>
+    <button class="btn-refresh" onclick="loadData()">🔄 重新整理</button>
+  </div>
+</section>
+</main>
 
   <div class="container">
     <div class="alert-box">
