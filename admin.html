@@ -17,8 +17,10 @@
     .form-group { margin-bottom: 1.2rem; }
     label { display: block; font-weight: bold; margin-bottom: 0.4rem; font-size: 0.9rem; }
     input, select, textarea { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; outline: none; }
-    .btn-submit { background-color: #0f172a; color: white; border: none; width: 100%; padding: 0.8rem; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+    input:focus, select:focus, textarea:focus { border-color: #0f172a; }
+    .btn-submit { background-color: #0f172a; color: white; border: none; width: 100%; padding: 0.8rem; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
     .btn-submit:hover { background-color: #1e293b; }
+    .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
     .hidden { display: none; }
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
   </style>
@@ -36,6 +38,7 @@
 
   <div class="container">
     
+    <!-- 登入卡片 -->
     <div id="login-card" class="card" style="max-width: 450px; margin: 3rem auto; text-align: center;">
       <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⚙️</div>
       <h2>後台管理系統</h2>
@@ -43,11 +46,12 @@
       
       <div class="form-group" style="text-align: left;">
         <label>🔒 管理員身份驗證</label>
-        <input type="password" id="admin-password" placeholder="請輸入管理員密碼">
+        <input type="password" id="admin-password" placeholder="請輸入管理員密碼" onkeypress="if(event.key==='Enter') login()">
       </div>
-      <button class="btn-submit" onclick="login()">登入後台</button>
+      <button id="btn-login" class="btn-submit" onclick="login()">登入後台</button>
     </div>
 
+    <!-- 管理後台面板 -->
     <div id="admin-panel" class="hidden">
       
       <div class="alert-box">
@@ -64,7 +68,7 @@
         </div>
 
         <div class="form-group">
-          <label>提案標題</label>
+          <label>提案標題 <span style="color: red;">*</span></label>
           <input type="text" id="title" placeholder="例：2026 舞會主題投票">
         </div>
 
@@ -74,16 +78,16 @@
         </div>
 
         <div class="form-group" id="options-group">
-          <label>投票選項 (請用半形逗號分開)</label>
+          <label>投票選項 (請用半形逗號分開) <span style="color: red;">*</span></label>
           <input type="text" id="options" placeholder="主題A, 主題B, 主題C">
         </div>
 
-        <div style="display: flex; gap: 1rem;">
-          <div class="form-group" style="flex: 1;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div class="form-group" style="flex: 1; min-width: 200px;">
             <label>⏰ 開始時間 (越南時間)</label>
             <input type="datetime-local" id="startTime">
           </div>
-          <div class="form-group" style="flex: 1;">
+          <div class="form-group" style="flex: 1; min-width: 200px;">
             <label>⏳ 截止時間 (越南時間)</label>
             <input type="datetime-local" id="endTime">
           </div>
@@ -98,7 +102,7 @@
           <small style="color: #94a3b8;">若不想讓系統因時差自動判定，可在在此手動指定發布時的初始狀態。</small>
         </div>
 
-        <button class="btn-submit" onclick="publishProposal()">🚀 立即發布提案</button>
+        <button id="btn-publish" class="btn-submit" onclick="publishProposal()">🚀 立即發布提案</button>
       </div>
 
     </div>
@@ -109,6 +113,7 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    let adminToken = ""; // 暫存管理員驗證密碼/Token
 
     function handleTypeChange() {
       const type = document.getElementById('type').value;
@@ -116,44 +121,74 @@
     }
 
     async function login() {
-      const pass = document.getElementById('admin-password').value;
+      const passInput = document.getElementById('admin-password');
+      const pass = passInput.value.trim();
+      const loginBtn = document.getElementById('btn-login');
+
       if (!pass) { alert('請輸入密碼！'); return; }
+
+      loginBtn.disabled = true;
+      loginBtn.innerText = "驗證中...";
 
       try {
         const res = await fetch(GAS_API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'adminLogin', password: pass })
         });
         const result = await res.json();
 
         if (result.status === 'success') {
+          adminToken = pass; // 登入成功後保存密碼，供後續 API 操作驗證
           document.getElementById('login-card').classList.add('hidden');
           document.getElementById('admin-panel').classList.remove('hidden');
         } else {
           alert('驗證失敗：' + (result.message || '密碼錯誤'));
         }
       } catch (e) {
-        alert('登入連線失敗');
+        alert('登入連線失敗，請檢查網路或系統設定。');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerText = "登入後台";
       }
     }
 
     async function publishProposal() {
+      const type = document.getElementById('type').value;
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const options = document.getElementById('options').value.trim();
+      const startTimeVal = document.getElementById('startTime').value;
+      const endTimeVal = document.getElementById('endTime').value;
+      const status = document.getElementById('status').value;
+      const publishBtn = document.getElementById('btn-publish');
+
+      // 欄位前端表單驗證
+      if (!title) { alert('請輸入提案標題！'); return; }
+      if (type === 'vote' && !options) { alert('投票類型提案必須填寫投票選項！'); return; }
+
+      // 格式化時間（確保加上 GMT+7 偏移）
+      const formatVietnamTime = (val) => val ? `${val}:00+07:00` : '';
+
       const payload = {
         action: 'addProposal',
-        type: document.getElementById('type').value,
-        title: document.getElementById('title').value,
-        description: document.getElementById('description').value,
-        options: document.getElementById('options').value,
-        startTime: document.getElementById('startTime').value,
-        endTime: document.getElementById('endTime').value,
-        status: document.getElementById('status').value
+        password: adminToken, // 帶上管理員驗證密碼
+        type: type,
+        title: title,
+        description: description,
+        options: options,
+        startTime: formatVietnamTime(startTimeVal),
+        endTime: formatVietnamTime(endTimeVal),
+        status: status
       };
 
-      if (!payload.title) { alert('請輸入提案標題！'); return; }
+      publishBtn.disabled = true;
+      publishBtn.innerText = "發布中...";
 
       try {
         const res = await fetch(GAS_API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
         const result = await res.json();
@@ -162,10 +197,13 @@
           alert('🎉 提案成功發布！');
           window.location.href = 'index.html';
         } else {
-          alert('發布失敗：' + result.message);
+          alert('發布失敗：' + (result.message || '未知錯誤'));
         }
       } catch (e) {
         alert('系統錯誤，無法發布。');
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.innerText = "🚀 立即發布提案";
       }
     }
   </script>

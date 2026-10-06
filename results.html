@@ -18,9 +18,9 @@
     .result-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
     .bar-container { background: #f1f5f9; border-radius: 6px; height: 20px; overflow: hidden; margin-top: 0.3rem; }
     .bar-fill { background: #3b82f6; height: 100%; border-radius: 6px; transition: width 0.3s; }
-    .comment-box { background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 0.6rem; margin-top: 0.5rem; font-size: 0.9rem; }
     .btn-refresh { background-color: #0f172a; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; float: right; }
     .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
+    .pending-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1rem; text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 0.8rem; }
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
   </style>
 </head>
@@ -43,12 +43,12 @@
     </div>
 
     <div style="overflow: hidden; margin-bottom: 1rem;">
-      <b style="font-size: 1.1rem;">即時開票與建言列表</b>
+      <b style="font-size: 1.1rem;">投票結果列表</b>
       <button class="btn-refresh" onclick="loadResults()">🔄 重新整理</button>
     </div>
 
     <div class="card" id="results-container">
-      <div class="empty-text">📫 目前尚無已開票的紀錄</div>
+      <div class="empty-text">📫 目前尚無已開票紀錄</div>
     </div>
   </div>
 
@@ -64,22 +64,42 @@
         const container = document.getElementById('results-container');
 
         if (!data || data.length === 0) {
-          container.innerHTML = '<div class="empty-text">📫 目前尚無已開票的紀錄</div>';
+          container.innerHTML = '<div class="empty-text">📫 目前尚無紀錄</div>';
           return;
         }
 
-        container.innerHTML = data.map(item => {
+        // 1. 僅保留投票類型的提案 (排除意見徵集/feedback)
+        const voteProposals = data.filter(item => item.proposal && item.proposal.type === 'vote');
+
+        if (voteProposals.length === 0) {
+          container.innerHTML = '<div class="empty-text">📫 目前尚無投票結果紀錄</div>';
+          return;
+        }
+
+        const now = new Date();
+
+        container.innerHTML = voteProposals.map(item => {
           const p = item.proposal;
+          const endTime = p.endTime ? new Date(p.endTime) : null;
+          
+          // 判斷是否已截止／已關閉開票
+          const isClosed = p.status === 'Closed' || (endTime && now > endTime);
+
           let statsHTML = '';
 
-          if (p.type === 'vote') {
+          if (isClosed) {
+            // 2. 已截止／事後開票：顯示詳細得票結果與比例
             const counts = {};
-            item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
-            const total = item.totalCount || 1;
+            if (item.responses && Array.isArray(item.responses)) {
+              item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
+            }
+            const total = item.totalCount || 0;
 
-            statsHTML = Object.keys(counts).map(opt => {
-              const count = counts[opt];
-              const pct = Math.round((count / total) * 100);
+            const optionsList = p.options ? p.options.split(',').map(s => s.trim()) : Object.keys(counts);
+
+            statsHTML = optionsList.map(opt => {
+              const count = counts[opt] || 0;
+              const pct = total > 0 ? Math.round((count / total) * 100) : 0;
               return `
                 <div style="margin-top: 0.8rem; font-size: 0.9rem;">
                   <div style="display: flex; justify-content: space-between;">
@@ -91,16 +111,20 @@
               `;
             }).join('');
           } else {
-            statsHTML = item.responses.map(r => `
-              <div class="comment-box">💬 ${r.content}</div>
-            `).join('');
+            // 3. 進行中／未截止：隱藏數據，提示事後公布
+            statsHTML = `
+              <div class="pending-box">
+                🔒 <b>投票進行中</b><br>
+                為確保投票公正，選票結果與數據將於投票結束後統一公布。
+              </div>
+            `;
           }
 
           return `
             <div class="result-item">
               <h3>${p.title}</h3>
-              <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description}</p>
-              <small style="color: #94a3b8;">總參與人數：${item.totalCount} 人</small>
+              <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description || ''}</p>
+              <small style="color: #94a3b8;">總參與人數：${item.totalCount || 0} 人</small>
               ${statsHTML}
             </div>
           `;
@@ -108,6 +132,7 @@
 
       } catch (err) {
         console.error("載入結果失敗", err);
+        document.getElementById('results-container').innerHTML = '<div class="empty-text">⚠️ 載入資料失敗，請重新整理</div>';
       }
     }
 
