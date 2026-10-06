@@ -5,98 +5,348 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 首頁與投票</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f8fafc; color: #334155; line-height: 1.5; }
-    header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-size: 1.25rem; font-weight: bold; color: #0f172a; }
-    nav a { text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; color: #64748b; margin-left: 0.5rem; display: inline-block; }
-    nav a.active, nav a:hover { background-color: #f1f5f9; color: #0f172a; }
-    .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    .alert-box { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
-    .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-    .prop-item { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
-    .prop-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    /* 全域重置與背景設定 */
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    }
+    
+    /* 網頁整體為淺灰色，讓白色卡片浮起清晰 */
+    body { 
+      background-color: #f8fafc; 
+      color: #334155; 
+      line-height: 1.5; 
+    }
+
+    /* 頂部導引列 Header（純白背景） */
+    .navbar { 
+      background: #ffffff; 
+      border-bottom: 1px solid #e2e8f0; 
+      padding: 0.8rem 2rem; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-container { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.75rem; 
+      user-select: none;
+    }
+
+    /* 校徽圖檔：自動轉換為純黑色 */
+    .school-logo { 
+      height: 38px; 
+      width: auto; 
+      object-fit: contain;
+      filter: brightness(0); /* 轉為純黑色 */
+    }
+
+    .site-title { 
+      font-size: 1.25rem; 
+      font-weight: 700; 
+      color: #0f172a; 
+    }
+
+    /* 導引按鈕列表 */
+    .nav-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .nav-btn { 
+      text-decoration: none; 
+      padding: 0.5rem 1rem; 
+      border-radius: 6px; 
+      font-weight: 600; 
+      color: #64748b; 
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active { 
+      background-color: #eff6ff; 
+      color: #2563eb; 
+      border-color: #bfdbfe;
+    }
+
+    .nav-btn:hover:not(.active) { 
+      background-color: #f1f5f9; 
+      color: #0f172a; 
+    }
+
+    /* 主要內容容器 */
+    .container { 
+      max-width: 800px; 
+      margin: 1.5rem auto; 
+      padding: 0 1rem; 
+    }
+
+    /* 投遞規則卡片（純白背景） */
+    .rules-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .rules-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 0.6rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .rules-header h3 {
+      font-size: 1.05rem;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .rules-list {
+      padding-left: 1.25rem;
+      color: #475569;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .rules-list li {
+      margin-bottom: 0.4rem;
+    }
+
+    .rules-list code {
+      background-color: #eff6ff;
+      color: #2563eb;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    /* 提示訊息框 */
+    .alert-box { 
+      background-color: #eff6ff; 
+      border: 1px solid #bfdbfe; 
+      color: #1e40af; 
+      border-radius: 8px; 
+      padding: 0.8rem 1rem; 
+      margin-bottom: 1.5rem; 
+      font-size: 0.9rem; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+
+    /* 通用項目卡片（純白背景） */
+    .card { 
+      background: #ffffff; 
+      border-radius: 12px; 
+      border: 1px solid #e2e8f0; 
+      padding: 1.5rem; 
+      margin-bottom: 1.5rem; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
+    }
+
+    .section-title { 
+      font-size: 1.1rem; 
+      font-weight: 700; 
+      color: #0f172a;
+      margin-bottom: 0.8rem; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+    }
+
+    .prop-item { 
+      border-bottom: 1px solid #f1f5f9; 
+      padding-bottom: 1.5rem; 
+      margin-bottom: 1.5rem; 
+    }
+
+    .prop-item:last-child { 
+      border-bottom: none; 
+      padding-bottom: 0; 
+      margin-bottom: 0; 
+    }
+
+    /* 表單組件 */
     .form-group { margin-top: 1rem; }
-    label { display: block; font-weight: bold; margin-bottom: 0.4rem; font-size: 0.9rem; }
-    input[type="email"], textarea { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; outline: none; }
-    .option-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.8rem 0; }
-    .option-label { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer; background: #f8fafc; padding: 0.6rem; border-radius: 6px; border: 1px solid #e2e8f0; }
-    .btn-submit { background-color: #0f172a; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 0.8rem; }
+    
+    label { 
+      display: block; 
+      font-weight: 600; 
+      margin-bottom: 0.4rem; 
+      font-size: 0.9rem; 
+      color: #334155;
+    }
+
+    input[type="email"], textarea { 
+      width: 100%; 
+      padding: 0.6rem 0.8rem; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 6px; 
+      font-size: 0.95rem; 
+      outline: none; 
+      transition: border-color 0.2s;
+    }
+
+    input[type="email"]:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .option-list { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5rem; 
+      margin: 0.8rem 0; 
+    }
+
+    .option-label { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      font-weight: normal; 
+      cursor: pointer; 
+      background: #f8fafc; 
+      padding: 0.6rem; 
+      border-radius: 6px; 
+      border: 1px solid #e2e8f0; 
+      transition: background-color 0.2s;
+    }
+
+    .option-label:hover {
+      background: #f1f5f9;
+    }
+
+    /* 按鈕樣式 */
+    .btn-submit { 
+      background-color: #0f172a; 
+      color: white; 
+      border: none; 
+      padding: 0.6rem 1.2rem; 
+      border-radius: 6px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      margin-top: 0.8rem; 
+      transition: background-color 0.2s;
+    }
+
     .btn-submit:hover { background-color: #1e293b; }
-    .btn-refresh { background-color: #3b82f6; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+
+    .btn-refresh { 
+      background-color: #2563eb; 
+      color: white; 
+      border: none; 
+      padding: 0.4rem 0.85rem; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 0.85rem; 
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+
+    .btn-refresh:hover { background-color: #1d4ed8; }
+
     .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
+
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
   </style>
 </head>
 <body>
 
- <!-- 導引列 Header -->
-<header class="navbar">
-  <div class="logo-container" onclick="switchTab('home')" style="cursor: pointer;">
-    <!-- 校徽圖檔 -->
-    <img src="tpshcmcsc.png" alt="校徽" class="school-logo">
-    <h1 class="site-title">TSSC13TH 公投專區</h1>
-  </div>
-
-  <nav class="nav-buttons">
-    <button class="nav-btn active" id="btn-home" onclick="switchTab('home')">
-      🏠 首頁與通知
-    </button>
-    <button class="nav-btn" id="btn-results" onclick="switchTab('results')">
-      📊 開票與歷史結果
-    </button>
-    <button class="nav-btn" id="btn-admin" onclick="switchTab('admin')">
-      ⚙️ 管理員後台
-    </button>
-  </nav>
-</header>
-<main>
-    <!-- 導引列下方：投遞規則與提醒說明區塊 -->
-<section class="rules-section">
-  <!-- 投遞規則卡片 -->
-  <div class="rules-card">
-    <div class="rules-header">
-      <span class="icon">📜</span>
-      <h3>公投與意見投遞規則</h3>
+  <!-- 導引列 Header -->
+  <header class="navbar">
+    <div class="logo-container" onclick="switchTab('home')" style="cursor: pointer;">
+      <!-- 校徽圖檔 (透過 CSS 轉黑色) -->
+      <img src="tpshcmcsc.png" alt="校徽" class="school-logo">
+      <h1 class="site-title">TSSC13TH 公投專區</h1>
     </div>
-    <ul class="rules-list">
-      <li><strong>實名驗證：</strong>為確保投票公正性，本平台全面採用學校官方信箱（<code>@tshcmc.edu.vn</code>）進行身分驗證。</li>
-      <li><strong>防重複提交：</strong>每一位同學針對同一項提案或意見徵集項目，僅能提交一次意見或投票。</li>
-      <li><strong>隱私與資訊安全：</strong>您所填寫的信箱僅用於驗證學生身分與寄發「提交確認憑證」，意見內容將依規範處理。</li>
-      <li><strong>理性參與：</strong>請勿發表包含攻擊性、歧視性或無關之言論，共同維護良好的校園公共討論品質。</li>
-    </ul>
-  </div>
 
-  <!-- 提示訊息 -->
-  <div class="alert-box">
-    <span>🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (@tshcmc.edu.vn)。</span>
-    <button class="btn-refresh" onclick="loadData()">🔄 重新整理</button>
-  </div>
-</section>
-</main>
+    <nav class="nav-buttons">
+      <button class="nav-btn active" id="btn-home" onclick="switchTab('home')">
+        🏠 首頁與通知
+      </button>
+      <button class="nav-btn" id="btn-results" onclick="switchTab('results')">
+        📊 開票與歷史結果
+      </button>
+      <button class="nav-btn" id="btn-admin" onclick="switchTab('admin')">
+        ⚙️ 管理員後台
+      </button>
+    </nav>
+  </header>
 
-  <div class="container">
+  <!-- 主要內容包裹容器 -->
+  <main class="container">
+
+    <!-- 投遞規則卡片 -->
+    <section class="rules-card">
+      <div class="rules-header">
+        <span class="icon">📜</span>
+        <h3>公投與意見投遞規則</h3>
+      </div>
+      <ul class="rules-list">
+        <li><strong>實名驗證：</strong>為確保投票公正性，本平台全面採用學校官方信箱（<code>@tshcmc.edu.vn</code>）進行身分驗證。</li>
+        <li><strong>防重複提交：</strong>每一位同學針對同一項提案或意見徵集項目，僅能提交一次意見或投票。</li>
+        <li><strong>隱私與資訊安全：</strong>您所填寫的信箱僅用於驗證學生身分與寄發「提交確認憑證」，意見內容將依規範處理。</li>
+        <li><strong>理性參與：</strong>請勿發表包含攻擊性、歧視性或無關之言論，共同維護良好的校園公共討論品質。</li>
+      </ul>
+    </section>
+
+    <!-- 提示訊息 -->
     <div class="alert-box">
-      <span>🔒 <b>提醒：</b>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (<code>@tshcmc.edu.vn</code>)。</span>
-      <button class="btn-refresh" onclick="loadProposals()">🔄 重新整理</button>
+      <span>🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (@tshcmc.edu.vn)。</span>
+      <button class="btn-refresh" onclick="loadData()">🔄 重新整理</button>
     </div>
 
+    <!-- 開放中項目 -->
     <div class="section-title">📢 目前開放中的項目</div>
     <div class="card" id="active-container">
       <div class="empty-text">載入中...</div>
     </div>
 
+    <!-- 即將開始項目 -->
     <div class="section-title">⏳ 即將開始 / 預告中的項目</div>
     <div class="card" id="upcoming-container">
       <div class="empty-text">載入中...</div>
     </div>
-  </div>
+
+  </main>
 
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+    // 重新整理與初始化資料
+    function loadData() {
+      loadProposals();
+    }
+
+    // 頁面分頁切換處理
+    function switchTab(tabName) {
+      if (tabName === 'home') {
+        window.location.href = "index.html"; // 回到首頁
+      } else if (tabName === 'results') {
+        window.location.href = "results.html"; // 連結至開票頁面 (可依實際檔名調整)
+      } else if (tabName === 'admin') {
+        window.location.href = "admin.html"; // 連結至後台頁面 (可依實際檔名調整)
+      }
+    }
 
     async function loadProposals() {
       try {
@@ -195,7 +445,7 @@
         });
         const result = await res.json();
         if (result.status === 'success') {
-          alert('提交成功！');
+          alert(result.message || '提交成功！');
           location.reload();
         } else {
           alert('提交失敗：' + result.message);
@@ -205,6 +455,7 @@
       }
     }
 
+    // 初始化戴入資料
     loadProposals();
   </script>
 </body>
