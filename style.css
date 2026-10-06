@@ -1,312 +1,316 @@
 /* ==========================================================================
-   1. 變數與全域設定 (Variables & Global Styles)
+   TSSC13TH 公投專區 - 全局通用樣式
    ========================================================================== */
-:root {
-  /* 色彩系統 - 藍色主調 */
-  --primary: #1d4ed8;
-  --primary-dark: #1e3a8a;
-  --primary-hover: #1e40af;
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-sub: #64748b;
-  --border-color: #cbd5e1;
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  
-  /* 藍色 Hero 漸層 (對齊意見箱質感風格) */
-  --hero-grad: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-  --accent-yellow-light: #fef9c3;
-  --accent-yellow-dark: #854d0e;
-  
-  /* 圓角規範 */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
 
-  /* 陰影系統 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
-  --shadow-hover: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-
-  /* 動畫速度 */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-*, *::before, *::after {
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  line-height: 1.6;
+  background-color: #f8fafc;
+  color: #334155;
+  line-height: 1.5;
   min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* 焦點狀態（無障礙優化） */
-:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* ==========================================================================
-   2. 藍色 Hero Banner (對齊意見箱風格)
-   ========================================================================== */
-.hero-header, .ref-hero {
-  background: var(--hero-grad);
-  color: #ffffff;
-  padding: 36px 20px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
-}
-
-.hero-title, .ref-hero h1 {
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
 }
 
-.hero-subtitle, .ref-hero p {
-  font-size: 0.95rem;
-  color: #dbeafe;
-  margin: 0 auto;
-  font-weight: 500;
-}
-
-/* ==========================================================================
-   3. 右上角頁面導覽列 (Navbar)
-   ========================================================================== */
-.ref-navbar {
+/* --- 頁首導覽列 --- */
+header {
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.ref-nav-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 12px 20px;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.ref-nav-brand {
-  display: flex;
-  align-items: center;
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+}
+
+nav a {
   text-decoration: none;
-  color: var(--text-main);
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.3px;
-  transition: opacity var(--transition-fast);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  color: #64748b;
+  margin-left: 0.5rem;
+  display: inline-block;
+  transition: all 0.2s ease;
 }
 
-.ref-nav-brand:hover {
-  opacity: 0.85;
-}
-
-/* 移除原先強制的亮度和黑色濾鏡，確保 Logo 保持原色 */
-.ref-logo-img {
-  height: 32px;
-  width: auto;
-  margin-right: 10px;
-  object-fit: contain;
-}
-
-.ref-nav-links {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.ref-nav-item {
-  text-decoration: none;
-  color: var(--text-muted);
-  padding: 7px 14px;
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all var(--transition-fast);
-}
-
-.ref-nav-item:hover {
-  color: var(--text-main);
+nav a.active, 
+nav a:hover {
   background-color: #f1f5f9;
+  color: #0f172a;
 }
 
-.ref-nav-item.active {
-  color: var(--primary);
-  background-color: #eff6ff;
+/* --- 容器 layout --- */
+.container {
+  max-width: 760px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  flex: 1;
+}
+
+/* --- 卡片元件 --- */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 1.1rem;
   font-weight: 700;
-}
-
-.ref-admin-btn {
-  background-color: var(--accent-yellow-light);
-  color: var(--accent-yellow-dark);
-}
-
-.ref-admin-btn:hover {
-  background-color: #fef08a;
-  color: #713f12;
-}
-
-/* ==========================================================================
-   4. 通用按鈕與標籤 (Buttons & Badges)
-   ========================================================================== */
-.ref-cta-btn, .ref-vote-btn, .btn-vote-go {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary);
-  color: #ffffff;
-  font-weight: 700;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  padding: 8px 18px;
-  font-size: 0.9rem;
-  transition: all var(--transition-normal);
-}
-
-.ref-cta-btn:hover, .ref-vote-btn:hover, .btn-vote-go:hover {
-  background-color: var(--primary-hover);
-  color: #ffffff;
-}
-
-/* ==========================================================================
-   5. 主要內容區與卡片 (Container & Cards)
-   ========================================================================== */
-.ref-container {
-  max-width: 800px;
-  margin: 30px auto;
-  padding: 0 20px 60px 20px;
-}
-
-.notice-card, .ref-info-box {
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  color: #0369a1;
-  font-size: 0.95rem;
-  margin-bottom: 24px;
+  color: #0f172a;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
 }
 
-.content-card, .ref-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  margin-bottom: 24px;
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-bottom: 0.8rem;
 }
 
-.proposal-item {
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 16px;
-  background: #ffffff;
-  transition: border-color 0.2s ease;
+/* --- 表單控制件 --- */
+.form-group {
+  margin-bottom: 1.2rem;
 }
 
-.proposal-item:hover {
-  border-color: var(--primary);
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  color: #1e293b;
 }
 
-/* 投票頁面專用：單選框選項卡片樣式 */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="datetime-local"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+input[type="email"]:focus, 
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* 學校信箱輸入錯誤時的 CSS 提示 */
+input[type="email"]:invalid:not(:placeholder-shown) {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+/* 學校信箱專屬提示區塊 */
+.email-notice {
+  background-color: #f0f9ff;
+  border-left: 4px solid #0284c7;
+  padding: 0.75rem 1rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.85rem;
+  color: #0369a1;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+/* 確認信件發送狀態提示框 */
+.mail-status-box {
+  display: none;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* --- 投票選項清單 --- */
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.8rem 0 1.2rem 0;
+}
+
 .option-label {
   display: flex;
   align-items: center;
-  border: 1.5px solid #cbd5e1;
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
+  gap: 0.75rem;
+  font-weight: normal;
   cursor: pointer;
-  font-weight: 600;
-  color: var(--text-main);
+  background: #f8fafc;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   transition: all 0.2s ease;
-  background-color: #ffffff;
 }
 
 .option-label:hover {
-  border-color: var(--primary);
-  background-color: #f8fafc;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .option-label input[type="radio"] {
-  margin-right: 12px;
-  width: 18px;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #0f172a;
+}
+
+/* --- 按鈕樣式 --- */
+.btn-submit {
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit:hover {
+  background-color: #1e293b;
+}
+
+.btn-submit:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-refresh {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-refresh:hover {
+  background-color: #1d4ed8;
+}
+
+/* --- 投票與結果長條圖 --- */
+.bar-container {
+  background: #f1f5f9;
+  border-radius: 6px;
   height: 18px;
-  accent-color: var(--primary);
+  overflow: hidden;
+  margin-top: 0.3rem;
 }
 
-.option-label:has(input[type="radio"]:checked) {
-  border-color: var(--primary);
-  background-color: #eff6ff;
-  color: #1e40af;
+.bar-fill {
+  background: #2563eb;
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease-in-out;
 }
 
-/* ==========================================================================
-   6. 響應式排版 (Responsive)
-   ========================================================================== */
+.comment-box {
+  background: #f8fafc;
+  border-left: 3px solid #94a3b8;
+  padding: 0.65rem 0.8rem;
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  border-radius: 0 6px 6px 0;
+  color: #334155;
+}
+
+/* --- 連結與狀態 --- */
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  color: #0f172a;
+}
+
+.empty-text, 
+.loading-state, 
+.error-state {
+  text-align: center;
+  color: #94a3b8;
+  padding: 2.5rem 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --- 頁尾 --- */
+footer {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 3rem 0 1.5rem 0;
+}
+
+/* --- RWD 響應式調整 --- */
 @media (max-width: 640px) {
-  .ref-nav-container {
+  header {
     flex-direction: column;
-    gap: 10px;
-    padding: 12px 16px;
+    gap: 0.8rem;
+    padding: 1rem;
   }
   
-  .ref-nav-links {
-    width: 100%;
-    justify-content: center;
-    gap: 6px;
+  nav a {
+    margin: 0 0.2rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
   }
 
-  .ref-nav-item {
-    font-size: 0.875rem;
-    padding: 6px 10px;
+  .card {
+    padding: 1.25rem;
   }
-  
-  .hero-title, .ref-hero h1 { 
-    font-size: 1.4rem; 
-  }
-  
-  .ref-container { 
-    margin: 20px auto; 
-    padding: 0 16px 40px 16px;
-  }
-}
-.ref-card-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-top: 0;
-    margin-bottom: 12px;
-    word-break: break-word; /* 避免長文字撐破版面 */
 }

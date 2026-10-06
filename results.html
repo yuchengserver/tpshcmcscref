@@ -1,383 +1,117 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡志明市臺灣學校學生會 - 學生會公投專區 (開票與歷史結果)</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg-main: #f8fafc;
-            --text-dark: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --accent-yellow: #eab308;
-            --btn-primary: #0f172a;
-            --btn-primary-hover: #1e293b;
-        }
-
-        body {
-            background-color: var(--bg-main);
-            color: #1e293b;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-        }
-
-        /* 頂部導覽列 */
-        .ref-navbar {
-            background-color: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .ref-nav-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ref-nav-brand {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-dark);
-            font-weight: 800;
-            font-size: 1.1rem;
-        }
-
-        .ref-nav-links {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .ref-nav-item {
-            text-decoration: none;
-            color: var(--text-muted);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .ref-nav-item:hover, .ref-nav-item.active {
-            color: var(--text-dark);
-            background-color: #f1f5f9;
-        }
-
-        .ref-admin-btn {
-            background-color: #fef9c3;
-            color: #854d0e;
-        }
-
-        .ref-admin-btn:hover {
-            background-color: #fef08a;
-            color: #713f12;
-        }
-
-        /* 置中 Hero 區塊 */
-        .hero-section {
-            text-align: center;
-            padding: 40px 20px 20px 20px;
-        }
-
-        .hero-icon {
-            font-size: 2.8rem;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-
-        .hero-title {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-
-        .hero-subtitle {
-            font-size: 0.95rem;
-            color: #94a3b8;
-            margin-bottom: 0;
-        }
-
-        /* 主內容容器 */
-        .ref-container {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 0 20px 60px 20px;
-        }
-
-        /* 卡片風格 */
-        .ref-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .ref-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
-        }
-
-        .ref-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            border-radius: 20px;
-            margin-bottom: 12px;
-        }
-
-        .badge-poll { background: #e0f2fe; color: #0369a1; }
-        .badge-feedback { background: #dcfce7; color: #15803d; }
-
-        .ref-card-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-top: 0;
-            margin-bottom: 12px;
-        }
-
-        .feedback-box {
-            background: #f8fafc;
-            border-left: 4px solid #10b981;
-            padding: 12px 14px;
-            margin-bottom: 10px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.92rem;
-            color: #334155;
-            word-break: break-word;
-        }
-
-        .opt-progress-bar {
-            background: #f1f5f9;
-            border-radius: 8px;
-            height: 10px;
-            overflow: hidden;
-            margin-top: 6px;
-        }
-
-        .opt-progress-fill {
-            background: #059669;
-            height: 100%;
-            border-radius: 8px;
-            transition: width 0.4s ease;
-        }
-
-        .refresh-btn {
-            background-color: var(--btn-primary);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: background-color 0.2s ease;
-        }
-
-        .refresh-btn:hover {
-            background-color: var(--btn-primary-hover);
-            color: #ffffff;
-        }
-
-        @media (max-width: 576px) {
-            .ref-nav-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .hero-title {
-                font-size: 1.6rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSSC13TH 公投專區 - 開票與歷史結果</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f8fafc; color: #334155; line-height: 1.5; }
+    header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 1.25rem; font-weight: bold; color: #0f172a; }
+    nav a { text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; color: #64748b; margin-left: 0.5rem; display: inline-block; }
+    nav a.active, nav a:hover { background-color: #f1f5f9; color: #0f172a; }
+    .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .header-section { text-align: center; margin-bottom: 2rem; }
+    .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .result-item { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+    .result-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .bar-container { background: #f1f5f9; border-radius: 6px; height: 20px; overflow: hidden; margin-top: 0.3rem; }
+    .bar-fill { background: #3b82f6; height: 100%; border-radius: 6px; transition: width 0.3s; }
+    .comment-box { background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 0.6rem; margin-top: 0.5rem; font-size: 0.9rem; }
+    .btn-refresh { background-color: #0f172a; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; float: right; }
+    .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
+    footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
+  </style>
 </head>
 <body>
 
-    <!-- 頂部滿版導覽列 -->
-    <nav class="ref-navbar">
-        <div class="ref-nav-container">
-            <a href="index.html" class="ref-nav-brand">
-                <span>TSSC13TH 公投專區</span>
-            </a>
-            <div class="ref-nav-links">
-                <a href="index.html" class="ref-nav-item">首頁</a>
-                <a href="results.html" class="ref-nav-item active">開票與歷史結果</a>
-                <a href="admin.html" class="ref-nav-item ref-admin-btn">⚙️ 管理後台</a>
-            </div>
-        </div>
+  <header>
+    <div class="logo">TSSC13TH 公投專區</div>
+    <nav>
+      <a href="index.html">🏠 首頁與通知</a>
+      <a href="results.html" class="active">📊 開票與歷史結果</a>
+      <a href="admin.html">⚙️ 管理員後台</a>
     </nav>
+  </header>
 
-    <!-- Hero 區塊 -->
-    <header class="hero-section">
-        <div class="hero-icon">📊</div>
-        <h1 class="hero-title">開票與歷史結果</h1>
-        <p class="hero-subtitle">胡志明市臺灣學校學生會 - 學生會公投網站</p>
-    </header>
+  <div class="container">
+    <div class="header-section">
+      <div style="font-size: 2.5rem;">📊</div>
+      <h2>開票與歷史結果</h2>
+      <p style="color: #64748b; font-size: 0.9rem;">胡志明市臺灣學校學生會 - 學生公投網站</p>
+    </div>
 
-    <!-- 主要內容區 -->
-    <main class="ref-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h5 fw-bold text-dark m-0">即時開票與建言列表</h2>
-            <button id="btnRefresh" onclick="loadResults()" class="btn refresh-btn">
-                🔄 重新整理
-            </button>
-        </div>
+    <div style="overflow: hidden; margin-bottom: 1rem;">
+      <b style="font-size: 1.1rem;">即時開票與建言列表</b>
+      <button class="btn-refresh" onclick="loadResults()">🔄 重新整理</button>
+    </div>
 
-        <div id="resultsList">
-            <div class="text-center py-5 bg-white border rounded-3" style="border-color: var(--border-color) !important;">
-                <div class="spinner-border text-dark" role="status"></div>
-                <p class="mt-2 text-muted small mb-0">開票結果載入中...</p>
+    <div class="card" id="results-container">
+      <div class="empty-text">📫 目前尚無已開票的紀錄</div>
+    </div>
+  </div>
+
+  <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
+
+  <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+    async function loadResults() {
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getResults`);
+        const data = await res.json();
+        const container = document.getElementById('results-container');
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="empty-text">📫 目前尚無已開票的紀錄</div>';
+          return;
+        }
+
+        container.innerHTML = data.map(item => {
+          const p = item.proposal;
+          let statsHTML = '';
+
+          if (p.type === 'vote') {
+            const counts = {};
+            item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
+            const total = item.totalCount || 1;
+
+            statsHTML = Object.keys(counts).map(opt => {
+              const count = counts[opt];
+              const pct = Math.round((count / total) * 100);
+              return `
+                <div style="margin-top: 0.8rem; font-size: 0.9rem;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>${opt}</span>
+                    <span><b>${count} 票</b> (${pct}%)</span>
+                  </div>
+                  <div class="bar-container"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            statsHTML = item.responses.map(r => `
+              <div class="comment-box">💬 ${r.content}</div>
+            `).join('');
+          }
+
+          return `
+            <div class="result-item">
+              <h3>${p.title}</h3>
+              <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description}</p>
+              <small style="color: #94a3b8;">總參與人數：${item.totalCount} 人</small>
+              ${statsHTML}
             </div>
-        </div>
-    </main>
+          `;
+        }).join('');
 
-    <script>
-        const GAS_API = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+      } catch (err) {
+        console.error("載入結果失敗", err);
+      }
+    }
 
-        async function loadResults() {
-            const container = document.getElementById("resultsList");
-            const btnRefresh = document.getElementById("btnRefresh");
-
-            // 禁用按鈕提升體驗
-            if (btnRefresh) {
-                btnRefresh.disabled = true;
-                btnRefresh.innerHTML = "⏳ 載入中...";
-            }
-
-            try {
-                const res = await fetch(`${GAS_API}?action=getResults`);
-                const results = await res.json();
-
-                // 處理後端傳回的錯誤物件
-                if (results && results.error) {
-                    throw new Error(results.error);
-                }
-
-                if (!results || !Array.isArray(results) || results.length === 0) {
-                    container.innerHTML = `
-                        <div class="bg-white border rounded-3 p-5 text-center text-muted" style="border-style: dashed !important;">
-                            📭 目前尚無已開票的紀錄
-                        </div>`;
-                    return;
-                }
-
-                container.innerHTML = results.map(r => {
-                    const isFeedback = r.type === "feedback";
-
-                    if (isFeedback) {
-                        const feedbackList = r.feedbacks || [];
-                        let feedbackHtml = "";
-
-                        if (feedbackList.length > 0) {
-                            feedbackHtml = feedbackList.map(fb => `
-                                <div class="feedback-box">
-                                    <div>${escapeHtml(fb.content)}</div>
-                                    <div style="font-size:0.75em; color:#94a3b8; text-align:right; margin-top:4px;">${escapeHtml(fb.time || '')}</div>
-                                </div>
-                            `).join('');
-                        } else {
-                            feedbackHtml = `<p style="color:#94a3b8; font-size:0.9em; text-align:center; margin:15px 0;">目前暫無學生建言</p>`;
-                        }
-
-                        return `
-                            <div class="ref-card">
-                                <div>
-                                    <span class="ref-badge badge-feedback">💡 意見徵集</span>
-                                    <h3 class="ref-card-title">${escapeHtml(r.title)}</h3>
-                                    <div style="max-height: 260px; overflow-y: auto; margin: 15px 0; padding-right: 4px;">
-                                        ${feedbackHtml}
-                                    </div>
-                                </div>
-                                <div style="font-size:0.85em; color:#64748b; text-align:right; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px;">
-                                    收到總建言數：<strong>${r.total_responses || 0}</strong> 筆
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        const total = r.total_votes || 0;
-                        const counts = r.options_count || {};
-                        const options = Object.keys(counts);
-
-                        let optionsHtml = "";
-
-                        if (options.length > 0) {
-                            optionsHtml = options.map(opt => {
-                                const votes = counts[opt] || 0;
-                                const rawRatio = total > 0 ? ((votes / total) * 100) : 0;
-                                const displayRatio = rawRatio.toFixed(1);
-                                const fillWidth = Math.min(rawRatio, 100).toFixed(1); // 防止進度條溢出
-
-                                return `
-                                    <div style="margin-bottom: 14px;">
-                                        <div style="display:flex; justify-content:space-between; font-size:0.95em; font-weight:600; color:#334155;">
-                                            <span>${escapeHtml(opt)}: ${votes} 票</span>
-                                            <span>${displayRatio}%</span>
-                                        </div>
-                                        <div class="opt-progress-bar">
-                                            <div class="opt-progress-fill" style="width: ${fillWidth}%;"></div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('');
-                        } else {
-                            optionsHtml = `<p style="color:#94a3b8; font-size:0.9em; text-align:center; margin:15px 0;">尚無投票數據</p>`;
-                        }
-
-                        return `
-                            <div class="ref-card">
-                                <div>
-                                    <span class="ref-badge badge-poll">🗳️ 選項投票</span>
-                                    <h3 class="ref-card-title">${escapeHtml(r.title)}</h3>
-                                    <div style="margin: 15px 0;">
-                                        ${optionsHtml}
-                                    </div>
-                                </div>
-                                <div style="font-size:0.85em; color:#64748b; text-align:right; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px;">
-                                    總投票數：<strong>${total}</strong> 票
-                                </div>
-                            </div>
-                        `;
-                    }
-                }).join('');
-
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = `<div class="alert alert-danger text-center py-4">開票結果載入失敗，請確認網路連線或稍後再試。</div>`;
-            } finally {
-                if (btnRefresh) {
-                    btnRefresh.disabled = false;
-                    btnRefresh.innerHTML = "🔄 重新整理";
-                }
-            }
-        }
-
-        function escapeHtml(str) {
-            if (!str) return "";
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        loadResults();
-    </script>
+    loadResults();
+  </script>
 </body>
 </html>
