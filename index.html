@@ -276,17 +276,40 @@
                 let activeCount = 0;
                 let upcomingCount = 0;
 
+                const now = new Date(); // 當前系統時間
+
                 if (Array.isArray(proposals)) {
                     proposals.forEach(p => {
-                        // 修正：去除空白並轉為小寫，確保比對精準
-                        const status = String(p.status || "").toLowerCase().trim();
+                        // 解析時間字串，支援 "2026-10-06 19:00" 或 ISO 格式
+                        const rawStart = p.start_time || p.startTime;
+                        const rawEnd = p.end_time || p.endTime;
 
-                        if (status === "active") {
+                        const startDate = parseDateTime(rawStart);
+                        const endDate = parseDateTime(rawEnd);
+
+                        // 計算當前自動狀態
+                        let currentStatus = String(p.status || "").toLowerCase().trim();
+
+                        if (startDate && endDate) {
+                            if (now < startDate) {
+                                currentStatus = "upcoming"; // 當前時間早於開始時間 -> 預告中
+                            } else if (now >= startDate && now <= endDate) {
+                                currentStatus = "active";   // 當前時間介於開始與結束之間 -> 開放中
+                            } else {
+                                currentStatus = "ended";    // 當前時間已過結束時間 -> 已結束
+                            }
+                        }
+
+                        // 格式化為乾淨的時間字串顯示
+                        const formattedStart = formatDateString(startDate || rawStart);
+                        const formattedEnd = formatDateString(endDate || rawEnd);
+
+                        if (currentStatus === "active") {
                             activeCount++;
-                            activeContainer.innerHTML += createProposalHTML(p, "active");
-                        } else if (status === "upcoming") {
+                            activeContainer.innerHTML += createProposalHTML(p, "active", formattedStart, formattedEnd);
+                        } else if (currentStatus === "upcoming") {
                             upcomingCount++;
-                            upcomingContainer.innerHTML += createProposalHTML(p, "upcoming");
+                            upcomingContainer.innerHTML += createProposalHTML(p, "upcoming", formattedStart, formattedEnd);
                         }
                     });
                 }
@@ -302,20 +325,42 @@
             } catch (err) {
                 console.error("載入失敗:", err);
                 activeContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請確認網路連線或重試。</div>`;
-                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️️ 載入資料失敗，請確認網路連線或重試。</div>`;
+                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請確認網路連線或重試。</div>`;
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerText = "🔄 重新整理";
             }
         }
 
-        function createProposalHTML(p, statusType) {
+        // 時間相容解析函式
+        function parseDateTime(dtStr) {
+            if (!dtStr) return null;
+            if (dtStr instanceof Date) return dtStr;
+            
+            // 處理 "2026-10-06 19:00" 相容性 (iOS / Safari 需轉成 "2026-10-06T19:00:00")
+            let formatted = String(dtStr).trim();
+            if (formatted.includes(" ") && !formatted.includes("T")) {
+                formatted = formatted.replace(" ", "T");
+            }
+            const parsed = new Date(formatted);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        // 時間美化顯示函式
+        function formatDateString(dt) {
+            if (!dt) return "未設定";
+            if (typeof dt === "string") return dt;
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, "0");
+            const d = String(dt.getDate()).padStart(2, "0");
+            const hh = String(dt.getHours()).padStart(2, "0");
+            const mm = String(dt.getMinutes()).padStart(2, "0");
+            return `${y}-${m}-${d} ${hh}:${mm}`;
+        }
+
+        function createProposalHTML(p, statusType, formattedStart, formattedEnd) {
             const isPoll = p.type === "poll";
             const typeLabel = isPoll ? "🗳️ 選項投票" : "💡 意見徵集";
-
-            // 修正：兼顧 camelCase 與 snake_case 欄位命名
-            const startTime = p.startTime || p.start_time || "未設定";
-            const endTime = p.endTime || p.end_time || "未設定";
             const title = escapeHtml(p.title);
             const description = escapeHtml(p.description || "無詳細說明");
 
@@ -330,7 +375,7 @@
                             <h4 class="h5 fw-bold mb-1">${title}</h4>
                             <p class="text-muted small mb-2">${description}</p>
                             <div class="text-muted extra-small" style="font-size: 0.8rem;">
-                                📅 截止時間：${endTime} (越南時間)
+                                📅 截止時間：${formattedEnd} (越南時間)
                             </div>
                         </div>
                         <div>
@@ -349,7 +394,7 @@
                             <h4 class="h5 fw-bold mb-1">${title}</h4>
                             <p class="text-muted small mb-2">${description}</p>
                             <div class="text-muted extra-small" style="font-size: 0.8rem;">
-                                ⏰ 開放時間：${startTime} ~ ${endTime} (越南時間)
+                                ⏰ 開放時間：${formattedStart} ~ ${formattedEnd} (越南時間)
                             </div>
                         </div>
                         <div>
