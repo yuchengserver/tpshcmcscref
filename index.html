@@ -246,10 +246,14 @@
       cursor: pointer; 
       font-size: 0.85rem; 
       font-weight: 600;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
     }
 
     .btn-refresh:hover { background-color: #1d4ed8; }
+    .btn-refresh:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
 
@@ -298,7 +302,7 @@
     <!-- 提示訊息 -->
     <div class="alert-box">
       <span>🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (@tshcmc.edu.vn)。</span>
-      <button class="btn-refresh" onclick="loadData()">🔄 重新整理</button>
+      <button class="btn-refresh" id="btn-refresh" onclick="loadData()">🔄 重新整理</button>
     </div>
 
     <!-- 開放中項目 -->
@@ -320,7 +324,7 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 格式化時間 (將 ISO 時間轉為 2026/10/06 21:00 格式，無英文字母)
+    // 格式化時間 (將 ISO 時間轉為 2026/10/06 21:00 格式)
     function formatDate(dateStr) {
       if (!dateStr) return '';
       const d = new Date(dateStr);
@@ -330,9 +334,20 @@
       return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    // 重新整理與初始化資料
+    // 手動點擊重新整理
     function loadData() {
-      loadProposals();
+      const btn = document.getElementById('btn-refresh');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ 載入中...';
+      
+      // 顯示載入狀態
+      document.getElementById('active-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+      document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+
+      loadProposals().finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '🔄 重新整理';
+      });
     }
 
     // 頁面分頁切換處理
@@ -356,18 +371,18 @@
         const upcomingList = [];
 
         proposals.forEach(p => {
-          // 若後台狀態標記為 Closed，直接不呈現
+          // 若後台手動狀態標記為 Closed，直接跳過
           if (p.status === 'Closed') return;
 
           const startTime = p.startTime ? new Date(p.startTime) : null;
           const endTime = p.endTime ? new Date(p.endTime) : null;
 
-          // 核心邏輯：即時比對時間 (當前時間 >= 開始時間 且 未過期)
+          // 核心時間比對邏輯
           const isStarted = !startTime || now >= startTime;
-          const isEnded = endTime && now >= endTime;
+          const isEnded = endTime && now > endTime;
 
           if (isEnded) {
-            return; // 已過期的項目隱藏
+            return; // 過期則隱藏
           } else if (isStarted || p.status === 'Active') {
             activeList.push(p);
           } else {
@@ -398,7 +413,7 @@
             const options = p.options ? p.options.split(',') : [];
             formHTML = `
               <div class="option-list">
-                ${options.map((opt, i) => `
+                ${options.map((opt) => `
                   <label class="option-label">
                     <input type="radio" name="opt_${p.id}" value="${opt.trim()}"> ${opt.trim()}
                   </label>
@@ -418,7 +433,7 @@
               <label>學校電子信箱 (@tshcmc.edu.vn)</label>
               <input type="email" id="email_${p.id}" placeholder="s123456@tshcmc.edu.vn">
             </div>
-            <button class="btn-submit" onclick="submitResponse('${p.id}', '${p.type}')">確認提交</button>
+            <button class="btn-submit" id="btn_submit_${p.id}" onclick="submitResponse('${p.id}', '${p.type}')">確認提交</button>
           `;
         }
 
@@ -442,6 +457,8 @@
 
     async function submitResponse(proposalId, type) {
       const email = document.getElementById(`email_${proposalId}`).value.trim();
+      const submitBtn = document.getElementById(`btn_submit_${proposalId}`);
+
       if (!email || !email.toLowerCase().endsWith('@tshcmc.edu.vn')) {
         alert('請填寫有效的學校官方信箱 (@tshcmc.edu.vn)！');
         return;
@@ -457,9 +474,13 @@
         if (!responseVal) { alert('請輸入意見內容！'); return; }
       }
 
+      submitBtn.disabled = true;
+      submitBtn.innerText = "提交中...";
+
       try {
         const res = await fetch(GAS_API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'submitVote',
             proposalId: proposalId,
@@ -470,16 +491,19 @@
         const result = await res.json();
         if (result.status === 'success') {
           alert(result.message || '提交成功！');
-          location.reload();
+          loadData(); // 成功後重新讀取資料
         } else {
           alert('提交失敗：' + result.message);
         }
       } catch (e) {
         alert('系統發生錯誤，請稍後再試。');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "確認提交";
       }
     }
 
-    // 初始化戴入資料
+    // 初始化載入資料
     loadProposals();
 
     // 每 30 秒自動觸發一次時間比對刷新

@@ -191,9 +191,9 @@
     </div>
 
     <div style="overflow: hidden; margin-bottom: 1rem;">
-      <b style="font-size: 1.1rem;">投票結果列表</b>
-      <button class="btn-refresh" onclick="loadResults()">🔄 重新整理</button>
-    </div>
+        <b style="font-size: 1.1rem;">投票結果列表</b>
+        <button class="btn-refresh" id="btn-refresh" onclick="manualRefresh()">🔄 重新整理</button>
+     </div>
 
     <div class="card" id="results-container">
       <div class="empty-text">📫 目前尚無已開票紀錄</div>
@@ -203,109 +203,125 @@
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
   <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 時間格式化工具函式
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      
-      const pad = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
+  // 時間格式化工具函式
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 
-    async function loadResults() {
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getResults`);
-        const data = await res.json();
-        const container = document.getElementById('results-container');
+  // 手動點擊重新整理（加上按鈕狀態與載入提示）
+  function manualRefresh() {
+    const btn = document.getElementById('btn-refresh');
+    const container = document.getElementById('results-container');
+    
+    // 停用按鈕並顯示載入中狀態
+    btn.disabled = true;
+    btn.innerHTML = '⏳ 載入中...';
+    container.innerHTML = '<div class="empty-text">🔄 正在讀取最新開票結果...</div>';
 
-        if (!data || data.length === 0) {
-          container.innerHTML = '<div class="empty-text">📫 目前尚無紀錄</div>';
-          return;
-        }
+    loadResults().finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '🔄 重新整理';
+    });
+  }
 
-        // 1. 僅保留投票類型的提案 (排除意見徵集/feedback)
-        const voteProposals = data.filter(item => item.proposal && item.proposal.type === 'vote');
+  async function loadResults() {
+    try {
+      const res = await fetch(`${GAS_API_URL}?action=getResults`);
+      const data = await res.json();
+      const container = document.getElementById('results-container');
 
-        if (voteProposals.length === 0) {
-          container.innerHTML = '<div class="empty-text">📫 目前尚無投票結果紀錄</div>';
-          return;
-        }
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div class="empty-text">📫 目前尚無紀錄</div>';
+        return;
+      }
 
-        const now = new Date();
+      // 1. 僅保留投票類型的提案 (排除意見徵集/feedback)
+      const voteProposals = data.filter(item => item.proposal && item.proposal.type === 'vote');
 
-        container.innerHTML = voteProposals.map(item => {
-          const p = item.proposal;
-          const endTime = p.endTime ? new Date(p.endTime) : null;
-          
-          // 判斷是否已截止／已關閉開票
-          const isClosed = p.status === 'Closed' || (endTime && now > endTime);
+      if (voteProposals.length === 0) {
+        container.innerHTML = '<div class="empty-text">📫 目前尚無投票結果紀錄</div>';
+        return;
+      }
 
-          let statsHTML = '';
+      const now = new Date();
 
-          if (isClosed) {
-            // 2. 已截止／事後開票：顯示詳細得票結果與比例
-            const counts = {};
-            if (item.responses && Array.isArray(item.responses)) {
-              item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
-            }
-            const total = item.totalCount || 0;
+      container.innerHTML = voteProposals.map(item => {
+        const p = item.proposal;
+        const endTime = p.endTime ? new Date(p.endTime) : null;
+        
+        // 判斷是否已截止／已關閉開票
+        const isClosed = p.status === 'Closed' || (endTime && now > endTime);
 
-            const optionsList = p.options ? p.options.split(',').map(s => s.trim()) : Object.keys(counts);
+        let statsHTML = '';
 
-            statsHTML = optionsList.map(opt => {
-              const count = counts[opt] || 0;
-              const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-              return `
-                <div style="margin-top: 0.8rem; font-size: 0.9rem;">
-                  <div style="display: flex; justify-content: space-between;">
-                    <span>${opt}</span>
-                    <span><b>${count} 票</b> (${pct}%)</span>
-                  </div>
-                  <div class="bar-container"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+        if (isClosed) {
+          // 2. 已截止／事後開票：顯示詳細得票結果與比例
+          const counts = {};
+          if (item.responses && Array.isArray(item.responses)) {
+            item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
+          }
+          const total = item.totalCount || 0;
+
+          const optionsList = p.options ? p.options.split(',').map(s => s.trim()) : Object.keys(counts);
+
+          statsHTML = optionsList.map(opt => {
+            const count = counts[opt] || 0;
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            return `
+              <div style="margin-top: 0.8rem; font-size: 0.9rem;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span>${opt}</span>
+                  <span><b>${count} 票</b> (${pct}%)</span>
                 </div>
-              `;
-            }).join('');
-          } else {
-            // 3. 進行中／未截止：隱藏數據，提示事後公布
-            statsHTML = `
-              <div class="pending-box">
-                🔒 <b>投票進行中</b><br>
-                為確保投票公正，選票結果與數據將於投票結束後統一公布。
+                <div class="bar-container"><div class="bar-fill" style="width: ${pct}%;"></div></div>
               </div>
             `;
-          }
-
-          // 時間顯示格式化
-          const timeText = (p.startTime || p.endTime)
-            ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
-            : '未設定限制';
-
-          return `
-            <div class="result-item">
-              <h3>${p.title}</h3>
-              <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description || ''}</p>
-              <div style="font-size: 0.8rem; color: #94a3b8; margin: 0.4rem 0;">
-                ⏰ 投票期間：${timeText} | 總參與人數：${item.totalCount || 0} 人
-              </div>
-              ${statsHTML}
+          }).join('');
+        } else {
+          // 3. 進行中／未截止：隱藏數據，提示事後公布
+          statsHTML = `
+            <div class="pending-box">
+              🔒 <b>投票進行中</b><br>
+              為確保投票公正，選票結果與數據將於投票結束後統一公布。
             </div>
           `;
-        }).join('');
+        }
 
-      } catch (err) {
-        console.error("載入結果失敗", err);
-        document.getElementById('results-container').innerHTML = '<div class="empty-text">⚠️ 載入資料失敗，請重新整理</div>';
-      }
+        // 時間顯示格式化
+        const timeText = (p.startTime || p.endTime)
+          ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
+          : '未設定限制';
+
+        return `
+          <div class="result-item">
+            <h3>${p.title}</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description || ''}</p>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin: 0.4rem 0;">
+              ⏰ 投票期間：${timeText} | 總參與人數：${item.totalCount || 0} 人
+            </div>
+            ${statsHTML}
+          </div>
+        `;
+      }).join('');
+
+    } catch (err) {
+      console.error("載入結果失敗", err);
+      document.getElementById('results-container').innerHTML = '<div class="empty-text">⚠️ 載入資料失敗，請確認網路連線或稍後再試。</div>';
     }
+  }
 
-    // 初次載入
-    loadResults();
+  // 初次載入
+  loadResults();
 
-    // 每 30 秒自動觸發重新整理，即時比對開票狀態
-    setInterval(loadResults, 30000);
-  </script>
+  // 每 30 秒自動觸發重新整理
+  setInterval(loadResults, 30000);
+</script>
 </body>
 </html>
