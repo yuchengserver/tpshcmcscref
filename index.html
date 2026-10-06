@@ -218,7 +218,6 @@
             <div>
                 🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (<code>@tshcmc.edu.vn</code>)。提交成功後系統將寄發憑證確認信。
             </div>
-            <!-- 手動重新整理按鈕 -->
             <button onclick="fetchProposals()" id="refreshBtn" class="btn btn-sm btn-outline-primary ms-auto text-nowrap">
                 🔄 重新整理
             </button>
@@ -262,7 +261,6 @@
             refreshBtn.innerText = "🔄 載入中...";
 
             try {
-                // 加上 timestamp 防止瀏覽器快取
                 const res = await fetch(GAS_API + "?t=" + new Date().getTime(), {
                     method: "GET",
                     redirect: "follow"
@@ -280,13 +278,13 @@
 
                 if (Array.isArray(proposals)) {
                     proposals.forEach(p => {
-                        // 1. 開放中項目
-                        if (p.status === "active") {
+                        // 修正：去除空白並轉為小寫，確保比對精準
+                        const status = String(p.status || "").toLowerCase().trim();
+
+                        if (status === "active") {
                             activeCount++;
                             activeContainer.innerHTML += createProposalHTML(p, "active");
-                        } 
-                        // 2. 預告中項目
-                        else if (p.status === "upcoming") {
+                        } else if (status === "upcoming") {
                             upcomingCount++;
                             upcomingContainer.innerHTML += createProposalHTML(p, "upcoming");
                         }
@@ -304,7 +302,7 @@
             } catch (err) {
                 console.error("載入失敗:", err);
                 activeContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請確認網路連線或重試。</div>`;
-                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️ 載入資料失敗，請確認網路連線或重試。</div>`;
+                upcomingContainer.innerHTML = `<div class="empty-box text-danger">⚠️️ 載入資料失敗，請確認網路連線或重試。</div>`;
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerText = "🔄 重新整理";
@@ -314,7 +312,13 @@
         function createProposalHTML(p, statusType) {
             const isPoll = p.type === "poll";
             const typeLabel = isPoll ? "🗳️ 選項投票" : "💡 意見徵集";
-            
+
+            // 修正：兼顧 camelCase 與 snake_case 欄位命名
+            const startTime = p.startTime || p.start_time || "未設定";
+            const endTime = p.endTime || p.end_time || "未設定";
+            const title = escapeHtml(p.title);
+            const description = escapeHtml(p.description || "無詳細說明");
+
             if (statusType === "active") {
                 return `
                     <div class="proposal-card d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -323,10 +327,10 @@
                                 <span class="badge-active me-2">🟢 開放中</span>
                                 <span class="text-muted small">${typeLabel}</span>
                             </div>
-                            <h4 class="h5 fw-bold mb-1">${p.title}</h4>
-                            <p class="text-muted small mb-2">${p.description || "無詳細說明"}</p>
+                            <h4 class="h5 fw-bold mb-1">${title}</h4>
+                            <p class="text-muted small mb-2">${description}</p>
                             <div class="text-muted extra-small" style="font-size: 0.8rem;">
-                                📅 截止時間：${p.end_time} (越南時間)
+                                📅 截止時間：${endTime} (越南時間)
                             </div>
                         </div>
                         <div>
@@ -342,10 +346,10 @@
                                 <span class="badge-upcoming me-2">⏳ 稍後開始</span>
                                 <span class="text-muted small">${typeLabel}</span>
                             </div>
-                            <h4 class="h5 fw-bold mb-1">${p.title}</h4>
-                            <p class="text-muted small mb-2">${p.description || "無詳細說明"}</p>
+                            <h4 class="h5 fw-bold mb-1">${title}</h4>
+                            <p class="text-muted small mb-2">${description}</p>
                             <div class="text-muted extra-small" style="font-size: 0.8rem;">
-                                ⏰ 開放時間：${p.start_time} ~ ${p.end_time} (越南時間)
+                                ⏰ 開放時間：${startTime} ~ ${endTime} (越南時間)
                             </div>
                         </div>
                         <div>
@@ -354,6 +358,16 @@
                     </div>
                 `;
             }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         // 頁面初次載入時自動刷新
