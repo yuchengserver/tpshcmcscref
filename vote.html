@@ -242,7 +242,7 @@
             
             <!-- 時區與時間資訊區塊 -->
             <div class="notice-banner mb-3">
-                🕒 <strong>時區提醒：</strong>本平台所有公投時間均依<strong>越南時間(GMT+7)</strong> 計算。
+                🕒 <strong>時區提醒：</strong>本平台所有公投時間均依<strong>越南時間 (GMT+7)</strong> 計算。
             </div>
 
             <div id="timeInfoArea" class="time-badge-box d-none mb-4">
@@ -289,26 +289,31 @@
         let isProposalActive = false; // 紀錄提案是否處於可投票狀態
 
         /**
-         * 強大且精確的時間解析器，專門處理越南時間 GMT+7
+         * 強大且精確的時間解析器，精確解析越南時間 (GMT+7) 轉為前端 Date 物件
          */
         function parseDate(dateStr) {
             if (!dateStr) return null;
             let str = String(dateStr).trim();
             if (!str) return null;
 
-            // 提取字串中的所有數字 [年, 月, 日, 時, 分, 秒]
             const numbers = str.match(/\d+/g);
             if (!numbers || numbers.length < 3) return null;
 
-            const year = numbers[0];
-            const month = String(numbers[1]).padStart(2, '0');
-            const day = String(numbers[2]).padStart(2, '0');
-            const hours = numbers[3] ? String(numbers[3]).padStart(2, '0') : "00";
-            const minutes = numbers[4] ? String(numbers[4]).padStart(2, '0') : "00";
-            const seconds = numbers[5] ? String(numbers[5]).padStart(2, '0') : "00";
+            let year = parseInt(numbers[0], 10);
+            let month = String(numbers[1]).padStart(2, '0');
+            let day = String(numbers[2]).padStart(2, '0');
+            let hours = numbers[3] ? parseInt(numbers[3], 10) : 0;
+            let minutes = numbers[4] ? String(numbers[4]).padStart(2, '0') : "00";
+            let seconds = numbers[5] ? String(numbers[5]).padStart(2, '0') : "00";
 
-            // 組合成標準 ISO 8601 並明確附帶 +07:00 (越南時區)
-            const isoString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+07:00`;
+            // 處理 下午 / PM
+            if (/下午|PM|pm/.test(str) && hours < 12) hours += 12;
+            if (/上午|AM|am/.test(str) && hours === 12) hours = 0;
+
+            const hoursStr = String(hours).padStart(2, '0');
+
+            // 組合成帶有 GMT+7 時區標註的標準 ISO 字串
+            const isoString = `${year}-${month}-${day}T${hoursStr}:${minutes}:${seconds}+07:00`;
             const d = new Date(isoString);
 
             return isNaN(d.getTime()) ? null : d;
@@ -333,9 +338,9 @@
                     proposalTimeData.startTime = parseDate(currentP.startTime);
                     proposalTimeData.endTime = parseDate(currentP.endTime);
 
-                    if (proposalTimeData.startTime && proposalTimeData.endTime) {
-                        document.getElementById("startTimeText").innerText = formatDisplayTime(proposalTimeData.startTime);
-                        document.getElementById("endTimeText").innerText = formatDisplayTime(proposalTimeData.endTime);
+                    if (currentP.startTime || currentP.endTime) {
+                        document.getElementById("startTimeText").innerText = currentP.startTime || "-";
+                        document.getElementById("endTimeText").innerText = currentP.endTime || "-";
                         document.getElementById("timeInfoArea").classList.remove("d-none");
                     }
 
@@ -343,13 +348,16 @@
                     const badge = document.getElementById("statusBadge");
                     const submitBtn = document.getElementById("vSubmitBtn");
 
-                    if (currentP.status === "closed" || (proposalTimeData.endTime && now > proposalTimeData.endTime)) {
+                    // 優先採用後端計算好的 status，若後端傳回 closed / inactive 則直接鎖定
+                    const backendStatus = String(currentP.status || "").toLowerCase();
+
+                    if (backendStatus === "closed" || backendStatus === "inactive" || (proposalTimeData.endTime && now > proposalTimeData.endTime)) {
                         badge.className = "badge bg-danger";
                         badge.innerText = "🔒 已截止";
                         submitBtn.disabled = true;
                         submitBtn.innerText = "🔒 投票時間已截止";
                         isProposalActive = false;
-                    } else if (proposalTimeData.startTime && now < proposalTimeData.startTime) {
+                    } else if (backendStatus === "upcoming" || (proposalTimeData.startTime && now < proposalTimeData.startTime)) {
                         badge.className = "badge bg-warning text-dark";
                         badge.innerText = "⏳ 尚未開放";
                         submitBtn.disabled = true;
@@ -358,6 +366,8 @@
                     } else {
                         badge.className = "badge bg-success";
                         badge.innerText = "🟢 開放中";
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "確認送出並寄送確認信";
                         isProposalActive = true;
                     }
 
@@ -469,19 +479,6 @@
                     btn.innerText = "確認送出並寄送確認信";
                 }
             }
-        }
-
-        function formatDisplayTime(date) {
-            if (!date || isNaN(date.getTime())) return "-";
-            return date.toLocaleString('zh-TW', {
-                timeZone: 'Asia/Ho_Chi_Minh',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            }) + " (越南時間)";
         }
 
         function escapeHtml(str) {
