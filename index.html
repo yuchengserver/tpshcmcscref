@@ -13,14 +13,13 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
     }
     
-    /* 網頁整體為淺灰色，讓白色卡片浮起清晰 */
     body { 
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
     }
 
-    /* 頂部導引列 Header（純白背景） */
+    /* 頂部導引列 Header */
     .navbar { 
       background: #ffffff; 
       border-bottom: 1px solid #e2e8f0; 
@@ -41,7 +40,6 @@
       user-select: none;
     }
 
-    /* 校徽圖檔：自動轉換為純黑色 */
     .school-logo { 
       height: 38px; 
       width: auto; 
@@ -55,7 +53,6 @@
       color: #0f172a; 
     }
 
-    /* 導引按鈕列表 */
     .nav-buttons {
       display: flex;
       gap: 0.5rem;
@@ -85,14 +82,12 @@
       color: #0f172a; 
     }
 
-    /* 主要內容容器 */
     .container { 
       max-width: 800px; 
       margin: 1.5rem auto; 
       padding: 0 1rem; 
     }
 
-    /* 投遞規則卡片（純白背景） */
     .rules-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -137,7 +132,6 @@
       font-size: 0.85rem;
     }
 
-    /* 提示訊息框 */
     .alert-box { 
       background-color: #eff6ff; 
       border: 1px solid #bfdbfe; 
@@ -151,7 +145,6 @@
       align-items: center; 
     }
 
-    /* 通用項目卡片（純白背景） */
     .card { 
       background: #ffffff; 
       border-radius: 12px; 
@@ -183,7 +176,6 @@
       margin-bottom: 0; 
     }
 
-    /* 表單組件 */
     .form-group { margin-top: 1rem; }
     
     label { 
@@ -229,11 +221,8 @@
       transition: background-color 0.2s;
     }
 
-    .option-label:hover {
-      background: #f1f5f9;
-    }
+    .option-label:hover { background: #f1f5f9; }
 
-    /* 按鈕樣式 */
     .btn-submit { 
       background-color: #0f172a; 
       color: white; 
@@ -272,7 +261,6 @@
   <!-- 導引列 Header -->
   <header class="navbar">
     <div class="logo-container" onclick="switchTab('home')" style="cursor: pointer;">
-      <!-- 校徽圖檔 (透過 CSS 轉黑色) -->
       <img src="tpshcmcsc.png" alt="會徽" class="school-logo">
       <h1 class="site-title">TSSC13TH 公投專區</h1>
     </div>
@@ -332,6 +320,16 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
+    // 格式化時間 (將 ISO 時間轉為 2026/10/06 21:00 格式，無英文字母)
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
     // 重新整理與初始化資料
     function loadData() {
       loadProposals();
@@ -340,11 +338,11 @@
     // 頁面分頁切換處理
     function switchTab(tabName) {
       if (tabName === 'home') {
-        window.location.href = "index.html"; // 回到首頁
+        window.location.href = "index.html";
       } else if (tabName === 'results') {
-        window.location.href = "results.html"; // 連結至開票頁面 (可依實際檔名調整)
+        window.location.href = "results.html";
       } else if (tabName === 'admin') {
-        window.location.href = "admin.html"; // 連結至後台頁面 (可依實際檔名調整)
+        window.location.href = "admin.html";
       }
     }
 
@@ -353,8 +351,29 @@
         const res = await fetch(`${GAS_API_URL}?action=getProposals`);
         const proposals = await res.json();
 
-        const activeList = proposals.filter(p => p.status === 'Active');
-        const upcomingList = proposals.filter(p => p.status === 'Upcoming');
+        const now = new Date();
+        const activeList = [];
+        const upcomingList = [];
+
+        proposals.forEach(p => {
+          // 若後台狀態標記為 Closed，直接不呈現
+          if (p.status === 'Closed') return;
+
+          const startTime = p.startTime ? new Date(p.startTime) : null;
+          const endTime = p.endTime ? new Date(p.endTime) : null;
+
+          // 核心邏輯：即時比對時間 (當前時間 >= 開始時間 且 未過期)
+          const isStarted = !startTime || now >= startTime;
+          const isEnded = endTime && now >= endTime;
+
+          if (isEnded) {
+            return; // 已過期的項目隱藏
+          } else if (isStarted || p.status === 'Active') {
+            activeList.push(p);
+          } else {
+            upcomingList.push(p);
+          }
+        });
 
         renderList('active-container', activeList, true);
         renderList('upcoming-container', upcomingList, false);
@@ -403,12 +422,17 @@
           `;
         }
 
+        // 時間格式化渲染
+        const formattedTime = (p.startTime || p.endTime) 
+          ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
+          : '未設定限制';
+
         return `
           <div class="prop-item">
             <h3>${p.title}</h3>
-            <p style="color: #64748b; margin: 0.5rem 0;">${p.description}</p>
-            <div style="font-size: 0.8rem; color: #94a3b8;">
-              ⏰ 時間：${p.startTime} ~ ${p.endTime}
+            <p style="color: #64748b; margin: 0.5rem 0;">${p.description || ''}</p>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
+              ⏰ 時間：${formattedTime}
             </div>
             ${formHTML}
           </div>
@@ -418,7 +442,7 @@
 
     async function submitResponse(proposalId, type) {
       const email = document.getElementById(`email_${proposalId}`).value.trim();
-      if (!email || !email.endsWith('@tshcmc.edu.vn')) {
+      if (!email || !email.toLowerCase().endsWith('@tshcmc.edu.vn')) {
         alert('請填寫有效的學校官方信箱 (@tshcmc.edu.vn)！');
         return;
       }
@@ -457,6 +481,9 @@
 
     // 初始化戴入資料
     loadProposals();
+
+    // 每 30 秒自動觸發一次時間比對刷新
+    setInterval(loadProposals, 30000);
   </script>
 </body>
 </html>

@@ -5,103 +5,183 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 開票與歷史結果</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f8fafc; color: #334155; line-height: 1.5; }
-    header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-size: 1.25rem; font-weight: bold; color: #0f172a; }
-    nav a { text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; color: #64748b; margin-left: 0.5rem; display: inline-block; }
-    nav a.active, nav a:hover { background-color: #f1f5f9; color: #0f172a; }
-    .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    .header-section { text-align: center; margin-bottom: 2rem; }
-    .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .result-item { border-bottom: 1px solid #f1f5f9; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
-    .result-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-    .bar-container { background: #f1f5f9; border-radius: 6px; height: 20px; overflow: hidden; margin-top: 0.3rem; }
-    .bar-fill { background: #3b82f6; height: 100%; border-radius: 6px; transition: width 0.3s; }
-    .btn-refresh { background-color: #0f172a; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: bold; cursor: pointer; float: right; }
-    .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
-    .pending-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1rem; text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 0.8rem; }
-    footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    }
+    
+    body { 
+      background-color: #f8fafc; 
+      color: #334155; 
+      line-height: 1.5; 
+    }
+
+    /* 頁首 Header 樣式 */
     header {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0.8rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0.8rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
 
-/* 左側 Logo 容器 */
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  text-decoration: none;
-  color: #0f172a;
-}
+    /* 左側 Logo 容器 */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: #0f172a;
+    }
 
-.school-logo {
-  height: 38px;
-  width: auto;
-  object-fit: contain;
-  filter: brightness(0);
-}
+    .school-logo {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(0);
+    }
 
-.logo-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-}
+    .logo-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
 
-/* 右上角導覽列校徽圖示 */
-nav {
-  display: flex;
-  align-items: center;
-}
+    /* 右側導覽列 */
+    nav {
+      display: flex;
+      align-items: center;
+    }
 
-nav a {
-  text-decoration: none;
-  padding: 0.5rem 0.8rem;
-  border-radius: 6px;
-  font-weight: 500;
-  color: #64748b;
-  margin-left: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: background-color 0.2s, color 0.2s;
-}
+    nav a {
+      text-decoration: none;
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      font-weight: 500;
+      color: #64748b;
+      margin-left: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background-color 0.2s, color 0.2s;
+    }
 
-nav a.active, nav a:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
-}
+    nav a.active, nav a:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
 
-.nav-logo {
-  height: 20px;
-  width: auto;
-  vertical-align: middle;
-}
+    .container { 
+      max-width: 800px; 
+      margin: 2rem auto; 
+      padding: 0 1rem; 
+    }
+
+    .header-section { 
+      text-align: center; 
+      margin-bottom: 2rem; 
+    }
+
+    .card { 
+      background: white; 
+      border-radius: 12px; 
+      border: 1px solid #e2e8f0; 
+      padding: 1.5rem; 
+      margin-bottom: 1.5rem; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    }
+
+    .result-item { 
+      border-bottom: 1px solid #f1f5f9; 
+      padding-bottom: 1.5rem; 
+      margin-bottom: 1.5rem; 
+    }
+
+    .result-item:last-child { 
+      border-bottom: none; 
+      padding-bottom: 0; 
+      margin-bottom: 0; 
+    }
+
+    .bar-container { 
+      background: #f1f5f9; 
+      border-radius: 6px; 
+      height: 20px; 
+      overflow: hidden; 
+      margin-top: 0.3rem; 
+    }
+
+    .bar-fill { 
+      background: #3b82f6; 
+      height: 100%; 
+      border-radius: 6px; 
+      transition: width 0.3s; 
+    }
+
+    .btn-refresh { 
+      background-color: #0f172a; 
+      color: white; 
+      border: none; 
+      padding: 0.5rem 1rem; 
+      border-radius: 6px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      float: right; 
+      transition: background-color 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background-color: #1e293b;
+    }
+
+    .empty-text { 
+      text-align: center; 
+      color: #94a3b8; 
+      padding: 2rem 0; 
+    }
+
+    .pending-box { 
+      background: #f8fafc; 
+      border: 1px dashed #cbd5e1; 
+      border-radius: 8px; 
+      padding: 1rem; 
+      text-align: center; 
+      color: #64748b; 
+      font-size: 0.9rem; 
+      margin-top: 0.8rem; 
+    }
+
+    footer { 
+      text-align: center; 
+      color: #94a3b8; 
+      font-size: 0.85rem; 
+      margin: 3rem 0; 
+    }
   </style>
 </head>
 <body>
 
+  <!-- 導引列 Header -->
   <header>
-  <!-- 左側 Logo 與標題，點擊即可返回主頁 -->
-  <a href="index.html" class="logo-container">
-    <img src="tpshcmcsc.png" alt="會徽" class="school-logo" style="filter: brightness(0);">
-    <span class="logo-title">TSSC13TH 公投專區</span>
-  </a>
-
-  <!-- 右上角導覽列 -->
-  <nav>
-    <a href="index.html" class="logo-link-btn" title="返回主頁">
-      
-      <span>首頁與通知</span>
+    <a href="index.html" class="logo-container">
+      <img src="tpshcmcsc.png" alt="會徽" class="school-logo">
+      <span class="logo-title">TSSC13TH 公投專區</span>
     </a>
-    <a href="results.html">📊 開票與歷史結果</a>
-    <a href="admin.html">⚙️ 管理員後台</a>
-  </nav>
-</header>
+
+    <nav>
+      <a href="index.html" class="logo-link-btn" title="返回主頁">
+        <span>首頁與通知</span>
+      </a>
+      <a href="results.html" class="active">📊 開票與歷史結果</a>
+      <a href="admin.html">⚙️ 管理員後台</a>
+    </nav>
+  </header>
 
   <div class="container">
     <div class="header-section">
@@ -124,6 +204,16 @@ nav a.active, nav a:hover {
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+    // 時間格式化工具函式
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
 
     async function loadResults() {
       try {
@@ -188,11 +278,18 @@ nav a.active, nav a:hover {
             `;
           }
 
+          // 時間顯示格式化
+          const timeText = (p.startTime || p.endTime)
+            ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
+            : '未設定限制';
+
           return `
             <div class="result-item">
               <h3>${p.title}</h3>
               <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description || ''}</p>
-              <small style="color: #94a3b8;">總參與人數：${item.totalCount || 0} 人</small>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin: 0.4rem 0;">
+                ⏰ 投票期間：${timeText} | 總參與人數：${item.totalCount || 0} 人
+              </div>
               ${statsHTML}
             </div>
           `;
@@ -204,7 +301,11 @@ nav a.active, nav a:hover {
       }
     }
 
+    // 初次載入
     loadResults();
+
+    // 每 30 秒自動觸發重新整理，即時比對開票狀態
+    setInterval(loadResults, 30000);
   </script>
 </body>
 </html>

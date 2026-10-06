@@ -5,54 +5,231 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 參與投票</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f8fafc; color: #334155; line-height: 1.5; }
-    header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-size: 1.25rem; font-weight: bold; color: #0f172a; }
-    nav a { text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; color: #64748b; margin-left: 0.5rem; display: inline-block; }
-    nav a.active, nav a:hover { background-color: #f1f5f9; color: #0f172a; }
-    .container { max-width: 680px; margin: 2rem auto; padding: 0 1rem; }
-    .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .tag { display: inline-block; padding: 0.25rem 0.6rem; background: #e2e8f0; color: #334155; font-size: 0.8rem; font-weight: bold; border-radius: 4px; margin-bottom: 0.8rem; }
-    .title { font-size: 1.5rem; font-weight: bold; color: #0f172a; margin-bottom: 0.5rem; }
-    .time-info { font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.4rem; }
-    .description { font-size: 1rem; color: #475569; margin-bottom: 1.5rem; white-space: pre-line; line-height: 1.6; }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    }
+    
+    body { 
+      background-color: #f8fafc; 
+      color: #334155; 
+      line-height: 1.5; 
+    }
+
+    /* 頂部 Header 樣式 */
+    header { 
+      background: white; 
+      border-bottom: 1px solid #e2e8f0; 
+      padding: 0.8rem 2rem; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: #0f172a;
+    }
+
+    .school-logo {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(0);
+    }
+
+    .logo-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+    }
+
+    nav a { 
+      text-decoration: none; 
+      padding: 0.5rem 0.8rem; 
+      border-radius: 6px; 
+      font-weight: 500; 
+      color: #64748b; 
+      margin-left: 0.5rem; 
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    nav a.active, nav a:hover { 
+      background-color: #f1f5f9; 
+      color: #0f172a; 
+    }
+
+    .container { 
+      max-width: 680px; 
+      margin: 2rem auto; 
+      padding: 0 1rem; 
+    }
+
+    .card { 
+      background: white; 
+      border-radius: 12px; 
+      border: 1px solid #e2e8f0; 
+      padding: 2rem; 
+      margin-bottom: 1.5rem; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    }
+
+    .tag { 
+      display: inline-block; 
+      padding: 0.25rem 0.6rem; 
+      background: #e2e8f0; 
+      color: #334155; 
+      font-size: 0.8rem; 
+      font-weight: bold; 
+      border-radius: 4px; 
+      margin-bottom: 0.8rem; 
+    }
+
+    .title { 
+      font-size: 1.5rem; 
+      font-weight: bold; 
+      color: #0f172a; 
+      margin-bottom: 0.5rem; 
+    }
+
+    .time-info { 
+      font-size: 0.85rem; 
+      color: #64748b; 
+      margin-bottom: 1.5rem; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.4rem; 
+      flex-wrap: wrap;
+    }
+
+    .description { 
+      font-size: 1rem; 
+      color: #475569; 
+      margin-bottom: 1.5rem; 
+      white-space: pre-line; 
+      line-height: 1.6; 
+    }
+
     .form-group { margin-bottom: 1.2rem; }
-    label { display: block; font-weight: bold; margin-bottom: 0.5rem; font-size: 0.95rem; color: #1e293b; }
-    input[type="email"], textarea { width: 100%; padding: 0.75rem 0.9rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
-    input[type="email"]:focus, textarea:focus { border-color: #3b82f6; }
-    .option-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
-    .option-label { display: flex; align-items: center; gap: 0.75rem; font-weight: normal; cursor: pointer; background: #f8fafc; padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.2s; }
-    .option-label:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .option-label input[type="radio"] { width: 1.1rem; height: 1.1rem; accent-color: #0f172a; }
-    .btn-submit { background-color: #0f172a; color: white; border: none; width: 100%; padding: 0.85rem; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.2s; }
+
+    label { 
+      display: block; 
+      font-weight: bold; 
+      margin-bottom: 0.5rem; 
+      font-size: 0.95rem; 
+      color: #1e293b; 
+    }
+
+    input[type="email"], textarea { 
+      width: 100%; 
+      padding: 0.75rem 0.9rem; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 8px; 
+      font-size: 0.95rem; 
+      outline: none; 
+      transition: border-color 0.2s; 
+    }
+
+    input[type="email"]:focus, textarea:focus { 
+      border-color: #3b82f6; 
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .option-list { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.6rem; 
+      margin-bottom: 1.5rem; 
+    }
+
+    .option-label { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.75rem; 
+      font-weight: normal; 
+      cursor: pointer; 
+      background: #f8fafc; 
+      padding: 0.8rem 1rem; 
+      border-radius: 8px; 
+      border: 1px solid #e2e8f0; 
+      transition: all 0.2s; 
+    }
+
+    .option-label:hover { 
+      background: #f1f5f9; 
+      border-color: #cbd5e1; 
+    }
+
+    .option-label input[type="radio"] { 
+      width: 1.1rem; 
+      height: 1.1rem; 
+      accent-color: #0f172a; 
+    }
+
+    .btn-submit { 
+      background-color: #0f172a; 
+      color: white; 
+      border: none; 
+      width: 100%; 
+      padding: 0.85rem; 
+      border-radius: 8px; 
+      font-size: 1rem; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: background-color 0.2s; 
+    }
+
     .btn-submit:hover { background-color: #1e293b; }
     .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
-    .back-link { display: inline-block; margin-bottom: 1rem; color: #64748b; text-decoration: none; font-size: 0.9rem; }
+
+    .back-link { 
+      display: inline-block; 
+      margin-bottom: 1rem; 
+      color: #64748b; 
+      text-decoration: none; 
+      font-size: 0.9rem; 
+      font-weight: 500;
+    }
+
     .back-link:hover { color: #0f172a; }
     .loading-state, .error-state { text-align: center; color: #64748b; padding: 3rem 0; }
+
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
   </style>
 </head>
 <body>
 
- <header>
-  <!-- 左側 Logo 與標題，點擊即可返回主頁 -->
-  <a href="index.html" class="logo-container">
-    <img src="tpshcmcsc.png" alt="校徽" class="school-logo">
-    <span class="logo-title">TSSC13TH 公投專區</span>
-  </a>
-
-  <!-- 右上角導覽列 -->
-  <nav>
-    <a href="index.html" class="logo-link-btn" title="返回主頁">
-      
-      <span>首頁與通知</span>
+  <!-- 導覽列 Header -->
+  <header>
+    <a href="index.html" class="logo-container">
+      <img src="tpshcmcsc.png" alt="會徽" class="school-logo">
+      <span class="logo-title">TSSC13TH 公投專區</span>
     </a>
-    <a href="results.html">📊 開票與歷史結果</a>
-    <a href="admin.html">⚙️ 管理員後台</a>
-  </nav>
-</header>
+
+    <nav>
+      <a href="index.html" class="logo-link-btn" title="返回主頁">
+        <span>首頁與通知</span>
+      </a>
+      <a href="results.html">📊 開票與歷史結果</a>
+      <a href="admin.html">⚙️ 管理員後台</a>
+    </nav>
+  </header>
 
   <div class="container">
     <a href="index.html" class="back-link">← 返回提案列表</a>
@@ -70,6 +247,16 @@
     // 取得網址參數 (例如: vote.html?id=123)
     const urlParams = new URLSearchParams(window.location.search);
     const proposalId = urlParams.get('id');
+
+    // 時間格式化工具
+    function formatDate(dateStr) {
+      if (!dateStr) return '未設定';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
 
     async function loadVoteDetails() {
       const card = document.getElementById('vote-card');
@@ -99,7 +286,22 @@
           return;
         }
 
-        const isClosed = p.status !== 'Active';
+        // 當前時間比對邏輯
+        const now = new Date();
+        const startTime = p.startTime ? new Date(p.startTime) : null;
+        const endTime = p.endTime ? new Date(p.endTime) : null;
+
+        const isNotStarted = startTime && now < startTime;
+        const isEnded = endTime && now >= endTime;
+        const isClosedStatus = p.status === 'Closed';
+
+        // 只要後台關閉、未開始或已結束，皆不可投票
+        const isClosed = isClosedStatus || isNotStarted || isEnded;
+
+        let statusHint = '已結束';
+        if (isNotStarted) statusHint = '即將開始';
+        if (isClosedStatus) statusHint = '已下架/關閉';
+
         const typeText = p.type === 'vote' ? '🗳️ 選項投票' : '💡 意見徵集';
 
         let formContent = '';
@@ -131,17 +333,17 @@
           <span class="tag">${typeText}</span>
           <h1 class="title">${p.title}</h1>
           <div class="time-info">
-            <span>⏰ 開始時間：${p.startTime || '未設定'}</span> | 
-            <span>⏳ 截止時間：${p.endTime || '未設定'}</span>
+            <span>⏰ 開始時間：${formatDate(p.startTime)}</span> | 
+            <span>⏳ 截止時間：${formatDate(p.endTime)}</span>
           </div>
 
-          <div class="description">${p.description}</div>
+          <div class="description">${p.description || '無詳細說明'}</div>
 
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
 
           ${isClosed ? `
             <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold;">
-              🔒 本項目目前非開放狀態 (${p.status === 'Upcoming' ? '即將開始' : '已結束'})，暫不接受提交。
+              🔒 本項目目前非開放狀態 (${statusHint})，暫不接受提交。
             </div>
           ` : `
             ${formContent}
@@ -162,7 +364,7 @@
         console.error("無法載入提案詳細資料", err);
         card.innerHTML = `
           <div class="error-state">
-            <h2>⚠️ 連線連線失敗</h2>
+            <h2>⚠️ 連線失敗</h2>
             <p style="margin-top: 0.5rem;">無法取得提案內容，請檢查網路連線後重試。</p>
           </div>
         `;
@@ -170,7 +372,8 @@
     }
 
     async function submitSingleResponse(pId, pType) {
-      const email = document.getElementById('user_email').value.trim();
+      const emailInput = document.getElementById('user_email');
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
       const submitBtn = document.getElementById('btn-submit-vote');
 
       if (!email || !email.endsWith('@tshcmc.edu.vn')) {
