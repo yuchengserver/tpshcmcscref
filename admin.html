@@ -242,47 +242,21 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
     let adminToken = ""; 
 
-    // 渲染全白鎖定畫面
-    function showSystemLockPage(message) {
-      document.body.style.display = 'block';
-      document.body.innerHTML = `
-        <div style="
-          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-          background: #ffffff; display: flex; justify-content: center;
-          align-items: center; text-align: center; padding: 20px; z-index: 999999;
-        ">
-          <div style="
-            max-width: 520px; width: 100%; padding: 2.5rem 2rem;
-            border-radius: 16px; border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          ">
-            <div style="font-size: 3rem; margin-bottom: 1rem; line-height: 1;">🔒</div>
-            <h1 style="
-              font-size: 1.35rem; color: #0f172a; font-weight: 700;
-              line-height: 1.5; margin-bottom: 1rem;
-            ">
-              ${message || '系統通知：無償服務已終止，詳情請洽學生會。'}
-            </h1>
-            <div style="height: 1px; background: #f1f5f9; margin: 1.25rem 0;"></div>
-            <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">
-              本平台目前已暫停所有功能服務與資料處理。
-            </p>
-            <div style="margin-top: 2rem; font-size: 0.85rem; color: #94a3b8;">
-              胡志明市臺灣學校學生會 TSSC13TH
-            </div>
-          </div>
-        </div>
-      `;
+    // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
+    function handleLockAndRedirect(message) {
+      const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
+      const customMsg = message || defaultMsg;
+      window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
     }
 
-    // 頁面初次載入時先檢查遠端鎖定狀態
+    // 頁面初次載入時檢查遠端鎖定狀態
     async function checkLockOnLoad() {
       try {
         const res = await fetch(`${GAS_API_URL}?action=getProposals`);
         const result = await res.json();
 
         if (result && result.systemLocked) {
-          showSystemLockPage(result.message);
+          handleLockAndRedirect(result.message);
           return;
         }
 
@@ -290,7 +264,7 @@
         document.body.style.display = 'block';
       } catch (e) {
         console.error(e);
-        showSystemLockPage('系統通知：無法連線至服務，無償服務已終止。');
+        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
       }
     }
 
@@ -317,9 +291,9 @@
         });
         const result = await res.json();
 
-        // 檢查鎖定狀態
+        // 檢查鎖定狀態，若上鎖直接跳轉並中斷
         if (result && result.systemLocked) {
-          showSystemLockPage(result.message);
+          handleLockAndRedirect(result.message);
           return;
         }
 
@@ -376,9 +350,9 @@
         });
         const result = await res.json();
 
-        // 檢查鎖定狀態
+        // 檢查鎖定狀態，若上鎖直接跳轉並中斷
         if (result && result.systemLocked) {
-          showSystemLockPage(result.message);
+          handleLockAndRedirect(result.message);
           return;
         }
 

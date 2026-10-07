@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系統提示 - TSSC13TH</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #f8fafc;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 20px;
+    }
+    .lock-card {
+      max-width: 520px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .lock-icon { font-size: 3.5rem; margin-bottom: 1rem; line-height: 1; }
+    .lock-title { font-size: 1.35rem; color: #0f172a; font-weight: 700; line-height: 1.5; margin-bottom: 1rem; }
+    .divider { height: 1px; background: #f1f5f9; margin: 1.25rem 0; }
+    .lock-desc { font-size: 0.95rem; color: #475569; line-height: 1.6; font-weight: 500; }
+    .sub-note { font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; }
+    .footer-status {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px dashed #e2e8f0;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .status-badge {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background-color: #fef2f2;
+      color: #ef4444;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lock-card">
+    <div class="lock-icon">⚠️</div>
+    <h1 class="lock-title" id="lock-message">系統提示：本網站無償服務已終止，服務已全面關閉</h1>
+    <div class="divider"></div>
+    <p class="lock-desc">詳情請洽 TSSCTH 學生會</p>
+   
+    <div class="footer-status">
+      <div>胡志明市臺灣學校學生會 TSSC13TH</div>
+      <div class="status-badge">🔒 系統目前已完全鎖定</div>
+    </div>
+  </div>
+
+  <script>
+    // 讀取 URL 帶入的自訂訊息（若有帶入則動態替換）
+    const urlParams = new URLSearchParams(window.location.search);
+    const msg = urlParams.get('msg');
+    if (msg) {
+      document.getElementById('lock-message').innerText = decodeURIComponent(msg);
+    }
+  </script>
+</body>
+</html>

@@ -280,37 +280,11 @@
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-  // 遠端鎖定：渲染全白覆蓋畫面
-  function showSystemLockPage(message) {
-    document.body.style.display = 'block';
-    document.body.innerHTML = `
-      <div style="
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: #ffffff; display: flex; justify-content: center;
-        align-items: center; text-align: center; padding: 20px; z-index: 999999;
-      ">
-        <div style="
-          max-width: 520px; width: 100%; padding: 2.5rem 2rem;
-          border-radius: 16px; border: 1px solid #e2e8f0;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        ">
-          <div style="font-size: 3rem; margin-bottom: 1rem; line-height: 1;">🔒</div>
-          <h1 style="
-            font-size: 1.35rem; color: #0f172a; font-weight: 700;
-            line-height: 1.5; margin-bottom: 1rem;
-          ">
-            ${message || '系統通知：無償服務已終止，詳情請洽學生會。'}
-          </h1>
-          <div style="height: 1px; background: #f1f5f9; margin: 1.25rem 0;"></div>
-          <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">
-            本平台目前已暫停所有功能服務與資料處理。
-          </p>
-          <div style="margin-top: 2rem; font-size: 0.85rem; color: #94a3b8;">
-            胡志明市臺灣學校學生會 TSSC13TH
-          </div>
-        </div>
-      </div>
-    `;
+  // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
+  function handleLockAndRedirect(message) {
+    const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
+    const customMsg = message || defaultMsg;
+    window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
   }
 
   function redirectToHome() {
@@ -380,9 +354,9 @@
       const res = await fetch(`${GAS_API_URL}?action=getProposals`);
       const resData = await res.json();
 
-      // 🛑 若系統回傳鎖定，直接全螢幕顯示鎖定畫面
+      // 🛑 若系統回傳鎖定，跳轉至 lock.html
       if (resData && resData.systemLocked) {
-        showSystemLockPage(resData.message);
+        handleLockAndRedirect(resData.message);
         return;
       }
 
@@ -421,8 +395,8 @@
       renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
-      // 網路連線錯誤時也鎖定防護
-      showSystemLockPage('系統通知：無法連線至服務，無償服務已終止。');
+      // 網路連線錯誤或系統異常時觸發轉址鎖定
+      handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
     }
   }
 
