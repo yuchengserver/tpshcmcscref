@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 參與投票</title>
   <style>
-    /* 預設隱藏 body，防止開頁瞬間閃爍出投票內容 */
     body { 
-      display: none;
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
@@ -18,6 +16,39 @@
 
     * { 
       box-sizing: border-box; 
+    }
+
+    /* 全屏載入中畫面（取代 body display:none，避免開頁畫面全白） */
+    #page-loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.1rem;
+      color: #64748b;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     /* 頂部 Header 樣式 */
@@ -194,11 +225,11 @@
       font-size: 1rem; 
       font-weight: bold; 
       cursor: pointer; 
-      transition: background-color 0.2s; 
+      transition: background-color 0.2s, opacity 0.2s; 
     }
 
     .btn-submit:hover { background-color: #1e293b; }
-    .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .btn-submit:disabled { background-color: #94a3b8; opacity: 0.7; cursor: not-allowed; }
 
     .back-link { 
       display: inline-block; 
@@ -216,6 +247,12 @@
   </style>
 </head>
 <body>
+
+  <!-- 全屏載入中畫面 -->
+  <div id="page-loading">
+    <div class="spinner"></div>
+    <div>正在讀取提案詳細內容...</div>
+  </div>
 
   <!-- 導覽列 Header -->
   <header>
@@ -255,11 +292,33 @@
       window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
     }
 
+    // 隱藏全屏 Loading 畫面
+    function hideLoading() {
+      const loadingEl = document.getElementById('page-loading');
+      if (loadingEl) {
+        loadingEl.style.opacity = '0';
+        setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+      }
+    }
+
+    // 日期解析工具函式 (容錯清理時區標籤)
+    function parseCleanDate(dateStr) {
+      if (!dateStr) return null;
+      let cleanStr = String(dateStr)
+        .replace(/\+07:?00/gi, '')
+        .replace(/GMT\+7/gi, '')
+        .replace(/T/g, ' ')
+        .replace(/-/g, '/')
+        .trim();
+      const d = new Date(cleanStr);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
     // 時間格式化工具
     function formatDate(dateStr) {
       if (!dateStr) return '未設定';
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
+      const d = parseCleanDate(dateStr);
+      if (!d) return String(dateStr).replace(/\+07:?00/gi, '').trim();
       
       const pad = (n) => String(n).padStart(2, '0');
       return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -269,7 +328,7 @@
       const card = document.getElementById('vote-card');
 
       if (!proposalId) {
-        document.body.style.display = 'block';
+        hideLoading();
         card.innerHTML = `
           <div class="error-state">
             <h2>⚠️ 找不到該提案</h2>
@@ -289,8 +348,8 @@
           return;
         }
 
-        // 未鎖定，顯示正常 body 內容
-        document.body.style.display = 'block';
+        // 未鎖定，隱藏全屏 Loading
+        hideLoading();
 
         const proposals = Array.isArray(result) ? result : [];
         const p = proposals.find(item => String(item.id) === String(proposalId));
@@ -307,8 +366,8 @@
 
         // 當前時間比對邏輯
         const now = new Date();
-        const startTime = p.startTime ? new Date(p.startTime) : null;
-        const endTime = p.endTime ? new Date(p.endTime) : null;
+        const startTime = parseCleanDate(p.startTime);
+        const endTime = parseCleanDate(p.endTime);
 
         const isNotStarted = startTime && now < startTime;
         const isEnded = endTime && now >= endTime;
