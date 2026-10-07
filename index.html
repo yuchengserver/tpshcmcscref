@@ -154,8 +154,9 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
     }
 
+    /* ✅ 已修改：將歷史項目的背景改成純白色 */
     .card-closed {
-      background: #f8fafc;
+      background: #ffffff;
       border-color: #cbd5e1;
     }
 
@@ -309,7 +310,8 @@
 
   function formatDate(dateStr) {
     if (!dateStr) return '';
-    const d = new Date(dateStr);
+    const formattedStr = typeof dateStr === 'string' ? dateStr.replace(/-/g, '/') : dateStr;
+    const d = new Date(formattedStr);
     if (isNaN(d.getTime())) return dateStr;
     
     const pad = (n) => String(n).padStart(2, '0');
