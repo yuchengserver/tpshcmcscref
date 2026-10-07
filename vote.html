@@ -215,7 +215,7 @@
 </head>
 <body>
 
-  <!-- 導覽列 Header -->
+  <!-- 導覽列 Header（僅保留返回首頁入口） -->
   <header>
     <a href="index.html" class="logo-container">
       <img src="tpshcmcsc.png" alt="會徽" class="school-logo">
@@ -224,10 +224,8 @@
 
     <nav>
       <a href="index.html" class="logo-link-btn" title="返回主頁">
-        <span>首頁與通知</span>
+        <span>🏠 首頁與通知</span>
       </a>
-      <a href="results.html">📊 開票與歷史結果</a>
-      <a href="admin.html">⚙️ 管理員後台</a>
     </nav>
   </header>
 
@@ -311,7 +309,7 @@
             <div class="form-group">
               <label>請選擇您的投票選項：</label>
               <div class="option-list">
-                ${options.map((opt, i) => `
+                ${options.map((opt) => `
                   <label class="option-label">
                     <input type="radio" name="vote_option" value="${opt.trim()}" ${isClosed ? 'disabled' : ''}>
                     <span>${opt.trim()}</span>
@@ -403,6 +401,7 @@
       try {
         const res = await fetch(GAS_API_URL, {
           method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'submitVote',
             proposalId: pId,
@@ -415,7 +414,7 @@
 
         if (result.status === 'success') {
           alert('🎉 感謝您的參與，回應已成功送出！');
-          window.location.href = 'results.html';
+          window.location.href = 'index.html'; // 填寫完成後跳回首頁
         } else {
           alert('提交失敗：' + (result.message || '您可能已經參與過此項目'));
           submitBtn.disabled = false;

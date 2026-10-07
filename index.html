@@ -321,193 +321,192 @@
 
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
-  <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 格式化時間 (將 ISO 時間轉為 2026/10/06 21:00 格式)
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      
-      const pad = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // 格式化時間 (將 ISO 時間轉為 2026/10/06 21:00 格式)
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // 手動點擊重新整理（加上按鈕與畫面載入狀態）
+  function loadData() {
+    const btn = document.getElementById('btn-refresh');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ 載入中...';
+    
+    document.getElementById('active-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+    document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+
+    loadProposals().finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '🔄 重新整理';
+    });
+  }
+
+  // 頁面分頁切換處理
+  function switchTab(tabName) {
+    if (tabName === 'home') {
+      window.location.href = "index.html";
+    } else if (tabName === 'results') {
+      window.location.href = "results.html";
+    } else if (tabName === 'admin') {
+      window.location.href = "admin.html";
     }
+  }
 
-    // 手動點擊重新整理
-    function loadData() {
-      const btn = document.getElementById('btn-refresh');
-      btn.disabled = true;
-      btn.innerHTML = '⏳ 載入中...';
-      
-      // 顯示載入狀態
-      document.getElementById('active-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
-      document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+  async function loadProposals() {
+    try {
+      const res = await fetch(`${GAS_API_URL}?action=getProposals`);
+      const proposals = await res.json();
 
-      loadProposals().finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '🔄 重新整理';
+      const now = new Date();
+      const activeList = [];
+      const upcomingList = [];
+
+      proposals.forEach(p => {
+        // 若後台手動狀態標記為 Closed，直接跳過
+        if (p.status === 'Closed') return;
+
+        const startTime = p.startTime ? new Date(p.startTime) : null;
+        const endTime = p.endTime ? new Date(p.endTime) : null;
+
+        // 核心時間比對邏輯
+        const isStarted = !startTime || now >= startTime;
+        const isEnded = endTime && now > endTime;
+
+        if (isEnded) {
+          return; // 過期則隱藏
+        } else if (isStarted || p.status === 'Active') {
+          activeList.push(p);
+        } else {
+          upcomingList.push(p);
+        }
       });
+
+      renderList('active-container', activeList, true);
+      renderList('upcoming-container', upcomingList, false);
+    } catch (err) {
+      console.error("無法取得資料", err);
+      document.getElementById('active-container').innerHTML = '<div class="empty-text">目前暫無開放中的公投或意見徵集項目。</div>';
+      document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">目前沒有即將開始的預告項目。</div>';
+    }
+  }
+
+  function renderList(elementId, items, isInteractive) {
+    const container = document.getElementById(elementId);
+    if (!items || items.length === 0) {
+      container.innerHTML = '<div class="empty-text">目前暫無項目。</div>';
+      return;
     }
 
-    // 頁面分頁切換處理
-    function switchTab(tabName) {
-      if (tabName === 'home') {
-        window.location.href = "index.html";
-      } else if (tabName === 'results') {
-        window.location.href = "results.html";
-      } else if (tabName === 'admin') {
-        window.location.href = "admin.html";
-      }
-    }
-
-    async function loadProposals() {
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals`);
-        const proposals = await res.json();
-
-        const now = new Date();
-        const activeList = [];
-        const upcomingList = [];
-
-        proposals.forEach(p => {
-          // 若後台手動狀態標記為 Closed，直接跳過
-          if (p.status === 'Closed') return;
-
-          const startTime = p.startTime ? new Date(p.startTime) : null;
-          const endTime = p.endTime ? new Date(p.endTime) : null;
-
-          // 核心時間比對邏輯
-          const isStarted = !startTime || now >= startTime;
-          const isEnded = endTime && now > endTime;
-
-          if (isEnded) {
-            return; // 過期則隱藏
-          } else if (isStarted || p.status === 'Active') {
-            activeList.push(p);
-          } else {
-            upcomingList.push(p);
-          }
-        });
-
-        renderList('active-container', activeList, true);
-        renderList('upcoming-container', upcomingList, false);
-      } catch (err) {
-        console.error("無法取得資料", err);
-        document.getElementById('active-container').innerHTML = '<div class="empty-text">目前暫無開放中的公投或意見徵集項目。</div>';
-        document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">目前沒有即將開始的預告項目。</div>';
-      }
-    }
-
-    function renderList(elementId, items, isInteractive) {
-      const container = document.getElementById(elementId);
-      if (!items || items.length === 0) {
-        container.innerHTML = '<div class="empty-text">目前暫無項目。</div>';
-        return;
-      }
-
-      container.innerHTML = items.map(p => {
-        let formHTML = '';
-        if (isInteractive) {
-          if (p.type === 'vote') {
-            const options = p.options ? p.options.split(',') : [];
-            formHTML = `
-              <div class="option-list">
-                ${options.map((opt) => `
-                  <label class="option-label">
-                    <input type="radio" name="opt_${p.id}" value="${opt.trim()}"> ${opt.trim()}
-                  </label>
-                `).join('')}
-              </div>
-            `;
-          } else {
-            formHTML = `
-              <div class="form-group">
-                <textarea id="feedback_${p.id}" rows="3" placeholder="請在此留下您的意見與建議..."></textarea>
-              </div>
-            `;
-          }
-
-          formHTML += `
-            <div class="form-group">
-              <label>學校電子信箱 (@tshcmc.edu.vn)</label>
-              <input type="email" id="email_${p.id}" placeholder="s123456@tshcmc.edu.vn">
+    container.innerHTML = items.map(p => {
+      let formHTML = '';
+      if (isInteractive) {
+        if (p.type === 'vote') {
+          const options = p.options ? p.options.split(',') : [];
+          formHTML = `
+            <div class="option-list">
+              ${options.map((opt) => `
+                <label class="option-label">
+                  <input type="radio" name="opt_${p.id}" value="${opt.trim()}"> ${opt.trim()}
+                </label>
+              `).join('')}
             </div>
-            <button class="btn-submit" id="btn_submit_${p.id}" onclick="submitResponse('${p.id}', '${p.type}')">確認提交</button>
+          `;
+        } else {
+          formHTML = `
+            <div class="form-group">
+              <textarea id="feedback_${p.id}" rows="3" placeholder="請在此留下您的意見與建議..."></textarea>
+            </div>
           `;
         }
 
-        // 時間格式化渲染
-        const formattedTime = (p.startTime || p.endTime) 
-          ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
-          : '未設定限制';
-
-        return `
-          <div class="prop-item">
-            <h3>${p.title}</h3>
-            <p style="color: #64748b; margin: 0.5rem 0;">${p.description || ''}</p>
-            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
-              ⏰ 時間：${formattedTime}
-            </div>
-            ${formHTML}
+        formHTML += `
+          <div class="form-group">
+            <label>學校電子信箱 (@tshcmc.edu.vn)</label>
+            <input type="email" id="email_${p.id}" placeholder="s123456@tshcmc.edu.vn">
           </div>
+          <button class="btn-submit" id="btn_submit_${p.id}" onclick="submitResponse('${p.id}', '${p.type}')">確認提交</button>
         `;
-      }).join('');
-    }
-
-    async function submitResponse(proposalId, type) {
-      const email = document.getElementById(`email_${proposalId}`).value.trim();
-      const submitBtn = document.getElementById(`btn_submit_${proposalId}`);
-
-      if (!email || !email.toLowerCase().endsWith('@tshcmc.edu.vn')) {
-        alert('請填寫有效的學校官方信箱 (@tshcmc.edu.vn)！');
-        return;
       }
 
-      let responseVal = '';
-      if (type === 'vote') {
-        const selected = document.querySelector(`input[name="opt_${proposalId}"]:checked`);
-        if (!selected) { alert('請選擇一個選項！'); return; }
-        responseVal = selected.value;
+      // 時間格式化渲染
+      const formattedTime = (p.startTime || p.endTime) 
+        ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
+        : '未設定限制';
+
+      return `
+        <div class="prop-item">
+          <h3>${p.title}</h3>
+          <p style="color: #64748b; margin: 0.5rem 0;">${p.description || ''}</p>
+          <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
+            ⏰ 時間：${formattedTime}
+          </div>
+          ${formHTML}
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function submitResponse(proposalId, type) {
+    const email = document.getElementById(`email_${proposalId}`).value.trim();
+    const submitBtn = document.getElementById(`btn_submit_${proposalId}`);
+
+    if (!email || !email.toLowerCase().endsWith('@tshcmc.edu.vn')) {
+      alert('請填寫有效的學校官方信箱 (@tshcmc.edu.vn)！');
+      return;
+    }
+
+    let responseVal = '';
+    if (type === 'vote') {
+      const selected = document.querySelector(`input[name="opt_${proposalId}"]:checked`);
+      if (!selected) { alert('請選擇一個選項！'); return; }
+      responseVal = selected.value;
+    } else {
+      responseVal = document.getElementById(`feedback_${proposalId}`).value.trim();
+      if (!responseVal) { alert('請輸入意見內容！'); return; }
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "提交中...";
+
+    try {
+      const res = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'submitVote',
+          proposalId: proposalId,
+          email: email,
+          response: responseVal
+        })
+      });
+      const result = await res.json();
+      if (result.status === 'success') {
+        alert(result.message || '提交成功！');
+        loadData(); // 成功後重新讀取資料
       } else {
-        responseVal = document.getElementById(`feedback_${proposalId}`).value.trim();
-        if (!responseVal) { alert('請輸入意見內容！'); return; }
+        alert('提交失敗：' + result.message);
       }
-
-      submitBtn.disabled = true;
-      submitBtn.innerText = "提交中...";
-
-      try {
-        const res = await fetch(GAS_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'submitVote',
-            proposalId: proposalId,
-            email: email,
-            response: responseVal
-          })
-        });
-        const result = await res.json();
-        if (result.status === 'success') {
-          alert(result.message || '提交成功！');
-          loadData(); // 成功後重新讀取資料
-        } else {
-          alert('提交失敗：' + result.message);
-        }
-      } catch (e) {
-        alert('系統發生錯誤，請稍後再試。');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "確認提交";
-      }
+    } catch (e) {
+      alert('系統發生錯誤，請稍後再試。');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "確認提交";
     }
+  }
 
-    // 初始化載入資料
-    loadProposals();
+  // 初始化載入資料
+  loadProposals();
 
-    // 每 30 秒自動觸發一次時間比對刷新
-    setInterval(loadProposals, 30000);
-  </script>
+  // 每 30 秒自動觸發一次時間比對刷新
+  setInterval(loadProposals, 30000);
+</script>
 </body>
 </html>
