@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 參與投票</title>
   <style>
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-    }
-    
+    /* 預設隱藏 body，防止開頁瞬間閃爍出投票內容 */
     body { 
+      display: none;
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    * { 
+      box-sizing: border-box; 
     }
 
     /* 頂部 Header 樣式 */
@@ -215,7 +217,7 @@
 </head>
 <body>
 
-  <!-- 導覽列 Header（僅保留返回首頁入口） -->
+  <!-- 導覽列 Header -->
   <header>
     <a href="index.html" class="logo-container">
       <img src="tpshcmcsc.png" alt="會徽" class="school-logo">
@@ -238,199 +240,245 @@
   </div>
 
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
+
   <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    // 取得網址參數 (例如: vote.html?id=123)
+    const urlParams = new URLSearchParams(window.location.search);
+    const proposalId = urlParams.get('id');
 
-// 取得網址參數 (例如: vote.html?id=123)
-const urlParams = new URLSearchParams(window.location.search);
-const proposalId = urlParams.get('id');
-
-// 時間格式化工具
-function formatDate(dateStr) {
-  if (!dateStr) return '未設定';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-async function loadVoteDetails() {
-  const card = document.getElementById('vote-card');
-
-  if (!proposalId) {
-    card.innerHTML = `
-      <div class="error-state">
-        <h2>⚠️ 找不到該提案</h2>
-        <p style="margin-top: 0.5rem;">網址缺少提案識別碼 (ID)，請重新從首頁進入。</p>
-      </div>
-    `;
-    return;
-  }
-
-  try {
-    const res = await fetch(`${GAS_API_URL}?action=getProposals`);
-    const proposals = await res.json();
-    const p = proposals.find(item => String(item.id) === String(proposalId));
-
-    if (!p) {
-      card.innerHTML = `
-        <div class="error-state">
-          <h2>❌ 提案不存在或已下架</h2>
-          <p style="margin-top: 0.5rem;">找不到 ID 為 <code>${proposalId}</code> 的提案項目。</p>
-        </div>
-      `;
-      return;
-    }
-
-    // 當前時間比對邏輯
-    const now = new Date();
-    const startTime = p.startTime ? new Date(p.startTime) : null;
-    const endTime = p.endTime ? new Date(p.endTime) : null;
-
-    const isNotStarted = startTime && now < startTime;
-    const isEnded = endTime && now >= endTime;
-    const isClosedStatus = p.status === 'Closed';
-
-    // 只要後台關閉、未開始或已結束，皆不可投票
-    const isClosed = isClosedStatus || isNotStarted || isEnded;
-
-    let statusHint = '已結束';
-    if (isNotStarted) statusHint = '即將開始';
-    if (isClosedStatus) statusHint = '已下架/關閉';
-
-    const typeText = p.type === 'vote' ? '🗳️ 選項投票' : '💡 意見徵集';
-
-    let formContent = '';
-    if (p.type === 'vote') {
-      const options = p.options ? p.options.split(',') : [];
-      formContent = `
-        <div class="form-group">
-          <label>請選擇您的投票選項：</label>
-          <div class="option-list">
-            ${options.map((opt) => `
-              <label class="option-label">
-                <input type="radio" name="vote_option" value="${opt.trim()}" ${isClosed ? 'disabled' : ''}>
-                <span>${opt.trim()}</span>
-              </label>
-            `).join('')}
+    // 渲染全白鎖定畫面
+    function showSystemLockPage(message) {
+      document.body.style.display = 'block';
+      document.body.innerHTML = `
+        <div style="
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background: #ffffff; display: flex; justify-content: center;
+          align-items: center; text-align: center; padding: 20px; z-index: 999999;
+        ">
+          <div style="
+            max-width: 520px; width: 100%; padding: 2.5rem 2rem;
+            border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          ">
+            <div style="font-size: 3rem; margin-bottom: 1rem; line-height: 1;">🔒</div>
+            <h1 style="
+              font-size: 1.35rem; color: #0f172a; font-weight: 700;
+              line-height: 1.5; margin-bottom: 1rem;
+            ">
+              ${message || '系統通知：無償服務已終止，詳情請洽學生會。'}
+            </h1>
+            <div style="height: 1px; background: #f1f5f9; margin: 1.25rem 0;"></div>
+            <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">
+              本平台目前已暫停所有功能服務與資料處理。
+            </p>
+            <div style="margin-top: 2rem; font-size: 0.85rem; color: #94a3b8;">
+              胡志明市臺灣學校學生會 TSSC13TH
+            </div>
           </div>
         </div>
       `;
-    } else {
-      formContent = `
-        <div class="form-group">
-          <label for="feedback_text">請留下您的寶貴意見：</label>
-          <textarea id="feedback_text" rows="5" placeholder="請詳細說明您的想法或建議..." ${isClosed ? 'disabled' : ''}></textarea>
-        </div>
-      `;
     }
 
-    card.innerHTML = `
-      <span class="tag">${typeText}</span>
-      <h1 class="title">${p.title}</h1>
-      <div class="time-info">
-        <span>⏰ 開始時間：${formatDate(p.startTime)}</span> | 
-        <span>⏳ 截止時間：${formatDate(p.endTime)}</span>
-      </div>
-
-      <div class="description">${p.description || '無詳細說明'}</div>
-
-      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
-
-      ${isClosed ? `
-        <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold;">
-          🔒 本項目目前非開放狀態 (${statusHint})，暫不接受提交。
-        </div>
-      ` : `
-        ${formContent}
-
-        <div class="form-group">
-          <label for="user_email">學校官方電子信箱 (@tshcmc.edu.vn)</label>
-          <input type="email" id="user_email" placeholder="s123456@tshcmc.edu.vn" required>
-          <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-            本系統採實名驗證，每位學生僅能表達一次意見/投票。
-          </small>
-        </div>
-
-        <button class="btn-submit" id="btn-submit-vote" onclick="submitSingleResponse('${p.id}', '${p.type}')">確認並送出</button>
-      `}
-    `;
-
-  } catch (err) {
-    console.error("無法載入提案詳細資料", err);
-    card.innerHTML = `
-      <div class="error-state">
-        <h2>⚠️ 連線失敗</h2>
-        <p style="margin-top: 0.5rem;">無法取得提案內容，請檢查網路連線後重試。</p>
-      </div>
-    `;
-  }
-}
-
-async function submitSingleResponse(pId, pType) {
-  const emailInput = document.getElementById('user_email');
-  const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
-  const submitBtn = document.getElementById('btn-submit-vote');
-
-  // ✅ 強化正則運算式信箱格式檢查
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/;
-  if (!email || !emailRegex.test(email)) {
-    alert('請輸入有效的學校官方信箱（例如：s123456@tshcmc.edu.vn）！');
-    return;
-  }
-
-  let responseVal = '';
-  if (pType === 'vote') {
-    const selected = document.querySelector('input[name="vote_option"]:checked');
-    if (!selected) {
-      alert('請選擇一個投票選項！');
-      return;
+    // 時間格式化工具
+    function formatDate(dateStr) {
+      if (!dateStr) return '未設定';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
-    responseVal = selected.value;
-  } else {
-    responseVal = document.getElementById('feedback_text').value.trim();
-    if (!responseVal) {
-      alert('請填寫意見內容！');
-      return;
+
+    async function loadVoteDetails() {
+      const card = document.getElementById('vote-card');
+
+      if (!proposalId) {
+        document.body.style.display = 'block';
+        card.innerHTML = `
+          <div class="error-state">
+            <h2>⚠️ 找不到該提案</h2>
+            <p style="margin-top: 0.5rem;">網址缺少提案識別碼 (ID)，請重新從首頁進入。</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getProposals`);
+        const result = await res.json();
+
+        // 檢查系統鎖定狀態
+        if (result && result.systemLocked) {
+          showSystemLockPage(result.message);
+          return;
+        }
+
+        // 未鎖定，顯示正常 body 內容
+        document.body.style.display = 'block';
+
+        const proposals = Array.isArray(result) ? result : [];
+        const p = proposals.find(item => String(item.id) === String(proposalId));
+
+        if (!p) {
+          card.innerHTML = `
+            <div class="error-state">
+              <h2>❌ 提案不存在或已下架</h2>
+              <p style="margin-top: 0.5rem;">找不到 ID 為 <code>${proposalId}</code> 的提案項目。</p>
+            </div>
+          `;
+          return;
+        }
+
+        // 當前時間比對邏輯
+        const now = new Date();
+        const startTime = p.startTime ? new Date(p.startTime) : null;
+        const endTime = p.endTime ? new Date(p.endTime) : null;
+
+        const isNotStarted = startTime && now < startTime;
+        const isEnded = endTime && now >= endTime;
+        const isClosedStatus = p.status === 'Closed';
+
+        // 只要後台關閉、未開始或已結束，皆不可投票
+        const isClosed = isClosedStatus || isNotStarted || isEnded;
+
+        let statusHint = '已結束';
+        if (isNotStarted) statusHint = '即將開始';
+        if (isClosedStatus) statusHint = '已下架/關閉';
+
+        const typeText = p.type === 'vote' ? '🗳️ 選項投票' : '💡 意見徵集';
+
+        let formContent = '';
+        if (p.type === 'vote') {
+          const options = p.options ? p.options.split(',') : [];
+          formContent = `
+            <div class="form-group">
+              <label>請選擇您的投票選項：</label>
+              <div class="option-list">
+                ${options.map((opt) => `
+                  <label class="option-label">
+                    <input type="radio" name="vote_option" value="${opt.trim()}" ${isClosed ? 'disabled' : ''}>
+                    <span>${opt.trim()}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          formContent = `
+            <div class="form-group">
+              <label for="feedback_text">請留下您的寶貴意見：</label>
+              <textarea id="feedback_text" rows="5" placeholder="請詳細說明您的想法或建議..." ${isClosed ? 'disabled' : ''}></textarea>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <span class="tag">${typeText}</span>
+          <h1 class="title">${p.title}</h1>
+          <div class="time-info">
+            <span>⏰ 開始時間：${formatDate(p.startTime)}</span> | 
+            <span>⏳ 截止時間：${formatDate(p.endTime)}</span>
+          </div>
+
+          <div class="description">${p.description || '無詳細說明'}</div>
+
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0;">
+
+          ${isClosed ? `
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold;">
+              🔒 本項目目前非開放狀態 (${statusHint})，暫不接受提交。
+            </div>
+          ` : `
+            ${formContent}
+
+            <div class="form-group">
+              <label for="user_email">學校官方電子信箱 (@tshcmc.edu.vn)</label>
+              <input type="email" id="user_email" placeholder="s123456@tshcmc.edu.vn" required>
+              <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.3rem; display: block;">
+                本系統採實名驗證，每位學生僅能表達一次意見/投票。
+              </small>
+            </div>
+
+            <button class="btn-submit" id="btn-submit-vote" onclick="submitSingleResponse('${p.id}', '${p.type}')">確認並送出</button>
+          `}
+        `;
+
+      } catch (err) {
+        console.error("無法載入提案詳細資料", err);
+        showSystemLockPage('系統通知：無法連線至服務，無償服務已終止。');
+      }
     }
-  }
 
-  submitBtn.disabled = true;
-  submitBtn.innerText = '處理中...';
+    async function submitSingleResponse(pId, pType) {
+      const emailInput = document.getElementById('user_email');
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const submitBtn = document.getElementById('btn-submit-vote');
 
-  try {
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action: 'submitVote',
-        proposalId: pId,
-        email: email,
-        response: responseVal
-      })
-    });
+      // 學校信箱正則運算式檢查
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/;
+      if (!email || !emailRegex.test(email)) {
+        alert('請輸入有效的學校官方信箱（例如：s123456@tshcmc.edu.vn）！');
+        return;
+      }
 
-    const result = await res.json();
+      let responseVal = '';
+      if (pType === 'vote') {
+        const selected = document.querySelector('input[name="vote_option"]:checked');
+        if (!selected) {
+          alert('請選擇一個投票選項！');
+          return;
+        }
+        responseVal = selected.value;
+      } else {
+        responseVal = document.getElementById('feedback_text').value.trim();
+        if (!responseVal) {
+          alert('請填寫意見內容！');
+          return;
+        }
+      }
 
-    if (result.status === 'success') {
-      alert('🎉 感謝您的參與，回應已成功送出！');
-      window.location.href = 'index.html'; // 填寫完成後跳回首頁
-    } else {
-      alert('提交失敗：' + (result.message || '您可能已經參與過此項目'));
-      submitBtn.disabled = false;
-      submitBtn.innerText = '確認並送出';
+      submitBtn.disabled = true;
+      submitBtn.innerText = '處理中...';
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'submitVote',
+            proposalId: pId,
+            email: email,
+            response: responseVal
+          })
+        });
+
+        const result = await res.json();
+
+        // 提交時若發現已上鎖，直接開啟鎖定頁面
+        if (result && result.systemLocked) {
+          showSystemLockPage(result.message);
+          return;
+        }
+
+        if (result.status === 'success') {
+          alert('🎉 感謝您的參與，回應已成功送出！');
+          window.location.href = 'index.html';
+        } else {
+          alert('提交失敗：' + (result.message || '您可能已經參與過此項目'));
+          submitBtn.disabled = false;
+          submitBtn.innerText = '確認並送出';
+        }
+      } catch (e) {
+        console.error("提交回應時發生錯誤：", e);
+        alert('系統發生連線或回應處理錯誤，請稍後再試。');
+        submitBtn.disabled = false;
+        submitBtn.innerText = '確認並送出';
+      }
     }
-  } catch (e) {
-    console.error("提交回應時發生錯誤：", e);
-    alert('系統發生連線或回應處理錯誤，請稍後再試。');
-    submitBtn.disabled = false;
-    submitBtn.innerText = '確認並送出';
-  }
-}
 
-loadVoteDetails();
-</script>
+    loadVoteDetails();
+  </script>
 </body>
 </html>

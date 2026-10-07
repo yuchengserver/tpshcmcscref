@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 首頁與通知</title>
+  
   <style>
-    /* 全域重置與背景設定 */
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-    }
-    
+    /* 預設先將 body 隱藏，避免載入時閃出原本的頁面內容 */
     body { 
+      display: none; 
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
+
+    * { box-sizing: border-box; }
 
     /* 頂部導引列 Header */
     .navbar { 
@@ -44,7 +44,7 @@
       height: 38px; 
       width: auto; 
       object-fit: contain;
-      filter: brightness(0); /* 轉為純黑色 */
+      filter: brightness(0);
     }
 
     .site-title { 
@@ -53,10 +53,7 @@
       color: #0f172a; 
     }
 
-    .nav-buttons {
-      display: flex;
-      gap: 0.5rem;
-    }
+    .nav-buttons { display: flex; gap: 0.5rem; }
 
     .nav-btn { 
       text-decoration: none; 
@@ -106,11 +103,7 @@
       margin-bottom: 0.8rem;
     }
 
-    .rules-header h3 {
-      font-size: 1.05rem;
-      color: #0f172a;
-      font-weight: 700;
-    }
+    .rules-header h3 { font-size: 1.05rem; color: #0f172a; font-weight: 700; }
 
     .rules-list {
       padding-left: 1.25rem;
@@ -119,9 +112,7 @@
       line-height: 1.6;
     }
 
-    .rules-list li {
-      margin-bottom: 0.4rem;
-    }
+    .rules-list li { margin-bottom: 0.4rem; }
 
     .rules-list code {
       background-color: #eff6ff;
@@ -154,10 +145,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
     }
 
-    .card-closed {
-      background: #ffffff;
-      border-color: #cbd5e1;
-    }
+    .card-closed { background: #ffffff; border-color: #cbd5e1; }
 
     .section-title { 
       font-size: 1.1rem; 
@@ -175,11 +163,7 @@
       margin-bottom: 1.5rem; 
     }
 
-    .prop-item:last-child { 
-      border-bottom: none; 
-      padding-bottom: 0; 
-      margin-bottom: 0; 
-    }
+    .prop-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
 
     .btn-goto-vote { 
       background-color: black; 
@@ -198,10 +182,7 @@
       text-decoration: none;
     }
 
-    .btn-goto-vote:hover { 
-      background-color: #333333; 
-      transform: translateY(-1px);
-    }
+    .btn-goto-vote:hover { background-color: #333333; transform: translateY(-1px); }
 
     .btn-refresh { 
       background-color: #2563eb; 
@@ -233,13 +214,12 @@
     }
 
     .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
-
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
   </style>
 </head>
 <body>
 
-  <!-- 導引列 Header -->
+  <!-- 頂部導引列 -->
   <header class="navbar">
     <div class="logo-container" onclick="redirectToHome()" style="cursor: pointer;">
       <img src="tpshcmcsc.png" alt="會徽" class="school-logo">
@@ -259,10 +239,8 @@
     </nav>
   </header>
 
-  <!-- 主要內容包裹容器 -->
+  <!-- 主要內容容器 -->
   <main class="container">
-
-    <!-- 投遞規則卡片 -->
     <section class="rules-card">
       <div class="rules-header">
         <span class="icon">📜</span>
@@ -276,30 +254,25 @@
       </ul>
     </section>
 
-    <!-- 提示訊息 -->
     <div class="alert-box">
       <span>🔒 <strong>提醒：</strong>本平台採用實名驗證，投票或提交意見時請使用學校官方信箱 (@tshcmc.edu.vn)。</span>
       <button class="btn-refresh" id="btn-refresh" onclick="loadData()">🔄 重新整理</button>
     </div>
 
-    <!-- 開放中項目 -->
     <div class="section-title">📢 目前開放中的項目</div>
     <div class="card" id="active-container">
       <div class="empty-text">載入中...</div>
     </div>
 
-    <!-- 即將開始項目 -->
     <div class="section-title">⏳ 即將開始 / 預告中的項目</div>
     <div class="card" id="upcoming-container">
       <div class="empty-text">載入中...</div>
     </div>
 
-    <!-- 歷史 / 已截止項目 -->
     <div class="section-title">📁 歷史 / 已截止的項目</div>
     <div class="card card-closed" id="closed-container">
       <div class="empty-text">載入中...</div>
     </div>
-
   </main>
 
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
@@ -307,19 +280,9 @@
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-  // 統一重導向至主頁的函式
-  function redirectToHome() {
-    // 取得當前路徑根目錄，確保不論在子資料夾或直接開啟都能準確跳轉回主頁
-    const currentPath = window.location.pathname;
-    if (!currentPath.endsWith('index.html') && currentPath !== '/') {
-      window.location.href = "index.html";
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  // 遠端鎖定：渲染全白覆蓋畫面（方案 B）
+  // 遠端鎖定：渲染全白覆蓋畫面
   function showSystemLockPage(message) {
+    document.body.style.display = 'block';
     document.body.innerHTML = `
       <div style="
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -350,7 +313,15 @@
     `;
   }
 
-  // 解析並清除 +07:00 等時區字串的工具函式
+  function redirectToHome() {
+    const currentPath = window.location.pathname;
+    if (!currentPath.endsWith('index.html') && currentPath !== '/') {
+      window.location.href = "index.html";
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
   function parseCleanDate(dateStr) {
     if (!dateStr) return null;
     let cleanStr = String(dateStr)
@@ -359,17 +330,14 @@
       .replace(/T/g, ' ')
       .replace(/-/g, '/')
       .trim();
-      
     const d = new Date(cleanStr);
     return isNaN(d.getTime()) ? null : d;
   }
 
-  // 格式化日期顯示 (如：2026/10/07 21:15)
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const d = parseCleanDate(dateStr);
     if (!d) return String(dateStr).replace(/\+07:?00/gi, '').trim();
-    
     const pad = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
@@ -403,7 +371,6 @@
     }
   }
 
-  // 前往專屬投票頁面
   function goToVote(proposalId) {
     window.location.href = `vote.html?id=${encodeURIComponent(proposalId)}`;
   }
@@ -413,14 +380,16 @@
       const res = await fetch(`${GAS_API_URL}?action=getProposals`);
       const resData = await res.json();
 
-      // 🛑 遠端鎖定判斷：若系統鎖上，立即調用全白覆蓋畫面
+      // 🛑 若系統回傳鎖定，直接全螢幕顯示鎖定畫面
       if (resData && resData.systemLocked) {
         showSystemLockPage(resData.message);
         return;
       }
 
-      const proposals = Array.isArray(resData) ? resData : [];
+      // 情況正常：解除 body 的隱藏
+      document.body.style.display = 'block';
 
+      const proposals = Array.isArray(resData) ? resData : [];
       const now = new Date();
       const activeList = [];
       const upcomingList = [];
@@ -452,9 +421,8 @@
       renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
-      document.getElementById('active-container').innerHTML = '<div class="empty-text">目前暫無開放中的公投或意見徵集項目。</div>';
-      document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">目前沒有即將開始的預告項目。</div>';
-      document.getElementById('closed-container').innerHTML = '<div class="empty-text">目前沒有歷史或已截止的項目。</div>';
+      // 網路連線錯誤時也鎖定防護
+      showSystemLockPage('系統通知：無法連線至服務，無償服務已終止。');
     }
   }
 
@@ -494,9 +462,8 @@
     }).join('');
   }
 
-  // 初始載入與定時輪詢
+  // 進入頁面立即執行
   loadProposals();
-  setInterval(loadProposals, 30000);
 </script>
 </body>
 </html>

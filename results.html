@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 開票與歷史結果</title>
   <style>
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-    }
-    
+    /* 預設隱藏 body，防止畫面閃爍 */
     body { 
+      display: none;
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    * { 
+      box-sizing: border-box; 
     }
 
     /* 頁首 Header 樣式 */
@@ -203,125 +205,169 @@
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
   <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-  // 時間格式化工具函式
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }
-
-  // 手動點擊重新整理（加上按鈕狀態與載入提示）
-  function manualRefresh() {
-    const btn = document.getElementById('btn-refresh');
-    const container = document.getElementById('results-container');
-    
-    // 停用按鈕並顯示載入中狀態
-    btn.disabled = true;
-    btn.innerHTML = '⏳ 載入中...';
-    container.innerHTML = '<div class="empty-text">🔄 正在讀取最新開票結果...</div>';
-
-    loadResults().finally(() => {
-      btn.disabled = false;
-      btn.innerHTML = '🔄 重新整理';
-    });
-  }
-
-  async function loadResults() {
-    try {
-      const res = await fetch(`${GAS_API_URL}?action=getResults`);
-      const data = await res.json();
-      const container = document.getElementById('results-container');
-
-      if (!data || data.length === 0) {
-        container.innerHTML = '<div class="empty-text">📫 目前尚無紀錄</div>';
-        return;
-      }
-
-      // 1. 僅保留投票類型的提案 (排除意見徵集/feedback)
-      const voteProposals = data.filter(item => item.proposal && item.proposal.type === 'vote');
-
-      if (voteProposals.length === 0) {
-        container.innerHTML = '<div class="empty-text">📫 目前尚無投票結果紀錄</div>';
-        return;
-      }
-
-      const now = new Date();
-
-      container.innerHTML = voteProposals.map(item => {
-        const p = item.proposal;
-        const endTime = p.endTime ? new Date(p.endTime) : null;
-        
-        // 判斷是否已截止／已關閉開票
-        const isClosed = p.status === 'Closed' || (endTime && now > endTime);
-
-        let statsHTML = '';
-
-        if (isClosed) {
-          // 2. 已截止／事後開票：顯示詳細得票結果與比例
-          const counts = {};
-          if (item.responses && Array.isArray(item.responses)) {
-            item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
-          }
-          const total = item.totalCount || 0;
-
-          const optionsList = p.options ? p.options.split(',').map(s => s.trim()) : Object.keys(counts);
-
-          statsHTML = optionsList.map(opt => {
-            const count = counts[opt] || 0;
-            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-            return `
-              <div style="margin-top: 0.8rem; font-size: 0.9rem;">
-                <div style="display: flex; justify-content: space-between;">
-                  <span>${opt}</span>
-                  <span><b>${count} 票</b> (${pct}%)</span>
-                </div>
-                <div class="bar-container"><div class="bar-fill" style="width: ${pct}%;"></div></div>
-              </div>
-            `;
-          }).join('');
-        } else {
-          // 3. 進行中／未截止：隱藏數據，提示事後公布
-          statsHTML = `
-            <div class="pending-box">
-              🔒 <b>投票進行中</b><br>
-              為確保投票公正，選票結果與數據將於投票結束後統一公布。
+    // 渲染全白鎖定畫面
+    function showSystemLockPage(message) {
+      document.body.style.display = 'block';
+      document.body.innerHTML = `
+        <div style="
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background: #ffffff; display: flex; justify-content: center;
+          align-items: center; text-align: center; padding: 20px; z-index: 999999;
+        ">
+          <div style="
+            max-width: 520px; width: 100%; padding: 2.5rem 2rem;
+            border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          ">
+            <div style="font-size: 3rem; margin-bottom: 1rem; line-height: 1;">🔒</div>
+            <h1 style="
+              font-size: 1.35rem; color: #0f172a; font-weight: 700;
+              line-height: 1.5; margin-bottom: 1rem;
+            ">
+              ${message || '系統通知：無償服務已終止，詳情請洽學生會。'}
+            </h1>
+            <div style="height: 1px; background: #f1f5f9; margin: 1.25rem 0;"></div>
+            <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">
+              本平台目前已暫停所有功能服務與資料處理。
+            </p>
+            <div style="margin-top: 2rem; font-size: 0.85rem; color: #94a3b8;">
+              胡志明市臺灣學校學生會 TSSC13TH
             </div>
-          `;
+          </div>
+        </div>
+      `;
+    }
+
+    // 時間格式化工具函式
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    // 手動點擊重新整理
+    function manualRefresh() {
+      const btn = document.getElementById('btn-refresh');
+      const container = document.getElementById('results-container');
+      
+      btn.disabled = true;
+      btn.innerHTML = '⏳ 載入中...';
+      container.innerHTML = '<div class="empty-text">🔄 正在讀取最新開票結果...</div>';
+
+      loadResults().finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '🔄 重新整理';
+      });
+    }
+
+    async function loadResults() {
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getResults`);
+        const result = await res.json();
+
+        // 1. 檢查系統是否觸發遠端鎖定
+        if (result && result.systemLocked) {
+          showSystemLockPage(result.message);
+          return;
         }
 
-        // 時間顯示格式化
-        const timeText = (p.startTime || p.endTime)
-          ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
-          : '未設定限制';
+        // 確認未上鎖後解除隱藏
+        document.body.style.display = 'block';
 
-        return `
-          <div class="result-item">
-            <h3>${p.title}</h3>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description || ''}</p>
-            <div style="font-size: 0.8rem; color: #94a3b8; margin: 0.4rem 0;">
-              ⏰ 投票期間：${timeText} | 總參與人數：${item.totalCount || 0} 人
+        // 相容處理：取得陣列資料
+        const resultsArray = Array.isArray(result) ? result : (result.data || []);
+        const container = document.getElementById('results-container');
+
+        if (!resultsArray || resultsArray.length === 0) {
+          container.innerHTML = '<div class="empty-text">📫 目前尚無紀錄</div>';
+          return;
+        }
+
+        // 2. 僅保留投票類型的提案 (排除意見徵集/feedback)
+        const voteProposals = resultsArray.filter(item => item.proposal && item.proposal.type === 'vote');
+
+        if (voteProposals.length === 0) {
+          container.innerHTML = '<div class="empty-text">📫 目前尚無投票結果紀錄</div>';
+          return;
+        }
+
+        const now = new Date();
+
+        container.innerHTML = voteProposals.map(item => {
+          const p = item.proposal;
+          const endTime = p.endTime ? new Date(p.endTime) : null;
+          
+          // 判斷是否已截止／已關閉開票
+          const isClosed = p.status === 'Closed' || (endTime && now > endTime);
+
+          let statsHTML = '';
+
+          if (isClosed) {
+            // 已截止：顯示詳細得票結果與比例
+            const counts = {};
+            if (item.responses && Array.isArray(item.responses)) {
+              item.responses.forEach(r => { counts[r.content] = (counts[r.content] || 0) + 1; });
+            }
+            const total = item.totalCount || 0;
+
+            const optionsList = p.options ? p.options.split(',').map(s => s.trim()) : Object.keys(counts);
+
+            statsHTML = optionsList.map(opt => {
+              const count = counts[opt] || 0;
+              const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+              return `
+                <div style="margin-top: 0.8rem; font-size: 0.9rem;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>${opt}</span>
+                    <span><b>${count} 票</b> (${pct}%)</span>
+                  </div>
+                  <div class="bar-container"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            // 進行中：隱藏數據，提示事後公布
+            statsHTML = `
+              <div class="pending-box">
+                🔒 <b>投票進行中</b><br>
+                為確保投票公正，選票結果與數據將於投票結束後統一公布。
+              </div>
+            `;
+          }
+
+          // 時間顯示格式化
+          const timeText = (p.startTime || p.endTime)
+            ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
+            : '未設定限制';
+
+          return `
+            <div class="result-item">
+              <h3>${p.title}</h3>
+              <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.2rem;">${p.description || ''}</p>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin: 0.4rem 0;">
+                ⏰ 投票期間：${timeText} | 總參與人數：${item.totalCount || 0} 人
+              </div>
+              ${statsHTML}
             </div>
-            ${statsHTML}
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
 
-    } catch (err) {
-      console.error("載入結果失敗", err);
-      document.getElementById('results-container').innerHTML = '<div class="empty-text">⚠️ 載入資料失敗，請確認網路連線或稍後再試。</div>';
+      } catch (err) {
+        console.error("載入結果失敗", err);
+        showSystemLockPage('系統通知：無法連線至服務，無償服務已終止。');
+      }
     }
-  }
 
-  // 初次載入
-  loadResults();
+    // 初次載入
+    loadResults();
 
-  // 每 30 秒自動觸發重新整理
-  setInterval(loadResults, 30000);
-</script>
+    // 每 30 秒自動觸發重新整理
+    setInterval(loadResults, 30000);
+  </script>
 </body>
 </html>
