@@ -49,6 +49,10 @@
     .lock-icon { 
       font-size: 2.5rem; 
       line-height: 1; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(-2px);
     }
 
     @keyframes pulse {
@@ -70,6 +74,7 @@
       line-height: 1.6; 
       margin-bottom: 1.25rem;
       word-break: break-word;
+      white-space: pre-line; /* 支援文字換行符號 \n 自動換行 */
     }
 
     .divider { 
@@ -115,7 +120,7 @@
       <div class="lock-icon">⚠️</div>
     </div>
     
-    <h1 class="lock-title" id="lock-message">系統提示：本網站無償服務已終止，服務已全面關閉</h1>
+    <h1 class="lock-title" id="lock-message">系統通知：無償服務已終止，<br>詳情請洽學生會。</h1>
     
     <div class="divider"></div>
     
@@ -135,7 +140,9 @@
     const msg = urlParams.get('msg');
     if (msg) {
       try {
-        document.getElementById('lock-message').innerText = decodeURIComponent(msg);
+        // 將文字中的逗號、句號或特定分割符替換為換行符號，確保傳參時也能正常分列
+        let decodedMsg = decodeURIComponent(msg);
+        document.getElementById('lock-message').innerText = decodedMsg.replace(/，/g, '，\n');
       } catch (e) {
         document.getElementById('lock-message').innerText = msg;
       }
