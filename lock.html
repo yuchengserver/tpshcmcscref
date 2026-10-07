@@ -138,15 +138,7 @@
     // 讀取 URL 帶入的自訂訊息（若有帶入則動態替換）
     const urlParams = new URLSearchParams(window.location.search);
     const msg = urlParams.get('msg');
-    if (msg) {
-      try {
-        // 將文字中的逗號、句號或特定分割符替換為換行符號，確保傳參時也能正常分列
-        let decodedMsg = decodeURIComponent(msg);
-        document.getElementById('lock-message').innerText = decodedMsg.replace(/，/g, '，\n');
-      } catch (e) {
-        document.getElementById('lock-message').innerText = msg;
-      }
-    }
+
   </script>
 </body>
 </html>
