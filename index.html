@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TSSC13TH 公投專區 - 首頁與投票</title>
+  <title>TSSC13TH 公投專區 - 首頁與通知</title>
   <style>
     /* 全域重置與背景設定 */
     * { 
@@ -154,7 +154,6 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
     }
 
-    /* 已截止區域背景稍作區隔 */
     .card-closed {
       background: #f8fafc;
       border-color: #cbd5e1;
@@ -182,66 +181,27 @@
       margin-bottom: 0; 
     }
 
-    .form-group { margin-top: 1rem; }
-    
-    label { 
-      display: block; 
-      font-weight: 600; 
-      margin-bottom: 0.4rem; 
-      font-size: 0.9rem; 
-      color: #334155;
-    }
-
-    input[type="email"], textarea { 
-      width: 100%; 
-      padding: 0.6rem 0.8rem; 
-      border: 1px solid #cbd5e1; 
-      border-radius: 6px; 
-      font-size: 0.95rem; 
-      outline: none; 
-      transition: border-color 0.2s;
-    }
-
-    input[type="email"]:focus, textarea:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .option-list { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 0.5rem; 
-      margin: 0.8rem 0; 
-    }
-
-    .option-label { 
-      display: flex; 
-      align-items: center; 
-      gap: 0.5rem; 
-      font-weight: normal; 
-      cursor: pointer; 
-      background: #f8fafc; 
-      padding: 0.6rem; 
-      border-radius: 6px; 
-      border: 1px solid #e2e8f0; 
-      transition: background-color 0.2s;
-    }
-
-    .option-label:hover { background: #f1f5f9; }
-
-    .btn-submit { 
-      background-color: #0f172a; 
+    .btn-goto-vote { 
+      background-color: #2563eb; 
       color: white; 
       border: none; 
-      padding: 0.6rem 1.2rem; 
-      border-radius: 6px; 
+      padding: 0.65rem 1.4rem; 
+      border-radius: 8px; 
       font-weight: bold; 
       cursor: pointer; 
       margin-top: 0.8rem; 
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.95rem;
+      text-decoration: none;
     }
 
-    .btn-submit:hover { background-color: #1e293b; }
+    .btn-goto-vote:hover { 
+      background-color: #1d4ed8; 
+      transform: translateY(-1px);
+    }
 
     .btn-refresh { 
       background-color: #2563eb; 
@@ -334,7 +294,7 @@
       <div class="empty-text">載入中...</div>
     </div>
 
-    <!-- 🔒 歷史 / 已截止項目 -->
+    <!-- 歷史 / 已截止項目 -->
     <div class="section-title">📁 歷史 / 已截止的項目</div>
     <div class="card card-closed" id="closed-container">
       <div class="empty-text">載入中...</div>
@@ -347,7 +307,6 @@
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-  // 格式化時間 (將 ISO 時間轉為 2026/10/06 21:00 格式)
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr);
@@ -357,7 +316,6 @@
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  // 手動點擊重新整理（加上按鈕與畫面載入狀態）
   function loadData() {
     const btn = document.getElementById('btn-refresh');
     btn.disabled = true;
@@ -373,7 +331,6 @@
     });
   }
 
-  // 頁面分頁切換處理
   function switchTab(tabName) {
     if (tabName === 'home') {
       window.location.href = "index.html";
@@ -382,6 +339,11 @@
     } else if (tabName === 'admin') {
       window.location.href = "admin.html";
     }
+  }
+
+  // 前往專屬投票頁面
+  function goToVote(proposalId) {
+    window.location.href = `vote.html?id=${encodeURIComponent(proposalId)}`;
   }
 
   async function loadProposals() {
@@ -395,7 +357,6 @@
       const closedList = [];
 
       proposals.forEach(p => {
-        // 若試算表手動設定標記為 Closed，推入已截止區塊
         if (p.status === 'Closed') {
           closedList.push(p);
           return;
@@ -404,12 +365,11 @@
         const startTime = p.startTime ? new Date(p.startTime) : null;
         const endTime = p.endTime ? new Date(p.endTime) : null;
 
-        // 核心時間比對邏輯
         const isStarted = !startTime || now >= startTime;
         const isEnded = endTime && now > endTime;
 
         if (isEnded) {
-          closedList.push(p); // 過期推入已截止區塊
+          closedList.push(p);
         } else if (isStarted || p.status === 'Active') {
           activeList.push(p);
         } else {
@@ -436,40 +396,15 @@
     }
 
     container.innerHTML = items.map(p => {
-      let formHTML = '';
-      if (isInteractive) {
-        if (p.type === 'vote') {
-          const options = p.options ? p.options.split(',') : [];
-          formHTML = `
-            <div class="option-list">
-              ${options.map((opt) => `
-                <label class="option-label">
-                  <input type="radio" name="opt_${p.id}" value="${opt.trim()}"> ${opt.trim()}
-                </label>
-              `).join('')}
-            </div>
-          `;
-        } else {
-          formHTML = `
-            <div class="form-group">
-              <textarea id="feedback_${p.id}" rows="3" placeholder="請在此留下您的意見與建議..."></textarea>
-            </div>
-          `;
-        }
-
-        formHTML += `
-          <div class="form-group">
-            <label>學校電子信箱 (@tshcmc.edu.vn)</label>
-            <input type="email" id="email_${p.id}" placeholder="s123456@tshcmc.edu.vn">
-          </div>
-          <button class="btn-submit" id="btn_submit_${p.id}" onclick="submitResponse('${p.id}', '${p.type}')">確認提交</button>
-        `;
-      }
-
-      // 時間格式化渲染
       const formattedTime = (p.startTime || p.endTime) 
         ? `${formatDate(p.startTime)} ~ ${formatDate(p.endTime)}`
         : '未設定限制';
+
+      const actionButtonHTML = isInteractive ? `
+        <button class="btn-goto-vote" onclick="goToVote('${p.id}')">
+          👉 前往投票 / 提交意見
+        </button>
+      ` : '';
 
       return `
         <div class="prop-item">
@@ -481,64 +416,13 @@
           <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
             ⏰ 時間：${formattedTime}
           </div>
-          ${formHTML}
+          ${actionButtonHTML}
         </div>
       `;
     }).join('');
   }
 
-  async function submitResponse(proposalId, type) {
-    const email = document.getElementById(`email_${proposalId}`).value.trim();
-    const submitBtn = document.getElementById(`btn_submit_${proposalId}`);
-
-    if (!email || !email.toLowerCase().endsWith('@tshcmc.edu.vn')) {
-      alert('請填寫有效的學校官方信箱 (@tshcmc.edu.vn)！');
-      return;
-    }
-
-    let responseVal = '';
-    if (type === 'vote') {
-      const selected = document.querySelector(`input[name="opt_${proposalId}"]:checked`);
-      if (!selected) { alert('請選擇一個選項！'); return; }
-      responseVal = selected.value;
-    } else {
-      responseVal = document.getElementById(`feedback_${proposalId}`).value.trim();
-      if (!responseVal) { alert('請輸入意見內容！'); return; }
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.innerText = "提交中...";
-
-    try {
-      const res = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'submitVote',
-          proposalId: proposalId,
-          email: email,
-          response: responseVal
-        })
-      });
-      const result = await res.json();
-      if (result.status === 'success') {
-        alert(result.message || '提交成功！');
-        loadData(); // 成功後重新讀取資料
-      } else {
-        alert('提交失敗：' + result.message);
-      }
-    } catch (e) {
-      alert('系統發生錯誤，請稍後再試。');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerText = "確認提交";
-    }
-  }
-
-  // 初始化載入資料
   loadProposals();
-
-  // 每 30 秒自動觸發一次時間比對刷新
   setInterval(loadProposals, 30000);
 </script>
 </body>
