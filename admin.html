@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 管理員後台</title>
   <style>
-    /* 預設隱藏 body，防止開頁瞬間閃爍出登入畫面 */
     body { 
-      display: none; 
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
@@ -17,6 +15,39 @@
     }
 
     * { box-sizing: border-box; }
+
+    /* 全屏載入中遮罩（取代 body display:none，避免純白畫面過久） */
+    #page-loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.1rem;
+      color: #64748b;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #0f172a;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
     /* 頂部 Header 樣式 */
     header {
@@ -142,11 +173,17 @@
     .btn-submit:hover { background-color: #1e293b; }
     .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
 
-    .hidden { display: none; }
+    .hidden { display: none !important; }
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
   </style>
 </head>
 <body>
+
+  <!-- 全屏載入中畫面 -->
+  <div id="page-loading">
+    <div class="spinner"></div>
+    <div>系統驗證中，請稍候...</div>
+  </div>
 
   <header>
     <a href="index.html" class="logo-container">
@@ -249,6 +286,15 @@
       window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
     }
 
+    // 隱藏全屏 Loading 畫面
+    function hideLoading() {
+      const loadingEl = document.getElementById('page-loading');
+      if (loadingEl) {
+        loadingEl.style.opacity = '0';
+        setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+      }
+    }
+
     // 頁面初次載入時檢查遠端鎖定狀態
     async function checkLockOnLoad() {
       try {
@@ -260,10 +306,10 @@
           return;
         }
 
-        // 確定未鎖定，顯示頁面
-        document.body.style.display = 'block';
+        // 確定未鎖定，隱藏 Loading 畫面
+        hideLoading();
       } catch (e) {
-        console.error(e);
+        console.error("初始化檢查失敗", e);
         handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
       }
     }
