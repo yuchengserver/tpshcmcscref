@@ -6,9 +6,7 @@
   <title>TSSC13TH 公投專區 - 首頁與通知</title>
   
   <style>
-    /* 預設先將 body 隱藏，避免載入時閃出原本的頁面內容 */
     body { 
-      display: none; 
       background-color: #f8fafc; 
       color: #334155; 
       line-height: 1.5; 
@@ -18,6 +16,39 @@
     }
 
     * { box-sizing: border-box; }
+
+    /* 頁面載入遮罩（取代 body display:none，避免畫面全白） */
+    #page-loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.1rem;
+      color: #64748b;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
     /* 頂部導引列 Header */
     .navbar { 
@@ -51,6 +82,7 @@
       font-size: 1.25rem; 
       font-weight: 700; 
       color: #0f172a; 
+      margin: 0;
     }
 
     .nav-buttons { display: flex; gap: 0.5rem; }
@@ -103,13 +135,14 @@
       margin-bottom: 0.8rem;
     }
 
-    .rules-header h3 { font-size: 1.05rem; color: #0f172a; font-weight: 700; }
+    .rules-header h3 { font-size: 1.05rem; color: #0f172a; font-weight: 700; margin: 0; }
 
     .rules-list {
       padding-left: 1.25rem;
       color: #475569;
       font-size: 0.9rem;
       line-height: 1.6;
+      margin: 0;
     }
 
     .rules-list li { margin-bottom: 0.4rem; }
@@ -164,6 +197,7 @@
     }
 
     .prop-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .prop-item h3 { margin: 0; }
 
     .btn-goto-vote { 
       background-color: black; 
@@ -218,6 +252,12 @@
   </style>
 </head>
 <body>
+
+  <!-- 載入中動畫遮罩 -->
+  <div id="page-loading">
+    <div class="spinner"></div>
+    <div>正在連線系統資料，請稍候...</div>
+  </div>
 
   <!-- 頂部導引列 -->
   <header class="navbar">
@@ -285,6 +325,15 @@
     const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
     const customMsg = message || defaultMsg;
     window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
+  }
+
+  // 隱藏全螢幕 Loading 畫面
+  function hideLoading() {
+    const loadingEl = document.getElementById('page-loading');
+    if (loadingEl) {
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+    }
   }
 
   function redirectToHome() {
@@ -360,8 +409,8 @@
         return;
       }
 
-      // 情況正常：解除 body 的隱藏
-      document.body.style.display = 'block';
+      // 情況正常：隱藏全屏 Loading 遮罩
+      hideLoading();
 
       const proposals = Array.isArray(resData) ? resData : [];
       const now = new Date();
@@ -395,7 +444,7 @@
       renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
-      // 網路連線錯誤或系統異常時觸發轉址鎖定
+      // 連線異常時觸發轉址鎖定
       handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
     }
   }
