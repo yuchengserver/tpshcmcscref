@@ -4,6 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 開票與歷史結果</title>
+
+  <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+    // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
+    function handleLockAndRedirect(message) {
+      const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
+      const customMsg = message || defaultMsg;
+      window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
+    }
+
+    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制)
+    (async function fastCheckLock() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getResults`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const result = await res.json();
+
+        if (result && result.systemLocked) {
+          handleLockAndRedirect(result.message);
+        }
+      } catch (e) {
+        console.error("初始化檢查失敗或請求逾時", e);
+        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
+      }
+    })();
+  </script>
+
   <style>
     body { 
       background-color: #f8fafc; 
@@ -15,39 +46,6 @@
     }
 
     * { box-sizing: border-box; }
-
-    /* 全屏載入中畫面（取代 body display:none，避免畫面全白） */
-    #page-loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.1rem;
-      color: #64748b;
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e2e8f0;
-      border-top: 4px solid #3b82f6;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
 
     /* 頁首 Header 樣式 */
     header {
@@ -203,12 +201,6 @@
 </head>
 <body>
 
-  <!-- 全屏載入中畫面 -->
-  <div id="page-loading">
-    <div class="spinner"></div>
-    <div>正在讀取最新開票結果，請稍候...</div>
-  </div>
-
   <!-- 導引列 Header -->
   <header>
     <a href="index.html" class="logo-container">
@@ -245,24 +237,6 @@
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
   <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-
-    // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
-    function handleLockAndRedirect(message) {
-      const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
-      const customMsg = message || defaultMsg;
-      window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
-    }
-
-    // 隱藏全屏 Loading 畫面
-    function hideLoading() {
-      const loadingEl = document.getElementById('page-loading');
-      if (loadingEl) {
-        loadingEl.style.opacity = '0';
-        setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
-      }
-    }
-
     // 日期解析工具函式 (相容多種日期格式)
     function parseCleanDate(dateStr) {
       if (!dateStr) return null;
@@ -306,14 +280,11 @@
         const res = await fetch(`${GAS_API_URL}?action=getResults`);
         const result = await res.json();
 
-        // 1. 檢查系統是否觸發遠端鎖定，是則直接轉址至 lock.html
+        // 檢查系統是否觸發遠端鎖定，是則直接轉址至 lock.html
         if (result && result.systemLocked) {
           handleLockAndRedirect(result.message);
           return;
         }
-
-        // 確認未上鎖後隱藏全屏 Loading
-        hideLoading();
 
         // 相容處理：取得陣列資料
         const resultsArray = Array.isArray(result) ? result : (result.data || []);
@@ -324,7 +295,7 @@
           return;
         }
 
-        // 2. 僅保留投票類型的提案 (排除意見徵集/feedback)
+        // 僅保留投票類型的提案 (排除意見徵集/feedback)
         const voteProposals = resultsArray.filter(item => item.proposal && item.proposal.type === 'vote');
 
         if (voteProposals.length === 0) {
@@ -399,7 +370,7 @@
       }
     }
 
-    // 初次載入
+    // 初次載入列表
     loadResults();
 
     // 每 30 秒自動觸發重新整理
