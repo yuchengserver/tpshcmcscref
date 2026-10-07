@@ -154,6 +154,12 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
     }
 
+    /* 已截止區域背景稍作區隔 */
+    .card-closed {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
     .section-title { 
       font-size: 1.1rem; 
       font-weight: 700; 
@@ -255,6 +261,17 @@
     .btn-refresh:hover { background-color: #1d4ed8; }
     .btn-refresh:disabled { opacity: 0.6; cursor: not-allowed; }
 
+    .badge-closed {
+      background-color: #e2e8f0;
+      color: #64748b;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: inline-block;
+      margin-left: 0.5rem;
+    }
+
     .empty-text { text-align: center; color: #94a3b8; padding: 2rem 0; }
 
     footer { text-align: center; color: #94a3b8; font-size: 0.85rem; margin: 3rem 0; }
@@ -317,6 +334,12 @@
       <div class="empty-text">載入中...</div>
     </div>
 
+    <!-- 🔒 歷史 / 已截止項目 -->
+    <div class="section-title">📁 歷史 / 已截止的項目</div>
+    <div class="card card-closed" id="closed-container">
+      <div class="empty-text">載入中...</div>
+    </div>
+
   </main>
 
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
@@ -342,6 +365,7 @@
     
     document.getElementById('active-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
     document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+    document.getElementById('closed-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
 
     loadProposals().finally(() => {
       btn.disabled = false;
@@ -368,10 +392,14 @@
       const now = new Date();
       const activeList = [];
       const upcomingList = [];
+      const closedList = [];
 
       proposals.forEach(p => {
-        // 若後台手動狀態標記為 Closed，直接跳過
-        if (p.status === 'Closed') return;
+        // 若試算表手動設定標記為 Closed，推入已截止區塊
+        if (p.status === 'Closed') {
+          closedList.push(p);
+          return;
+        }
 
         const startTime = p.startTime ? new Date(p.startTime) : null;
         const endTime = p.endTime ? new Date(p.endTime) : null;
@@ -381,7 +409,7 @@
         const isEnded = endTime && now > endTime;
 
         if (isEnded) {
-          return; // 過期則隱藏
+          closedList.push(p); // 過期推入已截止區塊
         } else if (isStarted || p.status === 'Active') {
           activeList.push(p);
         } else {
@@ -391,14 +419,16 @@
 
       renderList('active-container', activeList, true);
       renderList('upcoming-container', upcomingList, false);
+      renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
       document.getElementById('active-container').innerHTML = '<div class="empty-text">目前暫無開放中的公投或意見徵集項目。</div>';
       document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">目前沒有即將開始的預告項目。</div>';
+      document.getElementById('closed-container').innerHTML = '<div class="empty-text">目前沒有歷史或已截止的項目。</div>';
     }
   }
 
-  function renderList(elementId, items, isInteractive) {
+  function renderList(elementId, items, isInteractive, isClosed = false) {
     const container = document.getElementById(elementId);
     if (!items || items.length === 0) {
       container.innerHTML = '<div class="empty-text">目前暫無項目。</div>';
@@ -443,7 +473,10 @@
 
       return `
         <div class="prop-item">
-          <h3>${p.title}</h3>
+          <h3>
+            ${p.title}
+            ${isClosed ? '<span class="badge-closed">已截止</span>' : ''}
+          </h3>
           <p style="color: #64748b; margin: 0.5rem 0;">${p.description || ''}</p>
           <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">
             ⏰ 時間：${formattedTime}
