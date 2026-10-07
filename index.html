@@ -154,7 +154,6 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04); 
     }
 
-    /* ✅ 已修改：將歷史項目的背景改成純白色 */
     .card-closed {
       background: #ffffff;
       border-color: #cbd5e1;
@@ -308,11 +307,25 @@
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
+  // 解析並清除 +07:00 等時區字串的工具函式
+  function parseCleanDate(dateStr) {
+    if (!dateStr) return null;
+    let cleanStr = String(dateStr)
+      .replace(/\+07:?00/gi, '') // 去除 +07:00 或 +0700
+      .replace(/GMT\+7/gi, '')    // 去除 GMT+7
+      .replace(/T/g, ' ')        // 將 ISO 的 T 轉為空格
+      .replace(/-/g, '/')        // 統一替換 - 為 /
+      .trim();
+      
+    const d = new Date(cleanStr);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // 格式化日期顯示 (如：2026/10/07 21:15)
   function formatDate(dateStr) {
     if (!dateStr) return '';
-    const formattedStr = typeof dateStr === 'string' ? dateStr.replace(/-/g, '/') : dateStr;
-    const d = new Date(formattedStr);
-    if (isNaN(d.getTime())) return dateStr;
+    const d = parseCleanDate(dateStr);
+    if (!d) return String(dateStr).replace(/\+07:?00/gi, '').trim(); // 若解析失敗，直接移除 +07:00 後顯示
     
     const pad = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -364,8 +377,8 @@
           return;
         }
 
-        const startTime = p.startTime ? new Date(p.startTime) : null;
-        const endTime = p.endTime ? new Date(p.endTime) : null;
+        const startTime = parseCleanDate(p.startTime);
+        const endTime = parseCleanDate(p.endTime);
 
         const isStarted = !startTime || now >= startTime;
         const isEnded = endTime && now > endTime;
