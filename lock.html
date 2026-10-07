@@ -5,44 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>系統提示 - TSSC13TH</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
     body {
-      background-color: #f8fafc;
-      height: 100vh;
+      background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       padding: 20px;
+      color: #334155;
     }
+
     .lock-card {
-      max-width: 520px;
+      max-width: 500px;
       width: 100%;
-      padding: 2.5rem 2rem;
-      border-radius: 16px;
-      border: 1px solid #e2e8f0;
+      padding: 3rem 2.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
       background: #ffffff;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
       text-align: center;
+      transition: transform 0.2s ease;
     }
-    .lock-icon { font-size: 3.5rem; margin-bottom: 1rem; line-height: 1; }
-    .lock-title { font-size: 1.35rem; color: #0f172a; font-weight: 700; line-height: 1.5; margin-bottom: 1rem; }
-    .divider { height: 1px; background: #f1f5f9; margin: 1.25rem 0; }
-    .lock-desc { font-size: 0.95rem; color: #475569; line-height: 1.6; font-weight: 500; }
-    .sub-note { font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; }
+
+    .lock-icon-wrapper {
+      width: 80px;
+      height: 80px;
+      background-color: #fef2f2;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 1.5rem auto;
+      animation: pulse 2s infinite;
+    }
+
+    .lock-icon { 
+      font-size: 2.5rem; 
+      line-height: 1; 
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    .lock-title { 
+      font-size: 1.25rem; 
+      color: #0f172a; 
+      font-weight: 700; 
+      line-height: 1.6; 
+      margin-bottom: 1.25rem;
+      word-break: break-word;
+    }
+
+    .divider { 
+      height: 1px; 
+      background: linear-gradient(to right, transparent, #e2e8f0, transparent); 
+      margin: 1.5rem 0; 
+    }
+
+    .lock-desc { 
+      font-size: 0.95rem; 
+      color: #475569; 
+      line-height: 1.6; 
+      font-weight: 500; 
+    }
+
     .footer-status {
       margin-top: 2rem;
-      padding-top: 1rem;
+      padding-top: 1.25rem;
       border-top: 1px dashed #e2e8f0;
       font-size: 0.85rem;
       color: #94a3b8;
     }
+
     .status-badge {
-      display: inline-block;
-      margin-top: 0.5rem;
-      padding: 0.25rem 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.75rem;
+      padding: 0.35rem 0.85rem;
       background-color: #fef2f2;
-      color: #ef4444;
+      color: #dc2626;
+      border: 1px solid #fee2e2;
       border-radius: 9999px;
       font-size: 0.8rem;
       font-weight: 600;
@@ -52,14 +111,21 @@
 <body>
 
   <div class="lock-card">
-    <div class="lock-icon">⚠️</div>
+    <div class="lock-icon-wrapper">
+      <div class="lock-icon">⚠️</div>
+    </div>
+    
     <h1 class="lock-title" id="lock-message">系統提示：本網站無償服務已終止，服務已全面關閉</h1>
+    
     <div class="divider"></div>
+    
     <p class="lock-desc">詳情請洽 TSSC13TH 學生會</p>
-   
+    
     <div class="footer-status">
       <div>胡志明市臺灣學校學生會 TSSC13TH</div>
-      <div class="status-badge">🔒 系統目前已完全鎖定</div>
+      <div class="status-badge">
+        <span>🔒</span> 系統目前已完全鎖定
+      </div>
     </div>
   </div>
 
@@ -68,7 +134,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const msg = urlParams.get('msg');
     if (msg) {
-      document.getElementById('lock-message').innerText = decodeURIComponent(msg);
+      try {
+        document.getElementById('lock-message').innerText = decodeURIComponent(msg);
+      } catch (e) {
+        document.getElementById('lock-message').innerText = msg;
+      }
     }
   </script>
 </body>
