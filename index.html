@@ -5,6 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 首頁與通知</title>
   
+  <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+
+    // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
+    function handleLockAndRedirect(message) {
+      const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
+      const customMsg = message || defaultMsg;
+      window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
+    }
+
+    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制與防快取時間戳記)
+    (async function fastCheckLock() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const result = await res.json();
+
+        if (result && result.systemLocked) {
+          handleLockAndRedirect(result.message);
+        }
+      } catch (e) {
+        console.error("初始化檢查失敗或請求逾時", e);
+        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
+      }
+    })();
+  </script>
+
   <style>
     body { 
       background-color: #f8fafc; 
@@ -16,39 +46,6 @@
     }
 
     * { box-sizing: border-box; }
-
-    /* 頁面載入遮罩（取代 body display:none，避免畫面全白） */
-    #page-loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.1rem;
-      color: #64748b;
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e2e8f0;
-      border-top: 4px solid #2563eb;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
 
     /* 頂部導引列 Header */
     .navbar { 
@@ -253,12 +250,6 @@
 </head>
 <body>
 
-  <!-- 載入中動畫遮罩 -->
-  <div id="page-loading">
-    <div class="spinner"></div>
-    <div>正在連線系統資料，請稍候...</div>
-  </div>
-
   <!-- 頂部導引列 -->
   <header class="navbar">
     <div class="logo-container" onclick="redirectToHome()" style="cursor: pointer;">
@@ -318,24 +309,6 @@
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-
-  // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
-  function handleLockAndRedirect(message) {
-    const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
-    const customMsg = message || defaultMsg;
-    window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
-  }
-
-  // 隱藏全螢幕 Loading 畫面
-  function hideLoading() {
-    const loadingEl = document.getElementById('page-loading');
-    if (loadingEl) {
-      loadingEl.style.opacity = '0';
-      setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
-    }
-  }
-
   function redirectToHome() {
     const currentPath = window.location.pathname;
     if (!currentPath.endsWith('index.html') && currentPath !== '/') {
@@ -400,7 +373,7 @@
 
   async function loadProposals() {
     try {
-      const res = await fetch(`${GAS_API_URL}?action=getProposals`);
+      const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
       const resData = await res.json();
 
       // 🛑 若系統回傳鎖定，跳轉至 lock.html
@@ -408,9 +381,6 @@
         handleLockAndRedirect(resData.message);
         return;
       }
-
-      // 情況正常：隱藏全屏 Loading 遮罩
-      hideLoading();
 
       const proposals = Array.isArray(resData) ? resData : [];
       const now = new Date();
@@ -444,7 +414,6 @@
       renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
-      // 連線異常時觸發轉址鎖定
       handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
     }
   }
