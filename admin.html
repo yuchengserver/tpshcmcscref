@@ -14,6 +14,19 @@
       window.location.replace('lock.html');
     }
 
+    // 單純檢查遠端鎖狀態 (供輪詢使用)
+    async function checkLockStatusOnly() {
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+        const result = await res.json();
+        if (result && result.systemLocked) {
+          handleLockAndRedirect();
+        }
+      } catch (e) {
+        console.error("遠端鎖輪詢檢查失敗", e);
+      }
+    }
+
     // 初始化檢查鎖定狀態與登入狀態
     (async function initAdminPage() {
       try {
@@ -33,6 +46,10 @@
             document.getElementById('admin-panel').classList.remove('hidden');
           });
         }
+
+        // 啟動 10 秒定期檢查遠端鎖機制
+        setInterval(checkLockStatusOnly, 10000);
+
       } catch (e) {
         console.error("初始化檢查失敗", e);
       }
