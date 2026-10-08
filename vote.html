@@ -12,31 +12,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const proposalId = urlParams.get('id');
 
-    // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
-    function handleLockAndRedirect(message) {
-      const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
-      const customMsg = message || defaultMsg;
-      window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
+    // 觸發鎖定：統一跳轉至乾淨的 lock.html (不帶 msg 網址參數)
+    function handleLockAndRedirect() {
+      window.location.replace("lock.html");
     }
-
-    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制與防快取時間戳記)
-    (async function fastCheckLock() {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500);
-
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const result = await res.json();
-
-        if (result && result.systemLocked) {
-          handleLockAndRedirect(result.message);
-        }
-      } catch (e) {
-        console.error("初始化檢查失敗或請求逾時", e);
-        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
-      }
-    })();
   </script>
 
   <style>
@@ -317,7 +296,7 @@
 
         // 檢查系統鎖定狀態，若觸發則跳轉至 lock.html
         if (result && result.systemLocked) {
-          handleLockAndRedirect(result.message);
+          handleLockAndRedirect();
           return;
         }
 
@@ -410,7 +389,6 @@
 
       } catch (err) {
         console.error("無法載入提案詳細資料", err);
-        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
       }
     }
 
@@ -461,7 +439,7 @@
 
         // 提交時若發現已上鎖，直接開啟鎖定頁面
         if (result && result.systemLocked) {
-          handleLockAndRedirect(result.message);
+          handleLockAndRedirect();
           return;
         }
 
@@ -469,13 +447,12 @@
           alert('🎉 感謝您的參與，回應已成功送出！');
           window.location.href = 'index.html';
         } else {
-          alert('提交失敗：' + (result.message || '您可能已經參與過此項目'));
+          alert('提交失敗：' + (result.message || '您已經參與過此項目'));
           submitBtn.disabled = false;
           submitBtn.innerText = '確認並送出';
         }
       } catch (e) {
         console.error("提交回應時發生錯誤：", e);
-        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
       }
     }
 
