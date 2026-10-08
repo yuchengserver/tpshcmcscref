@@ -19,13 +19,13 @@
       window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
     }
 
-    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制)
+    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制與防快取時間戳記)
     (async function fastCheckLock() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 1500);
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals`, { signal: controller.signal });
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const result = await res.json();
 
@@ -312,7 +312,7 @@
       }
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals`);
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
         const result = await res.json();
 
         // 檢查系統鎖定狀態，若觸發則跳轉至 lock.html
