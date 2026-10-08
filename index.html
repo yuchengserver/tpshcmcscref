@@ -313,14 +313,24 @@
     }
   }
 
+  // 增強版日期解析函式
   function parseCleanDate(dateStr) {
     if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+
     let cleanStr = String(dateStr)
-      .replace(/\+07:?00/gi, '')
-      .replace(/GMT\+7/gi, '')
       .replace(/T/g, ' ')
       .replace(/-/g, '/')
+      .replace(/\+07:?00/gi, '')
+      .replace(/GMT\+7/gi, '')
       .trim();
+
+    // 處理格式沒有秒數時補上 :00
+    const parts = cleanStr.split(' ');
+    if (parts.length === 2 && parts[1].split(':').length === 2) {
+      cleanStr += ':00';
+    }
+
     const d = new Date(cleanStr);
     return isNaN(d.getTime()) ? null : d;
   }
@@ -384,6 +394,7 @@
       const closedList = [];
 
       proposals.forEach(p => {
+        // 1. 若後台狀態為 Closed，優先歸類至歷史
         if (p.status === 'Closed') {
           closedList.push(p);
           return;
@@ -392,15 +403,18 @@
         const startTime = parseCleanDate(p.startTime);
         const endTime = parseCleanDate(p.endTime);
 
-        const isStarted = !startTime || now >= startTime;
-        const isEnded = endTime && now > endTime;
+        const isNotStartedYet = startTime && now < startTime;
+        const isAlreadyEnded = endTime && now > endTime;
 
-        if (isEnded) {
+        // 2. 精準時間比對歸類
+        if (isAlreadyEnded) {
           closedList.push(p);
-        } else if (isStarted || p.status === 'Active') {
-          activeList.push(p);
-        } else {
+        } else if (isNotStartedYet) {
+          // 時間還沒到 ➜ 一律歸類至預告中
           upcomingList.push(p);
+        } else {
+          // 時間已到且未截止 ➜ 歸類至開放中
+          activeList.push(p);
         }
       });
 
