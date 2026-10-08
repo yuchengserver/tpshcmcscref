@@ -21,7 +21,7 @@
       const timeoutId = setTimeout(() => controller.abort(), 1500);
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getResults`, { signal: controller.signal });
+        const res = await fetch(`${GAS_API_URL}?action=getResults&_t=${Date.now()}`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const result = await res.json();
 
@@ -277,7 +277,8 @@
 
     async function loadResults() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getResults`);
+        // 加入時間戳記避免 API 回應被瀏覽器快取
+        const res = await fetch(`${GAS_API_URL}?action=getResults&_t=${Date.now()}`);
         const result = await res.json();
 
         // 檢查系統是否觸發遠端鎖定，是則直接轉址至 lock.html
@@ -366,7 +367,7 @@
 
       } catch (err) {
         console.error("載入結果失敗", err);
-        handleLockAndRedirect('系統提示:本網站無償服務已終止，服務已全面關閉');
+        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
       }
     }
 
