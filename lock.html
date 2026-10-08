@@ -137,36 +137,26 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 1. 讀取 URL 帶入的自訂訊息（若有帶入則動態替換）
-    const urlParams = new URLSearchParams(window.location.search);
-    const msg = urlParams.get('msg');
-    if (msg) {
-      try {
-        let decodedMsg = decodeURIComponent(msg);
-        document.getElementById('lock-message').innerText = decodedMsg.replace(/，/g, '，\n');
-      } catch (e) {
-        document.getElementById('lock-message').innerText = msg;
-      }
-    }
-
-    // 2. 自動檢查解鎖狀態函式
+    // 自動檢查解鎖狀態函式
     async function checkIfUnlocked() {
       try {
-        // 使用 cache-bust 參數防止瀏覽器快取 API 歷史回應
+        // 加上防快取時間戳記
         const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
         const result = await res.json();
 
-        // 如果 systemLocked 為 false，或是已能正常讀取到資料（不是鎖定物件），代表已解鎖
+        // 若回傳資料不再包含 systemLocked: true，代表試算表已切換為 TRUE 解鎖
         if (result && !result.systemLocked) {
           window.location.replace("index.html");
         }
       } catch (e) {
-        // 發生網路錯誤時維持在鎖定頁面，等待下一次自動重試
-        console.log("嘗試解鎖檢查中...");
+        // 連線波動時維持鎖定頁面，等待下一次自動檢查
       }
     }
 
-    // 3. 設定每 10 秒 (10000 毫秒) 自動輪詢檢查一次
+    // 頁面載入 3 秒後進行首次快速檢查
+    setTimeout(checkIfUnlocked, 3000);
+
+    // 隨後設定每 10 秒 (10000 毫秒) 自動輪詢一次
     setInterval(checkIfUnlocked, 10000);
   </script>
 </body>
