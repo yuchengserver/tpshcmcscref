@@ -8,31 +8,10 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
-    function handleLockAndRedirect(message) {
-      const defaultMsg = '系統提示：本網站無償服務已終止，服務已全面關閉';
-      const customMsg = message || defaultMsg;
-      window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
+    // 觸發鎖定：統一跳轉至乾淨的 lock.html (不帶 msg 網址參數)
+    function handleLockAndRedirect() {
+      window.location.replace("lock.html");
     }
-
-    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制與防快取時間戳記)
-    (async function fastCheckLock() {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500);
-
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const result = await res.json();
-
-        if (result && result.systemLocked) {
-          handleLockAndRedirect(result.message);
-        }
-      } catch (e) {
-        console.error("初始化檢查失敗或請求逾時", e);
-        handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
-      }
-    })();
   </script>
 
   <style>
@@ -378,7 +357,7 @@
 
       // 🛑 若系統回傳鎖定，跳轉至 lock.html
       if (resData && resData.systemLocked) {
-        handleLockAndRedirect(resData.message);
+        handleLockAndRedirect();
         return;
       }
 
@@ -414,7 +393,6 @@
       renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
-      handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
     }
   }
 
