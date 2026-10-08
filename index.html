@@ -12,6 +12,22 @@
     function handleLockAndRedirect() {
       window.location.replace("lock.html");
     }
+
+    // 單純檢查遠端鎖狀態 (供背景輪詢使用，不影響頁面渲染)
+    async function checkLockStatusOnly() {
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+        const result = await res.json();
+        if (result && result.systemLocked) {
+          handleLockAndRedirect();
+        }
+      } catch (e) {
+        console.error("遠端鎖背景檢查失敗", e);
+      }
+    }
+
+    // 設定每 10 秒自動進行一次遠端鎖背景檢查
+    setInterval(checkLockStatusOnly, 10000);
   </script>
 
   <style>
