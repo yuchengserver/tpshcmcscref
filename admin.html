@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSSC13TH 公投專區 - 管理員後台</title>
-  
+
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-    let adminToken = ""; 
+    let adminToken = sessionStorage.getItem("adminToken") || ""; 
 
     // 觸發鎖定：中斷傳輸並跳轉至獨立 lock.html 頁面
     function handleLockAndRedirect(message) {
@@ -16,21 +16,29 @@
       window.location.replace(`lock.html?msg=${encodeURIComponent(customMsg)}`);
     }
 
-    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制)
+    // 毫秒級快速檢查鎖定狀態 (帶有 1.5 秒逾時控制與防快取時間戳記)
     (async function fastCheckLock() {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500); // 超過 1.5 秒未回應即中斷並處理
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals`, { signal: controller.signal });
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const result = await res.json();
 
         if (result && result.systemLocked) {
           handleLockAndRedirect(result.message);
+          return;
+        }
+
+        // 若系統未鎖定且先前已登入，自動切換至管理面板
+        if (adminToken) {
+          document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('login-card').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+          });
         }
       } catch (e) {
-        // 發生網路錯誤或請求逾時，安全起見觸發鎖定/關閉提示
         console.error("初始化檢查失敗或請求逾時", e);
         handleLockAndRedirect('系統提示：本網站無償服務已終止，服務已全面關閉');
       }
@@ -301,6 +309,7 @@
 
         if (result.status === 'success') {
           adminToken = pass;
+          sessionStorage.setItem("adminToken", pass); // 持久化登入狀態至 Session
           document.getElementById('login-card').classList.add('hidden');
           document.getElementById('admin-panel').classList.remove('hidden');
         } else {
