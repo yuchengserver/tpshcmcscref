@@ -17,7 +17,7 @@
       window.location.replace("lock.html");
     }
 
-    // 單純檢查遠端鎖狀態 (供背景輪詢使用，不影響頁面內容輸入)
+    // 單純檢查遠端鎖狀態 (供背景極速輪詢使用，不影響頁面內容輸入)
     async function checkLockStatusOnly() {
       try {
         const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
@@ -30,8 +30,8 @@
       }
     }
 
-    // 設定每 10 秒自動進行一次遠端鎖背景檢查
-    setInterval(checkLockStatusOnly, 10000);
+    // 設定每 2 秒自動進行一次遠端鎖背景極速檢查
+    setInterval(checkLockStatusOnly, 2000);
   </script>
 
   <style>
@@ -44,9 +44,7 @@
       padding: 0;
     }
 
-    * { 
-      box-sizing: border-box; 
-    }
+    * { box-sizing: border-box; }
 
     /* 頂部 Header 樣式 */
     header { 
@@ -166,7 +164,7 @@
       color: #1e293b; 
     }
 
-    input[type="email"], textarea { 
+    input[type="email"], input[type="text"], textarea { 
       width: 100%; 
       padding: 0.75rem 0.9rem; 
       border: 1px solid #cbd5e1; 
@@ -176,10 +174,32 @@
       transition: border-color 0.2s; 
     }
 
-    input[type="email"]:focus, textarea:focus { 
+    input:focus, textarea:focus { 
       border-color: #3b82f6; 
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
+
+    /* 信箱與發送驗證碼按鈕排版 */
+    .email-code-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-send-code {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0 1.2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+
+    .btn-send-code:hover { background-color: #1d4ed8; }
+    .btn-send-code:disabled { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
 
     .option-list { 
       display: flex; 
@@ -393,9 +413,17 @@
 
             <div class="form-group">
               <label for="user_email">學校官方電子信箱 (@tshcmc.edu.vn)</label>
-              <input type="email" id="user_email" placeholder="s123456@tshcmc.edu.vn" required>
+              <div class="email-code-group">
+                <input type="email" id="user_email" placeholder="s123456@tshcmc.edu.vn" required>
+                <button type="button" class="btn-send-code" id="btn-send-code" onclick="sendVerificationCode()">發送驗證碼</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="verification_code">信箱驗證碼 (6 位數字)</label>
+              <input type="text" id="verification_code" placeholder="請輸入 6 位數驗證碼" maxlength="6" required>
               <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-                本系統採實名驗證，每位學生僅能表達一次意見/投票。
+                請輸入寄送至您學校信箱中的 6 位數一次性驗證碼（有效期限 10 分鐘）。
               </small>
             </div>
 
@@ -408,15 +436,83 @@
       }
     }
 
-    async function submitSingleResponse(pId, pType) {
+    // 發送驗證碼函式
+    async function sendVerificationCode() {
       const emailInput = document.getElementById('user_email');
       const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
-      const submitBtn = document.getElementById('btn-submit-vote');
+      const sendBtn = document.getElementById('btn-send-code');
 
-      // 學校信箱正則運算式檢查
       const emailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/;
       if (!email || !emailRegex.test(email)) {
         alert('請輸入有效的學校官方信箱（例如：s123456@tshcmc.edu.vn）！');
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.innerText = '發送中...';
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'sendVerificationCode',
+            email: email
+          })
+        });
+
+        const result = await res.json();
+
+        if (result && result.systemLocked) {
+          handleLockAndRedirect();
+          return;
+        }
+
+        if (result.status === 'success') {
+          alert('📧 驗證碼已寄出，請至學校信箱查收！');
+          
+          // 60 秒倒數計時冷卻機制
+          let countdown = 60;
+          sendBtn.innerText = `${countdown} 秒後重試`;
+          const timer = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+              sendBtn.innerText = `${countdown} 秒後重試`;
+            } else {
+              clearInterval(timer);
+              sendBtn.disabled = false;
+              sendBtn.innerText = '發送驗證碼';
+            }
+          }, 1000);
+
+        } else {
+          alert('發送失敗：' + (result.message || '請稍後重試'));
+          sendBtn.disabled = false;
+          sendBtn.innerText = '發送驗證碼';
+        }
+      } catch (e) {
+        alert('網路錯誤，無法發送驗證碼。');
+        sendBtn.disabled = false;
+        sendBtn.innerText = '發送驗證碼';
+      }
+    }
+
+    // 提交投票/意見函式 (包含驗證碼)
+    async function submitSingleResponse(pId, pType) {
+      const emailInput = document.getElementById('user_email');
+      const codeInput = document.getElementById('verification_code');
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const code = codeInput ? codeInput.value.trim() : '';
+      const submitBtn = document.getElementById('btn-submit-vote');
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@tshcmc\.edu\.vn$/;
+      if (!email || !emailRegex.test(email)) {
+        alert('請輸入有效的學校官方信箱（例如：s123456@tshcmc.edu.vn）！');
+        return;
+      }
+
+      if (!code || code.length !== 6) {
+        alert('請填寫完整的 6 位數信箱驗證碼！');
         return;
       }
 
@@ -447,6 +543,7 @@
             action: 'submitVote',
             proposalId: pId,
             email: email,
+            code: code,
             response: responseVal
           })
         });
@@ -463,12 +560,15 @@
           alert('🎉 感謝您的參與，回應已成功送出！');
           window.location.href = 'index.html';
         } else {
-          alert('提交失敗：' + (result.message || '您已經參與過此項目'));
+          alert('提交失敗：' + (result.message || '驗證碼錯誤或已過期'));
           submitBtn.disabled = false;
           submitBtn.innerText = '確認並送出';
         }
       } catch (e) {
         console.error("提交回應時發生錯誤：", e);
+        alert('連線失敗，請檢查網路狀況！');
+        submitBtn.disabled = false;
+        submitBtn.innerText = '確認並送出';
       }
     }
 

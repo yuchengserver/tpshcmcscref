@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統通知 - TSSC13TH 胡台校意見箱</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+            text-align: center;
+        }
+
+
+        /* 警告 Icon 區塊 */
+        .icon-box {
+            width: 68px;
+            height: 68px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            animation: redGlowBreathing 1.2s infinite ease-in-out; /* 閃爍紅光 */
+        }
+
+        .title {
+            font-size: 1.15rem;
+            color: #334155;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .main-message {
+            font-size: 1.35rem;
+            color: #0f172a;
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .sub-message {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .time-text {
+            font-size: 0.9rem;
+            color: #d97706;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-org {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #fef3c7;
+            color: #b45309;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- 圖示 (黃色警告 + 閃爍紅光) -->
+        <div class="icon-box">
+            ⚠️
+        </div>
+
+        <!-- 文字層級 -->
+        <div class="title">系統通知</div>
+
+        <div class="main-message">
+            系統正在維護更新中
+        </div>
+
+        <div class="sub-message">
+            維護期間將暫時停止意見投遞等功能，造成不便，敬請見諒
+        </div>
+
+        <!-- 預計時間顯示（B3 有填寫時自動顯示） -->
+        <div id="timeBox" class="time-text" style="display: none;">
+            預計恢復使用時間：<span id="maintenanceTimeText"></span>
+        </div>
+
+        <div class="footer-org">
+            胡志明市台灣學校學生會 TSSC13TH
+        </div>
+
+        <!-- 底部狀態標籤 -->
+        <div>
+            <div class="badge-status">
+                🛠️ 系統目前處於維護狀態
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_GsvbBdSfWdLYHys0beIzngkABgNmQq49YXd9ukuXAVGZzfS75yMQ33AkP0yoPrL/exec';
+        // 指定遠端鎖定 Control Sheet ID
+        const TARGET_SHEET_ID = '18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo';
+
+        function checkUnlockStatus() {
+            // 加上時間戳 _t 避免瀏覽器快取，並指定 spreadsheetId 參數
+            fetch(`${GAS_URL}?action=checkLockStatus&spreadsheetId=${TARGET_SHEET_ID}&_t=${Date.now()}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP 錯誤');
+                    return res.json();
+                })
+                .then(data => {
+                    // 🔒 嚴格判斷：只有當明確回傳 locked === false 且 maintenance === false 時才允許跳轉回首頁
+                    if (data && typeof data.locked !== 'undefined') {
+                        if (data.locked === false && data.maintenance === false) {
+                            window.location.href = 'index.html';
+                            return;
+                        }
+
+                        // 讀取 B3 儲存格預計恢復時間
+                        const timeBox = document.getElementById('timeBox');
+                        const timeText = document.getElementById('maintenanceTimeText');
+                        if (data.maintenanceTime) {
+                            timeText.innerText = data.maintenanceTime;
+                            timeBox.style.display = 'block';
+                        } else {
+                            timeBox.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(err => console.error('維護狀態檢測失敗:', err));
+        }
+
+        // 頁面載入時執行，並設置 1 秒定期檢測，達到秒級跳轉
+        window.onload = function() {
+            checkUnlockStatus();
+            setInterval(checkUnlockStatus, 1000);
+        };
+    </script>
+</body>
+</html>
