@@ -7,6 +7,8 @@
   
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    // 🔒 前端指定綁定的試算表 ID
+    const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
     // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
     function handleLockAndRedirect(result) {
@@ -18,13 +20,14 @@
       }
     }
 
-    // 🚀 單純極速檢查遠端鎖狀態 (供背景輪詢使用)
+    // 🚀 單純極速檢查遠端鎖狀態 (帶入指定的試算表 ID，不相符即封鎖)
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
         const result = await res.json();
         
-        if (result && result.systemLocked) {
+        // 若系統上鎖或試算表 ID 不符，立即強制轉址封鎖
+        if (!result || result.systemLocked || result.boundSheetId !== TARGET_SPREADSHEET_ID) {
           handleLockAndRedirect(result);
         }
       } catch (e) {
@@ -384,16 +387,22 @@
 
   async function loadProposals() {
     try {
-      const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+      // 檢查前端指定的 TARGET_SPREADSHEET_ID
+      if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
+        handleLockAndRedirect();
+        return;
+      }
+
+      const res = await fetch(`${GAS_API_URL}?action=getProposals&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
       const resData = await res.json();
 
-      // 🛑 若系統回傳鎖定，精準跳轉至對應鎖定頁面
-      if (resData && !Array.isArray(resData) && resData.systemLocked) {
+      // 🛑 若系統回傳鎖定，或試算表 ID 不符，精準跳轉至對應鎖定頁面
+      if (!resData || resData.systemLocked || resData.boundSheetId !== TARGET_SPREADSHEET_ID) {
         handleLockAndRedirect(resData);
         return;
       }
 
-      const proposals = Array.isArray(resData) ? resData : [];
+      const proposals = Array.isArray(resData) ? resData : (resData.proposals || []);
       const now = new Date();
       const activeList = [];
       const upcomingList = [];
@@ -429,6 +438,7 @@
       renderList('closed-container', closedList, false, true);
     } catch (err) {
       console.error("無法取得資料", err);
+      handleLockAndRedirect();
     }
   }
 

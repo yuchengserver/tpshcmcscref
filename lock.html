@@ -136,26 +136,28 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    // 🔒 前端指定綁定的試算表 ID
+    const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
     // 🚀 自動極速檢查解鎖/狀態切換函式
     async function checkIfUnlocked() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
         const result = await res.json();
 
-        // 1. 若系統已解除鎖定，自動跳轉回首頁
-        if (result && !result.systemLocked) {
+        // 1. 只有當系統解鎖 (systemLocked === false) 且 試算表 ID 吻合時，才跳轉回首頁
+        if (result && !result.systemLocked && result.boundSheetId === TARGET_SPREADSHEET_ID) {
           window.location.replace("index.html");
           return;
         }
 
-        // 2. 若狀態被切換為「維護中」，自動切換至維護頁面
-        if (result && result.systemLocked && result.lockType === 'maintenance') {
+        // 2. 若狀態被切換為「維護中」，且試算表 ID 吻合，自動切換至維護頁面
+        if (result && result.systemLocked && result.lockType === 'maintenance' && result.boundSheetId === TARGET_SPREADSHEET_ID) {
           const endTime = encodeURIComponent(result.maintenanceEndTime || '');
           window.location.replace(`maintenance.html?until=${endTime}`);
         }
       } catch (e) {
-        // 發生連線波動時保持當前頁面，等待下一次自動檢查
+        // 發生連線波動或 ID 不符時保持鎖定頁面，等待下一次自動檢查
       }
     }
 

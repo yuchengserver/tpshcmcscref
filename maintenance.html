@@ -132,6 +132,8 @@
 
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec';
+        // 🔒 前端指定綁定的試算表 ID
+        const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
         // 1. 初始化：先從網址參數取得預計恢復時間（網址帶有 ?until=...）
         (function initTimeFromUrl() {
@@ -148,10 +150,16 @@
         // 2. 極速狀態自動輪詢與跳轉機制
         async function checkUnlockStatus() {
             try {
-                const res = await fetch(`${GAS_URL}?action=checkStatus&_t=${Date.now()}`);
+                const res = await fetch(`${GAS_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
                 if (!res.ok) throw new Error('HTTP 錯誤');
                 
                 const data = await res.json();
+
+                // 🛑 安全性比對：若回傳的試算表 ID 與前端指定的 TARGET_SPREADSHEET_ID 不合，直接跳轉鎖定頁面
+                if (data && data.boundSheetId !== TARGET_SPREADSHEET_ID) {
+                    window.location.replace('lock.html');
+                    return;
+                }
 
                 // 🔓 當系統完全解鎖（systemLocked === false），自動跳轉回首頁
                 if (data && data.systemLocked === false) {
