@@ -12,26 +12,32 @@
     const urlParams = new URLSearchParams(window.location.search);
     const proposalId = urlParams.get('id');
 
-    // 觸發鎖定：統一跳轉至乾淨的 lock.html (不帶 msg 網址參數)
-    function handleLockAndRedirect() {
-      window.location.replace("lock.html");
+    // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
+    function handleLockAndRedirect(result) {
+      if (result && result.lockType === 'maintenance') {
+        const endTime = encodeURIComponent(result.maintenanceEndTime || '');
+        window.location.replace(`maintenance.html?until=${endTime}`);
+      } else {
+        window.location.replace("lock.html");
+      }
     }
 
-    // 單純檢查遠端鎖狀態 (供背景極速輪詢使用，不影響頁面內容輸入)
+    // 🚀 極速背景輪詢：呼叫輕量 checkStatus API
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
         const result = await res.json();
+        
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
         }
       } catch (e) {
         console.error("遠端鎖背景檢查失敗", e);
       }
     }
 
-    // 設定每 2 秒自動進行一次遠端鎖背景極速檢查
-    setInterval(checkLockStatusOnly, 2000);
+    // 設定每 1.5 秒自動進行一次極速鎖定檢查
+    setInterval(checkLockStatusOnly, 1500);
   </script>
 
   <style>
@@ -179,7 +185,6 @@
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
-    /* 信箱與發送驗證碼按鈕排版 */
     .email-code-group {
       display: flex;
       gap: 0.5rem;
@@ -290,7 +295,6 @@
   <footer>胡志明市臺灣學校學生會 TSSC13TH © 2026 yucheng</footer>
 
   <script>
-    // 日期解析工具函式 (容錯清理時區標籤)
     function parseCleanDate(dateStr) {
       if (!dateStr) return null;
       let cleanStr = String(dateStr)
@@ -303,7 +307,6 @@
       return isNaN(d.getTime()) ? null : d;
     }
 
-    // 時間格式化工具
     function formatDate(dateStr) {
       if (!dateStr) return '未設定';
       const d = parseCleanDate(dateStr);
@@ -330,9 +333,8 @@
         const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
         const result = await res.json();
 
-        // 檢查系統鎖定狀態，若觸發則跳轉至 lock.html
-        if (result && result.systemLocked) {
-          handleLockAndRedirect();
+        if (result && !Array.isArray(result) && result.systemLocked) {
+          handleLockAndRedirect(result);
           return;
         }
 
@@ -349,7 +351,6 @@
           return;
         }
 
-        // 當前時間比對邏輯
         const now = new Date();
         const startTime = parseCleanDate(p.startTime);
         const endTime = parseCleanDate(p.endTime);
@@ -358,7 +359,6 @@
         const isEnded = endTime && now >= endTime;
         const isClosedStatus = p.status === 'Closed';
 
-        // 只要後台關閉、未開始或已結束，皆不可投票
         const isClosed = isClosedStatus || isNotStarted || isEnded;
 
         let statusHint = '已結束';
@@ -423,7 +423,7 @@
               <label for="verification_code">信箱驗證碼 (6 位數字)</label>
               <input type="text" id="verification_code" placeholder="請輸入 6 位數驗證碼" maxlength="6" required>
               <small style="color: #64748b; font-size: 0.8rem; margin-top: 0.3rem; display: block;">
-                請輸入寄送至您學校信箱中的 6 位數一次性驗證碼（有效期限 10 分鐘）。
+                請輸入寄送至您學校信箱中的 6 位數一次性驗證碼（有效期限 10 分鐘，每人每天最多發送 3 次）。
               </small>
             </div>
 
@@ -436,7 +436,6 @@
       }
     }
 
-    // 發送驗證碼函式
     async function sendVerificationCode() {
       const emailInput = document.getElementById('user_email');
       const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
@@ -464,14 +463,13 @@
         const result = await res.json();
 
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
           return;
         }
 
         if (result.status === 'success') {
-          alert('📧 驗證碼已寄出，請至學校信箱查收！');
+          alert(result.message || '📧 驗證碼已寄出，請至學校信箱查收！');
           
-          // 60 秒倒數計時冷卻機制
           let countdown = 60;
           sendBtn.innerText = `${countdown} 秒後重試`;
           const timer = setInterval(() => {
@@ -491,13 +489,12 @@
           sendBtn.innerText = '發送驗證碼';
         }
       } catch (e) {
-        alert('網路錯誤，無法發送驗證碼。');
+        alert('網路網絡錯誤，無法發送驗證碼。');
         sendBtn.disabled = false;
         sendBtn.innerText = '發送驗證碼';
       }
     }
 
-    // 提交投票/意見函式 (包含驗證碼)
     async function submitSingleResponse(pId, pType) {
       const emailInput = document.getElementById('user_email');
       const codeInput = document.getElementById('verification_code');
@@ -550,9 +547,8 @@
 
         const result = await res.json();
 
-        // 提交時若發現已上鎖，直接開啟鎖定頁面
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
           return;
         }
 
@@ -572,6 +568,8 @@
       }
     }
 
+    // 進入頁面時立即觸發極速檢查與載入
+    checkLockStatusOnly();
     loadVoteDetails();
   </script>
 </body>

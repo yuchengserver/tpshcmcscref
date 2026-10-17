@@ -9,33 +9,38 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
     let adminToken = sessionStorage.getItem("adminToken") || ""; 
 
-    // 統一跳轉至乾淨的 lock.html (不帶 msg 網址參數)
-    function handleLockAndRedirect() {
-      window.location.replace('lock.html');
+    // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
+    function handleLockAndRedirect(result) {
+      if (result && result.lockType === 'maintenance') {
+        const endTime = encodeURIComponent(result.maintenanceEndTime || '');
+        window.location.replace(`maintenance.html?until=${endTime}`);
+      } else {
+        window.location.replace("lock.html");
+      }
     }
 
-    // 單純檢查遠端鎖狀態 (供輪詢使用)
+    // 🚀 單純極速檢查遠端鎖狀態 (供輪詢與登入驗證使用)
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
         const result = await res.json();
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
         }
       } catch (e) {
-        console.error("遠端鎖輪詢檢查失敗", e);
+        console.error("遠端鎖極速輪詢檢查失敗", e);
       }
     }
 
     // 初始化檢查鎖定狀態與登入狀態
     (async function initAdminPage() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
         const result = await res.json();
 
-        // 若系統上鎖，立即轉址
+        // 若系統上鎖，立即精準轉址
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
           return;
         }
 
@@ -47,8 +52,8 @@
           });
         }
 
-        // 啟動 10 秒定期檢查遠端鎖機制
-        setInterval(checkLockStatusOnly, 10000);
+        // 啟動 2 秒定期極速檢查遠端鎖機制
+        setInterval(checkLockStatusOnly, 2000);
 
       } catch (e) {
         console.error("初始化檢查失敗", e);
@@ -312,9 +317,9 @@
         });
         const result = await res.json();
 
-        // 檢查鎖定狀態，若上鎖直接跳轉
+        // 檢查鎖定狀態，若上鎖則精準跳轉
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
           return;
         }
 
@@ -372,9 +377,9 @@
         });
         const result = await res.json();
 
-        // 檢查鎖定狀態，若上鎖直接跳轉
+        // 檢查鎖定狀態，若上鎖則精準跳轉
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
           return;
         }
 

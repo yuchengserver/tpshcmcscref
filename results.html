@@ -8,26 +8,31 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 觸發鎖定：統一跳轉至乾淨的 lock.html (不帶 msg 網址參數)
-    function handleLockAndRedirect() {
-      window.location.replace("lock.html");
+    // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
+    function handleLockAndRedirect(result) {
+      if (result && result.lockType === 'maintenance') {
+        const endTime = encodeURIComponent(result.maintenanceEndTime || '');
+        window.location.replace(`maintenance.html?until=${endTime}`);
+      } else {
+        window.location.replace("lock.html");
+      }
     }
 
-    // 單純檢查遠端鎖狀態 (供背景輪詢使用，不影響數據渲染)
+    // 🚀 單純極速檢查遠端鎖狀態 (供背景輪詢使用)
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
         const result = await res.json();
         if (result && result.systemLocked) {
-          handleLockAndRedirect();
+          handleLockAndRedirect(result);
         }
       } catch (e) {
         console.error("遠端鎖背景檢查失敗", e);
       }
     }
 
-    // 設定每 10 秒自動進行一次遠端鎖背景檢查
-    setInterval(checkLockStatusOnly, 10000);
+    // 設定每 2 秒自動進行一次遠端鎖極速檢查
+    setInterval(checkLockStatusOnly, 2000);
   </script>
 
   <style>
@@ -272,13 +277,12 @@
 
     async function loadResults() {
       try {
-        // 加入時間戳記避免 API 回應被瀏覽器快取
         const res = await fetch(`${GAS_API_URL}?action=getResults&_t=${Date.now()}`);
         const result = await res.json();
 
-        // 檢查系統是否觸發遠端鎖定
-        if (result && result.systemLocked) {
-          handleLockAndRedirect();
+        // 檢查系統是否觸發遠端鎖定 (維護中導向 maintenance.html，終止服務導向 lock.html)
+        if (result && !Array.isArray(result) && result.systemLocked) {
+          handleLockAndRedirect(result);
           return;
         }
 
@@ -365,7 +369,8 @@
       }
     }
 
-    // 初次載入列表
+    // 初次載入極速鎖定檢查與結果資料
+    checkLockStatusOnly();
     loadResults();
 
     // 每 30 秒自動觸發數據重新整理

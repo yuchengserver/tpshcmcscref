@@ -8,26 +8,32 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
 
-    // 觸發鎖定：統一跳轉至乾淨的 lock.html (不帶 msg 網址參數)
-    function handleLockAndRedirect() {
-      window.location.replace("lock.html");
-    }
-
-    // 單純檢查遠端鎖狀態 (供背景輪詢使用，不影響頁面渲染)
-    async function checkLockStatusOnly() {
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
-        const result = await res.json();
-        if (result && result.systemLocked) {
-          handleLockAndRedirect();
-        }
-      } catch (e) {
-        console.error("遠端鎖背景檢查失敗", e);
+    // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
+    function handleLockAndRedirect(result) {
+      if (result && result.lockType === 'maintenance') {
+        const endTime = encodeURIComponent(result.maintenanceEndTime || '');
+        window.location.replace(`maintenance.html?until=${endTime}`);
+      } else {
+        window.location.replace("lock.html");
       }
     }
 
-    // 設定每 10 秒自動進行一次遠端鎖背景檢查
-    setInterval(checkLockStatusOnly, 10000);
+    // 🚀 單純極速檢查遠端鎖狀態 (供背景輪詢使用)
+    async function checkLockStatusOnly() {
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
+        const result = await res.json();
+        
+        if (result && result.systemLocked) {
+          handleLockAndRedirect(result);
+        }
+      } catch (e) {
+        console.error("遠端鎖極速背景檢查失敗", e);
+      }
+    }
+
+    // 設定每 2 秒自動進行一次遠端鎖極速檢查
+    setInterval(checkLockStatusOnly, 2000);
   </script>
 
   <style>
@@ -381,9 +387,9 @@
       const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
       const resData = await res.json();
 
-      // 🛑 若系統回傳鎖定，跳轉至 lock.html
-      if (resData && resData.systemLocked) {
-        handleLockAndRedirect();
+      // 🛑 若系統回傳鎖定，精準跳轉至對應鎖定頁面
+      if (resData && !Array.isArray(resData) && resData.systemLocked) {
+        handleLockAndRedirect(resData);
         return;
       }
 
@@ -462,7 +468,8 @@
     }).join('');
   }
 
-  // 進入頁面立即執行
+  // 進入頁面立即執行極速鎖定檢查與資料載入
+  checkLockStatusOnly();
   loadProposals();
 </script>
 </body>

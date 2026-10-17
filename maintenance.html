@@ -32,7 +32,6 @@
             text-align: center;
         }
 
-
         /* 警告 Icon 區塊 */
         .icon-box {
             width: 68px;
@@ -114,7 +113,7 @@
             維護期間將暫時停止意見投遞等功能，造成不便，敬請見諒
         </div>
 
-        <!-- 預計時間顯示（B3 有填寫時自動顯示） -->
+        <!-- 預計時間顯示（自動讀取顯示） -->
         <div id="timeBox" class="time-text" style="display: none;">
             預計恢復使用時間：<span id="maintenanceTimeText"></span>
         </div>
@@ -132,43 +131,56 @@
     </div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_GsvbBdSfWdLYHys0beIzngkABgNmQq49YXd9ukuXAVGZzfS75yMQ33AkP0yoPrL/exec';
-        // 指定遠端鎖定 Control Sheet ID
-        const TARGET_SHEET_ID = '18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec';
 
-        function checkUnlockStatus() {
-            // 加上時間戳 _t 避免瀏覽器快取，並指定 spreadsheetId 參數
-            fetch(`${GAS_URL}?action=checkLockStatus&spreadsheetId=${TARGET_SHEET_ID}&_t=${Date.now()}`)
-                .then(res => {
-                    if (!res.ok) throw new Error('HTTP 錯誤');
-                    return res.json();
-                })
-                .then(data => {
-                    // 🔒 嚴格判斷：只有當明確回傳 locked === false 且 maintenance === false 時才允許跳轉回首頁
-                    if (data && typeof data.locked !== 'undefined') {
-                        if (data.locked === false && data.maintenance === false) {
-                            window.location.href = 'index.html';
-                            return;
-                        }
+        // 1. 初始化：先從網址參數取得預計恢復時間（網址帶有 ?until=...）
+        (function initTimeFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const untilParam = urlParams.get('until');
+            if (untilParam) {
+                const timeBox = document.getElementById('timeBox');
+                const timeText = document.getElementById('maintenanceTimeText');
+                timeText.innerText = decodeURIComponent(untilParam);
+                timeBox.style.display = 'block';
+            }
+        })();
 
-                        // 讀取 B3 儲存格預計恢復時間
-                        const timeBox = document.getElementById('timeBox');
-                        const timeText = document.getElementById('maintenanceTimeText');
-                        if (data.maintenanceTime) {
-                            timeText.innerText = data.maintenanceTime;
-                            timeBox.style.display = 'block';
-                        } else {
-                            timeBox.style.display = 'none';
-                        }
-                    }
-                })
-                .catch(err => console.error('維護狀態檢測失敗:', err));
+        // 2. 極速狀態自動輪詢與跳轉機制
+        async function checkUnlockStatus() {
+            try {
+                const res = await fetch(`${GAS_URL}?action=checkStatus&_t=${Date.now()}`);
+                if (!res.ok) throw new Error('HTTP 錯誤');
+                
+                const data = await res.json();
+
+                // 🔓 當系統完全解鎖（systemLocked === false），自動跳轉回首頁
+                if (data && data.systemLocked === false) {
+                    window.location.replace('index.html');
+                    return;
+                }
+
+                // 🛑 若狀態切換為「服務終止/完全關閉」，自動跳轉至 lock.html
+                if (data && data.systemLocked && data.lockType === 'terminated') {
+                    window.location.replace('lock.html');
+                    return;
+                }
+
+                // ⏰ 更新遠端設定的預計恢復時間
+                if (data && data.maintenanceEndTime) {
+                    const timeBox = document.getElementById('timeBox');
+                    const timeText = document.getElementById('maintenanceTimeText');
+                    timeText.innerText = data.maintenanceEndTime;
+                    timeBox.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('維護狀態檢測失敗:', err);
+            }
         }
 
-        // 頁面載入時執行，並設置 1 秒定期檢測，達到秒級跳轉
+        // 頁面載入時執行首次檢查，並設定每 1.5 秒自動極速輪詢
         window.onload = function() {
             checkUnlockStatus();
-            setInterval(checkUnlockStatus, 1000);
+            setInterval(checkUnlockStatus, 1500);
         };
     </script>
 </body>
