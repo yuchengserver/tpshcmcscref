@@ -7,6 +7,13 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    // 🔒 前端指定綁定的試算表 ID
+    const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
+
+    // 🛡️ 防網路波動：遠端鎖背景檢查連續失敗計數器
+    let lockCheckFailCount = 0;
+    // 🛡️ 防網路波動：結果載入連續失敗計數器
+    let loadResultsFailCount = 0;
 
     // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
     function handleLockAndRedirect(result) {
@@ -18,16 +25,37 @@
       }
     }
 
-    // 🚀 單純極速檢查遠端鎖狀態 (供背景輪詢使用)
+    // 🚀 單純極速檢查遠端鎖狀態 (帶入指定的試算表 ID，連續失敗 3 次才封鎖)
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
         const result = await res.json();
-        if (result && result.systemLocked) {
-          handleLockAndRedirect(result);
+
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        // 若系統上鎖或試算表 ID 不符
+        if (!result || result.systemLocked || !isCorrectSheet) {
+          lockCheckFailCount++;
+          console.warn(`遠端鎖判定異常/鎖定 (第 ${lockCheckFailCount}/3 次)`);
+
+          if (lockCheckFailCount >= 3) {
+            handleLockAndRedirect(result);
+          }
+        } else {
+          // 成功且正常 ➜ 重置計數器
+          lockCheckFailCount = 0;
         }
       } catch (e) {
-        console.error("遠端鎖背景檢查失敗", e);
+        lockCheckFailCount++;
+        console.error(`遠端鎖背景檢查失敗 (第 ${lockCheckFailCount}/3 次):`, e);
+
+        if (lockCheckFailCount >= 3) {
+          handleLockAndRedirect();
+        }
       }
     }
 
@@ -277,14 +305,33 @@
 
     async function loadResults() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getResults&_t=${Date.now()}`);
-        const result = await res.json();
-
-        // 檢查系統是否觸發遠端鎖定 (維護中導向 maintenance.html，終止服務導向 lock.html)
-        if (result && !Array.isArray(result) && result.systemLocked) {
-          handleLockAndRedirect(result);
+        if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
+          handleLockAndRedirect();
           return;
         }
+
+        const res = await fetch(`${GAS_API_URL}?action=getResults&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
+        const result = await res.json();
+
+        const isCorrectSheet = !result || Array.isArray(result) || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        // 檢查系統是否觸發遠端鎖定
+        if (!result || (!Array.isArray(result) && result.systemLocked) || !isCorrectSheet) {
+          loadResultsFailCount++;
+          console.warn(`載入結果判定異常/鎖定 (第 ${loadResultsFailCount}/3 次)`);
+
+          if (loadResultsFailCount >= 3) {
+            handleLockAndRedirect(result);
+          }
+          return;
+        }
+
+        // 載入成功 ➜ 重置計數器
+        loadResultsFailCount = 0;
 
         // 相容處理：取得陣列資料
         const resultsArray = Array.isArray(result) ? result : (result.data || []);
@@ -365,7 +412,12 @@
         }).join('');
 
       } catch (err) {
-        console.error("載入結果失敗", err);
+        console.error("載入結果失敗:", err);
+        loadResultsFailCount++;
+
+        if (loadResultsFailCount >= 3) {
+          handleLockAndRedirect();
+        }
       }
     }
 

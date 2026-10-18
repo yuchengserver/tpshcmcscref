@@ -11,6 +11,8 @@
     const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
     
     let adminToken = sessionStorage.getItem("adminToken") || ""; 
+    // 🛡️ 防網路波動：遠端鎖背景檢查連續失敗計數器
+    let lockCheckFailCount = 0;
 
     // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
     function handleLockAndRedirect(result) {
@@ -23,38 +25,69 @@
       }
     }
 
-    // 🚀 極速檢查遠端鎖狀態 (帶入指定的試算表 ID，不相符即封鎖)
+    // 🚀 極速檢查遠端鎖狀態（連續失敗 3 次才執行跳轉）
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
         const result = await res.json();
         
-        // 若後端回傳鎖定，或是回傳的試算表 ID 與前端指定的 ID 不符 ➜ 強制封鎖
-        if (!result || result.systemLocked || result.boundSheetId !== TARGET_SPREADSHEET_ID) {
-          handleLockAndRedirect(result);
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        // 若後端回傳鎖定，或是回傳的試算表 ID 與前端指定的 ID 不符
+        if (!result || result.systemLocked || !isCorrectSheet) {
+          lockCheckFailCount++;
+          console.warn(`後台遠端鎖判定異常/鎖定 (第 ${lockCheckFailCount}/3 次)`);
+          
+          if (lockCheckFailCount >= 3) {
+            handleLockAndRedirect(result);
+          }
+        } else {
+          // 成功且正常 ➜ 重置計數器
+          lockCheckFailCount = 0;
         }
       } catch (e) {
-        console.error("遠端鎖極速輪詢檢查失敗", e);
+        lockCheckFailCount++;
+        console.error(`後台遠端鎖背景檢查失敗 (第 ${lockCheckFailCount}/3 次):`, e);
+        
+        if (lockCheckFailCount >= 3) {
+          handleLockAndRedirect();
+        }
       }
     }
 
     // 初始化檢查鎖定狀態與登入狀態
-    (async function initAdminPage() {
+    async function initAdminPage(retryCount = 0) {
       try {
-        // 檢查前端指定的 TARGET_SPREADSHEET_ID 是否合法存在
         if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
           handleLockAndRedirect();
           return;
         }
 
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
         const result = await res.json();
 
-        // 若系統上鎖或試算表 ID 不符，立即強制轉址封鎖
-        if (!result || result.systemLocked || result.boundSheetId !== TARGET_SPREADSHEET_ID) {
-          handleLockAndRedirect(result);
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        if (!result || result.systemLocked || !isCorrectSheet) {
+          if (retryCount < 2) {
+            console.warn(`初始化檢查重試中 (${retryCount + 1}/3)...`);
+            setTimeout(() => initAdminPage(retryCount + 1), 1000);
+          } else {
+            handleLockAndRedirect(result);
+          }
           return;
         }
+
+        // 初始化驗證成功 ➜ 重置計數器
+        lockCheckFailCount = 0;
 
         // 若系統正常且先前已登入，顯示管理面板
         if (adminToken) {
@@ -68,10 +101,17 @@
         setInterval(checkLockStatusOnly, 2000);
 
       } catch (e) {
-        console.error("初始化檢查失敗", e);
-        handleLockAndRedirect();
+        console.error(`初始化檢查失敗 (第 ${retryCount + 1}/3 次):`, e);
+        if (retryCount < 2) {
+          setTimeout(() => initAdminPage(retryCount + 1), 1000);
+        } else {
+          handleLockAndRedirect();
+        }
       }
-    })();
+    }
+
+    // 啟動初始化檢查
+    initAdminPage();
   </script>
 
   <style>
@@ -334,8 +374,10 @@
         });
         const result = await res.json();
 
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
         // 檢查鎖定狀態或試算表驗證失敗
-        if (!result || result.systemLocked || result.boundSheetId !== TARGET_SPREADSHEET_ID) {
+        if (!result || result.systemLocked || !isCorrectSheet) {
           handleLockAndRedirect(result);
           return;
         }
@@ -395,7 +437,9 @@
         });
         const result = await res.json();
 
-        if (!result || result.systemLocked || result.boundSheetId !== TARGET_SPREADSHEET_ID) {
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        if (!result || result.systemLocked || !isCorrectSheet) {
           handleLockAndRedirect(result);
           return;
         }

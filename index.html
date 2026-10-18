@@ -10,6 +10,11 @@
     // 🔒 前端指定綁定的試算表 ID
     const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
+    // 🛡️ 防網路波動：遠端鎖背景檢查連續失敗計數器
+    let lockCheckFailCount = 0;
+    // 🛡️ 防網路波動：資料載入連續失敗計數器
+    let loadProposalsFailCount = 0;
+
     // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
     function handleLockAndRedirect(result) {
       if (result && result.lockType === 'maintenance') {
@@ -20,22 +25,41 @@
       }
     }
 
-    // 🚀 單純極速檢查遠端鎖狀態 (帶入指定的試算表 ID，不相符即封鎖)
+    // 🚀 極速檢查遠端鎖狀態（連續失敗 3 次才執行跳轉）
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
         const result = await res.json();
         
-        // 若系統上鎖或試算表 ID 不符，立即強制轉址封鎖
-        if (!result || result.systemLocked || result.boundSheetId !== TARGET_SPREADSHEET_ID) {
-          handleLockAndRedirect(result);
+        const isCorrectSheet = !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        // 若系統上鎖或試算表 ID 不符
+        if (!result || result.systemLocked || !isCorrectSheet) {
+          lockCheckFailCount++;
+          console.warn(`遠端鎖判定異常/鎖定 (第 ${lockCheckFailCount}/3 次)`);
+          
+          if (lockCheckFailCount >= 3) {
+            handleLockAndRedirect(result);
+          }
+        } else {
+          // 成功且正常 ➜ 重置計數器
+          lockCheckFailCount = 0;
         }
       } catch (e) {
-        console.error("遠端鎖極速背景檢查失敗", e);
+        lockCheckFailCount++;
+        console.error(`遠端鎖背景檢查連線失敗 (第 ${lockCheckFailCount}/3 次):`, e);
+        
+        if (lockCheckFailCount >= 3) {
+          handleLockAndRedirect();
+        }
       }
     }
 
-    // 設定每 2 秒自動進行一次遠端鎖極速檢查
+    // 設定每 2 秒自動進行一次遠端鎖檢查
     setInterval(checkLockStatusOnly, 2000);
   </script>
 
@@ -387,20 +411,31 @@
 
   async function loadProposals() {
     try {
-      // 檢查前端指定的 TARGET_SPREADSHEET_ID
       if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
         handleLockAndRedirect();
         return;
       }
 
-      const res = await fetch(`${GAS_API_URL}?action=getProposals&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
+      const res = await fetch(`${GAS_API_URL}?action=getProposals&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       const resData = await res.json();
 
-      // 🛑 若系統回傳鎖定，或試算表 ID 不符，精準跳轉至對應鎖定頁面
-      if (!resData || resData.systemLocked || resData.boundSheetId !== TARGET_SPREADSHEET_ID) {
-        handleLockAndRedirect(resData);
+      const isCorrectSheet = !resData || !resData.boundSheetId || resData.boundSheetId === TARGET_SPREADSHEET_ID;
+
+      // 🛑 若系統回傳鎖定，或試算表 ID 不符
+      if (!resData || resData.systemLocked || !isCorrectSheet) {
+        loadProposalsFailCount++;
+        console.warn(`提案載入判定異常/鎖定 (第 ${loadProposalsFailCount}/3 次)`);
+
+        if (loadProposalsFailCount >= 3) {
+          handleLockAndRedirect(resData);
+        }
         return;
       }
+
+      // 載入成功 ➜ 重置計數器
+      loadProposalsFailCount = 0;
 
       const proposals = Array.isArray(resData) ? resData : (resData.proposals || []);
       const now = new Date();
@@ -409,7 +444,6 @@
       const closedList = [];
 
       proposals.forEach(p => {
-        // 1. 若後台狀態為 Closed，優先歸類至歷史
         if (p.status === 'Closed') {
           closedList.push(p);
           return;
@@ -421,14 +455,11 @@
         const isNotStartedYet = startTime && now < startTime;
         const isAlreadyEnded = endTime && now > endTime;
 
-        // 2. 精準時間比對歸類
         if (isAlreadyEnded) {
           closedList.push(p);
         } else if (isNotStartedYet) {
-          // 時間還沒到 ➜ 一律歸類至預告中
           upcomingList.push(p);
         } else {
-          // 時間已到且未截止 ➜ 歸類至開放中
           activeList.push(p);
         }
       });
@@ -437,8 +468,12 @@
       renderList('upcoming-container', upcomingList, false);
       renderList('closed-container', closedList, false, true);
     } catch (err) {
-      console.error("無法取得資料", err);
-      handleLockAndRedirect();
+      console.error("無法取得資料:", err);
+      loadProposalsFailCount++;
+
+      if (loadProposalsFailCount >= 3) {
+        handleLockAndRedirect();
+      }
     }
   }
 

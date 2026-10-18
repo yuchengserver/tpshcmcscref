@@ -7,10 +7,17 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
+    // 🔒 前端指定綁定的試算表 ID
+    const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
     // 取得網址參數 (例如: vote.html?id=123)
     const urlParams = new URLSearchParams(window.location.search);
     const proposalId = urlParams.get('id');
+
+    // 🛡️ 防網路波動：遠端鎖背景檢查連續失敗計數器
+    let lockCheckFailCount = 0;
+    // 🛡️ 防網路波動：提案詳情載入連續失敗計數器
+    let loadDetailsFailCount = 0;
 
     // 精準畫面轉址邏輯：區分維護頁 (maintenance.html) 與終止服務頁 (lock.html)
     function handleLockAndRedirect(result) {
@@ -22,17 +29,37 @@
       }
     }
 
-    // 🚀 極速背景輪詢：呼叫輕量 checkStatus API
+    // 🚀 極速背景輪詢：呼叫輕量 checkStatus API (連續失敗 3 次才執行跳轉)
     async function checkLockStatusOnly() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
         const result = await res.json();
         
-        if (result && result.systemLocked) {
-          handleLockAndRedirect(result);
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        // 若系統上鎖或試算表 ID 不符
+        if (!result || result.systemLocked || !isCorrectSheet) {
+          lockCheckFailCount++;
+          console.warn(`遠端鎖判定異常/鎖定 (第 ${lockCheckFailCount}/3 次)`);
+
+          if (lockCheckFailCount >= 3) {
+            handleLockAndRedirect(result);
+          }
+        } else {
+          // 成功且正常 ➜ 重置計數器
+          lockCheckFailCount = 0;
         }
       } catch (e) {
-        console.error("遠端鎖背景檢查失敗", e);
+        lockCheckFailCount++;
+        console.error(`遠端鎖背景檢查失敗 (第 ${lockCheckFailCount}/3 次):`, e);
+
+        if (lockCheckFailCount >= 3) {
+          handleLockAndRedirect();
+        }
       }
     }
 
@@ -330,13 +357,32 @@
       }
 
       try {
-        const res = await fetch(`${GAS_API_URL}?action=getProposals&_t=${Date.now()}`);
-        const result = await res.json();
-
-        if (result && !Array.isArray(result) && result.systemLocked) {
-          handleLockAndRedirect(result);
+        if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
+          handleLockAndRedirect();
           return;
         }
+
+        const res = await fetch(`${GAS_API_URL}?action=getProposals&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        
+        if (!res.ok) throw new Error("HTTP 狀態碼非 200");
+        const result = await res.json();
+
+        const isCorrectSheet = !result || Array.isArray(result) || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        if (!result || (!Array.isArray(result) && result.systemLocked) || !isCorrectSheet) {
+          loadDetailsFailCount++;
+          console.warn(`提案詳情載入判定異常/鎖定 (第 ${loadDetailsFailCount}/3 次)`);
+
+          if (loadDetailsFailCount >= 3) {
+            handleLockAndRedirect(result);
+          }
+          return;
+        }
+
+        // 載入成功 ➜ 重置計數器
+        loadDetailsFailCount = 0;
 
         const proposals = Array.isArray(result) ? result : [];
         const p = proposals.find(item => String(item.id) === String(proposalId));
@@ -432,7 +478,12 @@
         `;
 
       } catch (err) {
-        console.error("無法載入提案詳細資料", err);
+        console.error("無法載入提案詳細資料:", err);
+        loadDetailsFailCount++;
+
+        if (loadDetailsFailCount >= 3) {
+          handleLockAndRedirect();
+        }
       }
     }
 
@@ -456,13 +507,16 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'sendVerificationCode',
+            sheetId: TARGET_SPREADSHEET_ID,
             email: email
           })
         });
 
         const result = await res.json();
 
-        if (result && result.systemLocked) {
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        if (!result || result.systemLocked || !isCorrectSheet) {
           handleLockAndRedirect(result);
           return;
         }
@@ -489,7 +543,7 @@
           sendBtn.innerText = '發送驗證碼';
         }
       } catch (e) {
-        alert('網路網絡錯誤，無法發送驗證碼。');
+        alert('連線失敗，無法發送驗證碼。');
         sendBtn.disabled = false;
         sendBtn.innerText = '發送驗證碼';
       }
@@ -538,6 +592,7 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'submitVote',
+            sheetId: TARGET_SPREADSHEET_ID,
             proposalId: pId,
             email: email,
             code: code,
@@ -547,7 +602,9 @@
 
         const result = await res.json();
 
-        if (result && result.systemLocked) {
+        const isCorrectSheet = !result || !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        if (!result || result.systemLocked || !isCorrectSheet) {
           handleLockAndRedirect(result);
           return;
         }

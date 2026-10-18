@@ -43,7 +43,7 @@
             align-items: center;
             margin: 0 auto 20px;
             font-size: 2rem;
-            animation: redGlowBreathing 1.2s infinite ease-in-out; /* 閃爍紅光 */
+            animation: redGlowBreathing 1.2s infinite ease-in-out;
         }
 
         .title {
@@ -132,7 +132,6 @@
 
     <script>
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec';
-        // 🔒 前端指定綁定的試算表 ID
         const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
         // 1. 初始化：先從網址參數取得預計恢復時間（網址帶有 ?until=...）
@@ -150,13 +149,16 @@
         // 2. 極速狀態自動輪詢與跳轉機制
         async function checkUnlockStatus() {
             try {
-                const res = await fetch(`${GAS_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
+                const res = await fetch(`${GAS_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+                    cache: 'no-store'
+                });
                 if (!res.ok) throw new Error('HTTP 錯誤');
                 
                 const data = await res.json();
 
-                // 🛑 安全性比對：若回傳的試算表 ID 與前端指定的 TARGET_SPREADSHEET_ID 不合，直接跳轉鎖定頁面
-                if (data && data.boundSheetId !== TARGET_SPREADSHEET_ID) {
+                // 💡 安全性比對：若後端有回傳 boundSheetId，且與前端指定的 ID 不吻合，才跳轉封鎖頁面
+                const isCorrectSheet = !data.boundSheetId || data.boundSheetId === TARGET_SPREADSHEET_ID;
+                if (!isCorrectSheet) {
                     window.location.replace('lock.html');
                     return;
                 }

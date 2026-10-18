@@ -136,35 +136,38 @@
 
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz3YUvaNzi4Ed3JfUSgdHtVQinjB30wMISJamSwK7OSn9wWFIyO_60na0myOdXBTLVe/exec";
-    // 🔒 前端指定綁定的試算表 ID
     const TARGET_SPREADSHEET_ID = "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo";
 
-    // 🚀 自動極速檢查解鎖/狀態切換函式
     async function checkIfUnlocked() {
       try {
-        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`);
+        const res = await fetch(`${GAS_API_URL}?action=checkStatus&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        });
         const result = await res.json();
 
-        // 1. 只有當系統解鎖 (systemLocked === false) 且 試算表 ID 吻合時，才跳轉回首頁
-        if (result && !result.systemLocked && result.boundSheetId === TARGET_SPREADSHEET_ID) {
+        // 💡 檢查邏輯修正：只要明確回傳 systemLocked === false 即可順利跳轉回首頁
+        const isUnlocked = (result && result.systemLocked === false);
+        const isCorrectSheet = !result.boundSheetId || result.boundSheetId === TARGET_SPREADSHEET_ID;
+
+        if (isUnlocked && isCorrectSheet) {
           window.location.replace("index.html");
           return;
         }
 
-        // 2. 若狀態被切換為「維護中」，且試算表 ID 吻合，自動切換至維護頁面
-        if (result && result.systemLocked && result.lockType === 'maintenance' && result.boundSheetId === TARGET_SPREADSHEET_ID) {
+        // 若切換為「維護中」，自動轉址至維護頁面
+        if (result && result.systemLocked && result.lockType === 'maintenance' && isCorrectSheet) {
           const endTime = encodeURIComponent(result.maintenanceEndTime || '');
           window.location.replace(`maintenance.html?until=${endTime}`);
         }
       } catch (e) {
-        // 發生連線波動或 ID 不符時保持鎖定頁面，等待下一次自動檢查
+        console.error("檢查連線失敗", e);
       }
     }
 
-    // 頁面載入 1 秒後進行首次極速檢查
-    setTimeout(checkIfUnlocked, 1000);
+    // 立即進行一次檢查
+    checkIfUnlocked();
 
-    // 每 2 秒進行一次自動輪詢檢查，達成毫秒級回應
+    // 每 2 秒輪詢一次
     setInterval(checkIfUnlocked, 2000);
   </script>
 </body>
