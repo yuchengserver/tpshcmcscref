@@ -291,23 +291,28 @@
     // 手動點擊重新整理
     function manualRefresh() {
       const btn = document.getElementById('btn-refresh');
-      const container = document.getElementById('results-container');
-      
       btn.disabled = true;
       btn.innerHTML = '⏳ 載入中...';
-      container.innerHTML = '<div class="empty-text">🔄 正在讀取最新開票結果...</div>';
 
-      loadResults().finally(() => {
+      loadResults(false).finally(() => {
         btn.disabled = false;
         btn.innerHTML = '🔄 重新整理';
       });
     }
 
-    async function loadResults() {
+    // 支援靜默載入 (isSilent = true 時不清空畫面或顯示載入中)
+    async function loadResults(isSilent = false) {
       try {
         if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
           handleLockAndRedirect();
           return;
+        }
+
+        const container = document.getElementById('results-container');
+
+        // 非靜默模式且尚未有內容時才顯示讀取提示
+        if (!isSilent && container && container.children.length === 0) {
+          container.innerHTML = '<div class="empty-text">🔄 正在讀取最新開票結果...</div>';
         }
 
         const res = await fetch(`${GAS_API_URL}?action=getResults&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
@@ -335,7 +340,6 @@
 
         // 相容處理：取得陣列資料
         const resultsArray = Array.isArray(result) ? result : (result.data || []);
-        const container = document.getElementById('results-container');
 
         if (!resultsArray || resultsArray.length === 0) {
           container.innerHTML = '<div class="empty-text">📫 目前尚無紀錄</div>';
@@ -423,10 +427,12 @@
 
     // 初次載入極速鎖定檢查與結果資料
     checkLockStatusOnly();
-    loadResults();
+    loadResults(false);
 
-    // 每 30 秒自動觸發數據重新整理
-    setInterval(loadResults, 30000);
+    // 靜默自動輪詢：每 60 秒背景自動讀取一次開票資料庫，不顯示「載入中」提示
+    setInterval(() => {
+      loadResults(true);
+    }, 60000);
   </script>
 </body>
 </html>

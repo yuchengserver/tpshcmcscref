@@ -376,18 +376,15 @@
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
+  // 手動點擊重新整理
   function loadData() {
     const btn = document.getElementById('btn-refresh');
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = '⏳ 載入中...';
     }
-    
-    document.getElementById('active-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
-    document.getElementById('upcoming-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
-    document.getElementById('closed-container').innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
 
-    loadProposals().finally(() => {
+    loadProposals(false).finally(() => {
       if (btn) {
         btn.disabled = false;
         btn.innerHTML = '🔄 重新整理';
@@ -409,11 +406,29 @@
     window.location.href = `vote.html?id=${encodeURIComponent(proposalId)}`;
   }
 
-  async function loadProposals() {
+  // 支援靜默載入 (isSilent = true 時不清空畫面或顯示載入中)
+  async function loadProposals(isSilent = false) {
     try {
       if (!TARGET_SPREADSHEET_ID || TARGET_SPREADSHEET_ID !== "18fxfF-BnNlDnhCH0NORbNeWXKSo1KHmljfPCkpvJTKo") {
         handleLockAndRedirect();
         return;
+      }
+
+      // 只有非靜默狀態（例如首次進入或手動點擊按鈕）才顯示載入中文字
+      if (!isSilent) {
+        const activeContainer = document.getElementById('active-container');
+        const upcomingContainer = document.getElementById('upcoming-container');
+        const closedContainer = document.getElementById('closed-container');
+
+        if (activeContainer && activeContainer.children.length === 0) {
+          activeContainer.innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+        }
+        if (upcomingContainer && upcomingContainer.children.length === 0) {
+          upcomingContainer.innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+        }
+        if (closedContainer && closedContainer.children.length === 0) {
+          closedContainer.innerHTML = '<div class="empty-text">🔄 正在載入最新資料...</div>';
+        }
       }
 
       const res = await fetch(`${GAS_API_URL}?action=getProposals&sheetId=${TARGET_SPREADSHEET_ID}&_t=${Date.now()}`, {
@@ -513,9 +528,14 @@
     }).join('');
   }
 
-  // 進入頁面立即執行極速鎖定檢查與資料載入
+  // 進入頁面立即執行極速鎖定檢查與初次資料載入
   checkLockStatusOnly();
-  loadProposals();
+  loadProposals(false);
+
+  // 靜默自動輪詢：每 60 秒背景自動讀取一次資料庫，不顯示「載入中」提示
+  setInterval(() => {
+    loadProposals(true);
+  }, 60000);
 </script>
 </body>
 </html>
